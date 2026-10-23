@@ -759,6 +759,76 @@ describe("Oriel server", () => {
     expect(disk).not.toContain("hunter2");
   });
 
+  it("ORIEL-F29 a sentence clears only a rule with no phrase", async () => {
+    const server = await boot();
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Stop handing deletions to me" }),
+    });
+    const empty = await missing.json();
+    expect(missing.status).toBe(200);
+    expect(empty.handoffRules).toHaveLength(0);
+    expect(empty.goals).toHaveLength(0);
+    expect(empty.messages.at(-1).text).toContain("no handoff rule");
+    const saved = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true }),
+    });
+    const armed = await saved.json();
+    expect(armed.handoffRules).toHaveLength(1);
+    expect(armed.handoffRules[0].phrase).toBeNull();
+    const banned = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Stop handing deletions to me without asking" }),
+    });
+    expect(banned.status).toBe(400);
+    expect(await banned.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.handoffRules).toHaveLength(1);
+    const mixed = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Stop handing deletions to me and delete them" }),
+    });
+    const opened = await mixed.json();
+    expect(opened.handoffRules).toHaveLength(1);
+    expect(opened.handoffs.filter((item: { status: string }) => item.status === "open")).toHaveLength(1);
+    expect(opened.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const cleared = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Stop handing deletions to me" }),
+    });
+    const gone = await cleared.json();
+    expect(cleared.status).toBe(200);
+    expect(gone.handoffRules).toHaveLength(0);
+    expect(gone.handoffs.filter((item: { status: string }) => item.status === "open")).toHaveLength(1);
+    expect(gone.messages.at(-1).text).toContain("Cleared the one handoff rule");
+    expect(gone.messages.at(-1).text).toContain("did not approve a hold");
+    const narrowed = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention shared project files to me" }),
+    });
+    const named = await narrowed.json();
+    const ruleId = named.handoffRules[0].id;
+    const refused = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Stop handing deletions to me" }),
+    });
+    const kept = await refused.json();
+    expect(kept.handoffRules).toHaveLength(1);
+    expect(kept.handoffRules[0].id).toBe(ruleId);
+    expect(kept.handoffRules[0].phrase).toBe("shared project files");
+    expect(kept.messages.at(-1).text).toContain("does not clear it");
+    expect(kept.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    expect(JSON.stringify(kept)).not.toContain("Always allow");
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

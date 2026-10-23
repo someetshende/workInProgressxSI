@@ -51,6 +51,8 @@ You can say the same rule. `Hand deletions that mention shared project files to 
 
 You can take that rule back in the same voice. `Stop handing deletions that mention shared project files to me` clears the one rule that uses those words. Different words leave the rule in place. A sentence that would delete is ordinary work, and it does not clear the rule. Saying it does not open a card, call a bridge, approve a hold, send mail, or move money.
 
+`Stop handing deletions to me` clears a deletion rule that has no words of its own. It does not clear a rule whose words are something else, such as shared project files. A sentence that would delete is still ordinary work. Saying it does not open a card, call a bridge, approve a hold, send mail, or move money.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:

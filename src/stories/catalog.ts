@@ -343,6 +343,12 @@ export const constraints: Constraint[] = [
     text: "a sentence can name the words on a handoff rule, and saying it does not run the step or open a card",
     proof: "The sentence saves one rule for that action. A sentence that would not do the action does not save a rule and does not open a handoff.",
   },
+  {
+    id: "clear-whole",
+    short: "Clear the whole step",
+    text: "a sentence can clear a handoff rule that names no phrase, and it does not clear a rule that names other words",
+    proof: "Stop handing deletions to me clears only a deletion rule with no phrase. A phrased rule stays, and the sentence does not run the step.",
+  },
 ];
 
 let cache: Story[] | null = null;

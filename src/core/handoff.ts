@@ -193,6 +193,9 @@ const SPOKEN_RULE =
 const SPOKEN_CLEAR =
   /^(?:please\s+)?(?:stop|don'?t|do not)\s+hand(?:ing)?(?:\s+over|\s+off|-off)?(?:\s+(?:me|you))?\s+(?:the\s+|an\s+|a\s+|any\s+)?([a-z][a-z-]*)\s+(?:that\s+)?mention(?:s|ing)?\s+(.+?)\s+to\s+(?:me|you)$/i;
 
+const SPOKEN_BARE_CLEAR =
+  /^(?:please\s+)?(?:stop|don'?t|do not)\s+hand(?:ing)?(?:\s+over|\s+off|-off)?(?:\s+(?:me|you))?\s+(?:the\s+|an\s+|a\s+|any\s+)?([a-z][a-z-]*)\s+to\s+(?:me|you)$/i;
+
 const SPOKEN_WOULD: Record<HandoffAction, string> = {
   send: "send",
   pay: "pay",
@@ -205,7 +208,7 @@ export type SpokenRule =
   | { kind: "reject"; reason: "phrase" | "action" };
 
 export type SpokenClear =
-  | { kind: "clear"; action: HandoffAction; phrase: string }
+  | { kind: "clear"; action: HandoffAction; phrase: string | null }
   | { kind: "reject"; reason: "phrase" | "action" };
 
 function unwrapPhrase(value: string): string {
@@ -247,12 +250,18 @@ export function spokenRuleCopy(action: HandoffAction, phrase: string, mode: "sav
 export function readSpokenClear(text: string): SpokenClear | null {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   const match = normalized.match(SPOKEN_CLEAR);
-  if (!match) return null;
-  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (match) {
+    const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+    if (!action) return { kind: "reject", reason: "action" };
+    const phrase = cleanPhrase(unwrapPhrase(match[2] ?? ""));
+    if (!phrase) return { kind: "reject", reason: "phrase" };
+    return { kind: "clear", action, phrase };
+  }
+  const bare = normalized.match(SPOKEN_BARE_CLEAR);
+  if (!bare) return null;
+  const action = SPOKEN_NOUNS[(bare[1] ?? "").toLowerCase()];
   if (!action) return { kind: "reject", reason: "action" };
-  const phrase = cleanPhrase(unwrapPhrase(match[2] ?? ""));
-  if (!phrase) return { kind: "reject", reason: "phrase" };
-  return { kind: "clear", action, phrase };
+  return { kind: "clear", action, phrase: null };
 }
 
 export function spokenPhraseMatches(saved: string | null, spoken: string): boolean {
@@ -263,6 +272,19 @@ export function spokenPhraseMatches(saved: string | null, spoken: string): boole
 export function spokenClearCopy(action: HandoffAction, phrase: string): string {
   const step = SPOKEN_WOULD[action];
   return `Cleared the one handoff rule for a ${step}. A request that mentions “${phrase}” is no longer handed to you. This did not run the step, send mail, or move money, and it did not approve a hold.`;
+}
+
+export function spokenBareClearCopy(action: HandoffAction): string {
+  const step = SPOKEN_WOULD[action];
+  return `Cleared the one handoff rule for a ${step}. A request that would ${step} is no longer handed to you by that rule. This did not run the step, send mail, or move money, and it did not approve a hold.`;
+}
+
+export function spokenBareClearMissCopy(action: HandoffAction, saved: string | null | undefined): string {
+  const step = SPOKEN_WOULD[action];
+  const head = saved
+    ? `That handoff rule for a ${step} names “${saved}”. A sentence with no phrase does not clear it.`
+    : `There is no handoff rule for a ${step}.`;
+  return `${head} Oriel did not clear a rule and did not open a card. Nothing was sent or spent.`;
 }
 
 export function spokenClearMissCopy(action: HandoffAction, phrase: string, saved: string | null | undefined): string {

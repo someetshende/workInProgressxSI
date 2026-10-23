@@ -536,6 +536,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F29",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Clear a whole handoff",
+      title: "A sentence can clear a handoff that names no words",
+      story:
+        "As a security admin, I want to tell Oriel to stop handing deletions to me, so that a rule with no phrase is cleared and a rule that names other words stays.",
+      acceptance: [
+        "Saying stop handing deletions to me clears a deletion rule that has no phrase, and it leaves a rule that names other words in place.",
+        "The sentence does not open a handoff, call a bridge, approve a hold, send mail, or move money.",
+        "A sentence that would delete is not a clear, and there is still no always-allow.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

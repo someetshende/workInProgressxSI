@@ -3,7 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, loosensHandoff, loosensSpokenClear, readSpokenClear, readSpokenRule, skillGuardsSeat, spokenClearCopy, spokenClearMissCopy, spokenPhraseMatches, spokenRuleCopy, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, loosensHandoff, loosensSpokenClear, readSpokenClear, readSpokenRule, skillGuardsSeat, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenPhraseMatches, spokenRuleCopy, taskSuffix } from "./handoff.js";
 import type { SpokenClear, SpokenRule } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
@@ -552,6 +552,17 @@ function applySpokenClear(state: AppState, raw: string, spoken: SpokenClear, dep
     return draft;
   }
   const existing = (state.handoffRules ?? []).find((rule) => rule.action === spoken.action);
+  if (spoken.phrase === null) {
+    const clears = Boolean(existing && !existing.phrase);
+    const draft = clears ? setHandoffRule(state, spoken.action, false, deps) : structuredClone(state);
+    pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+    const reply = clears
+      ? spokenBareClearCopy(spoken.action)
+      : spokenBareClearMissCopy(spoken.action, existing?.phrase);
+    pushMessage(draft, { role: "oriel", text: reply }, deps);
+    if (!clears) pushEvent(draft, null, "rule_ignored", reply, deps);
+    return draft;
+  }
   const savedPhrase = existing?.phrase ?? null;
   if (!savedPhrase || !spokenPhraseMatches(savedPhrase, spoken.phrase)) {
     const draft = structuredClone(state);
