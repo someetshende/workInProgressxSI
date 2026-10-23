@@ -1270,6 +1270,147 @@ describe("Oriel server", () => {
     expect(JSON.stringify(worked)).not.toContain("Always allow");
   });
 
+  it("ORIEL-F34 a sentence asks which step uses certain words and does not act", async () => {
+    const server = await boot();
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which step mentions shared project files?" }),
+    });
+    const empty = await missing.json();
+    expect(missing.status).toBe(200);
+    expect(empty.handoffRules).toHaveLength(0);
+    expect(empty.goals).toHaveLength(0);
+    expect(empty.handoffs).toHaveLength(0);
+    expect(empty.messages.at(-1).text).toContain("No step mentions “shared project files”");
+    expect(empty.messages.at(-1).text).toContain("named no other step");
+    expect(empty.messages.at(-1).text).not.toContain("The deletion");
+    const banned = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which step mentions shared project files without asking" }),
+    });
+    expect(banned.status).toBe(400);
+    expect(await banned.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const loose = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Please, which step mentions shared project files always allow" }),
+    });
+    expect(loose.status).toBe(400);
+    expect(await loose.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const short = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which step mentions ab?" }),
+    });
+    expect(short.status).toBe(400);
+    expect(await short.json()).toMatchObject({ error: expect.stringMatching(/short phrase/) });
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.handoffRules).toHaveLength(0);
+    expect(still.goals).toHaveLength(0);
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "send", enabled: true, phrase: "shared project files" }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "pay", enabled: true, phrase: "the vendor invoice" }),
+    });
+    const whole = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        text: "Which step mentions shared project files?",
+        goalId: "goal_missing",
+        skillId: "skill_missing",
+      }),
+    });
+    const unnamed = await whole.json();
+    expect(whole.status).toBe(200);
+    expect(unnamed.goals).toHaveLength(0);
+    expect(unnamed.handoffs).toHaveLength(0);
+    expect(unnamed.handoffRules).toHaveLength(3);
+    expect(unnamed.handoffRules.find((rule: { action: string }) => rule.action === "delete").phrase).toBeNull();
+    expect(unnamed.messages.at(-1).text).toContain("The send mentions “shared project files”");
+    expect(unnamed.messages.at(-1).text).not.toContain("These steps mention");
+    expect(unnamed.messages.at(-1).text).not.toContain("The deletion");
+    expect(unnamed.messages.at(-1).text).not.toContain("the whole deletion");
+    expect(unnamed.messages.at(-1).text).not.toContain("the vendor invoice");
+    expect(unnamed.messages.at(-1).text).toContain("did not approve a hold");
+    const both = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention shared project files to me" }),
+    });
+    const named = await both.json();
+    const ruleId = named.handoffRules.find((rule: { action: string }) => rule.action === "delete").id;
+    expect(named.handoffRules.find((rule: { action: string }) => rule.action === "delete").phrase).toBe("shared project files");
+    const read = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps mention shared project files to you?" }),
+    });
+    const listed = await read.json();
+    expect(read.status).toBe(200);
+    expect(listed.goals).toHaveLength(0);
+    expect(listed.handoffs).toHaveLength(0);
+    expect(listed.handoffRules.find((rule: { action: string }) => rule.action === "delete").id).toBe(ruleId);
+    expect(listed.messages.at(-1).text).toContain("These steps mention “shared project files”");
+    expect(listed.messages.at(-1).text).toContain("The deletion mentions “shared project files”");
+    expect(listed.messages.at(-1).text).toContain("The send mentions “shared project files”");
+    expect(listed.messages.at(-1).text).not.toContain("the vendor invoice");
+    expect(listed.messages.at(-1).text).not.toContain("the whole");
+    const words = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which words does a deletion hand to me?" }),
+    });
+    const phrase = await words.json();
+    expect(phrase.messages.at(-1).text).toContain("The words are “shared project files”");
+    expect(phrase.messages.at(-1).text).not.toContain("No step mentions");
+    expect(phrase.messages.at(-1).text).not.toContain("The send");
+    const all = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "What is handed to me?" }),
+    });
+    const every = await all.json();
+    expect(every.messages.at(-1).text).toContain("These steps are handed to you");
+    expect(every.messages.at(-1).text).toContain("only “shared project files”");
+    expect(every.messages.at(-1).text).toContain("only “the vendor invoice”");
+    expect(every.messages.at(-1).text).not.toContain("the whole deletion");
+    expect(every.messages.at(-1).text).not.toContain("No step mentions");
+    const mixed = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which step mentions shared project files and delete the shared project files" }),
+    });
+    const opened = await mixed.json();
+    expect(opened.handoffRules.find((rule: { action: string }) => rule.action === "delete").phrase).toBe("shared project files");
+    expect(opened.handoffs.filter((item: { status: string }) => item.status === "open")).toHaveLength(1);
+    expect(opened.messages.at(-1).text).not.toContain("named no other step");
+    expect(opened.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const ordinary = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions to me" }),
+    });
+    const worked = await ordinary.json();
+    expect(worked.goals.length).toBeGreaterThan(0);
+    expect(worked.handoffRules.find((rule: { action: string }) => rule.action === "delete").id).toBe(ruleId);
+    expect(worked.handoffRules.find((rule: { action: string }) => rule.action === "delete").phrase).toBe("shared project files");
+    expect(worked.messages.at(-1).text).not.toContain("No step mentions");
+    expect(JSON.stringify(worked)).not.toContain("Always allow");
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

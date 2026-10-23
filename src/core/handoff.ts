@@ -432,6 +432,50 @@ export function spokenWordsCopy(action: HandoffAction, rule: HandoffRule | undef
   return `${READ_LABEL[action]} is handed to you. The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
 }
 
+const SPOKEN_STEP = /^(?:please,?\s+)?which steps?\s+mention(?:s|ing)?\s+(.+)$/i;
+
+const STEP_ADDRESS = /(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?\s+to\s+(?:me|you)$/i;
+
+const LOOSE_TAIL =
+  /(?:\s+(?:without asking|always[-\s]?allow|allow automatically|take action without(?: asking)?))+$/i;
+
+export type SpokenStep = { kind: "ask"; phrase: string } | { kind: "reject"; reason: "phrase" };
+
+function stepWouldAct(text: string): boolean {
+  const body = text.replace(/^(?:please,?\s+)?which steps?\s+mention(?:s|ing)?\s+/i, "");
+  if (/[.!?]/.test(body)) return true;
+  return /\b(?:and|then)\s+(?:please\s+)?(?:also\s+)?(?:delete|deleting|send|sending|email|e-mail|pay|paying|post|posting|publish|publishing|buy|buying|purchase)\s+(?:the|a|an|that|this|those|these|them|it)\b/i.test(
+    text,
+  );
+}
+
+export function readSpokenStep(text: string): SpokenStep | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_STEP);
+  if (!match || stepWouldAct(normalized)) return null;
+  let raw = unwrapPhrase(match[1] ?? "");
+  if (LOOSE_TAIL.test(raw)) return null;
+  raw = unwrapPhrase(raw.replace(STEP_ADDRESS, "").trim());
+  if (!raw || LOOSE_TAIL.test(raw)) return null;
+  const phrase = cleanPhrase(raw);
+  if (!phrase) return { kind: "reject", reason: "phrase" };
+  return { kind: "ask", phrase };
+}
+
+export function spokenStepCopy(phrase: string, rules: HandoffRule[]): string {
+  const matched = READ_ORDER.flatMap((action) => {
+    const rule = rules.find((item) => item.action === action);
+    if (!rule || !spokenPhraseMatches(rule.phrase, phrase)) return [];
+    return [rule];
+  });
+  if (!matched.length) {
+    return `No step mentions “${phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const lines = matched.map((rule) => `${READ_LABEL[rule.action]} mentions “${rule.phrase}”.`).join(" ");
+  if (matched.length === 1) return `${lines} Oriel named no other step. ${ASK_TAIL}`;
+  return `These steps mention “${phrase}”. ${lines} Oriel named no other step. ${ASK_TAIL}`;
+}
+
 export function loosensSpokenRead(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please,?\s+)?(?:what(?:'s| is)|which)\b/i.test(normalized)) return false;
@@ -450,6 +494,12 @@ export function loosensSpokenWords(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please,?\s+)?which words\b/i.test(normalized)) return false;
   if (!/\bhand(?:ed|ing)?(?:\s+(?:off|over))?\s+to\s+(?:me|you)\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+export function loosensSpokenStep(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which steps?\s+mention/i.test(normalized)) return false;
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 

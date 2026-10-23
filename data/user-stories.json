@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3399,
-  "flagship": 33,
+  "count": 3400,
+  "flagship": 34,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -600,6 +600,24 @@
       "kind": "flagship",
       "testRef": "tests/orchestrator.test.ts",
       "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F34",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask which step",
+      "title": "A sentence can ask which step uses certain words",
+      "story": "As a security admin, I want to ask Oriel which step mentions certain words, so that it names only those rules and does not delete anything.",
+      "acceptance": [
+        "Asking which step mentions those words names only the actions whose phrase is those words, including more than one.",
+        "A rule with no phrase is not those words, and if none match Oriel says so without naming the other rules.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "Dots, announced by OpenAI on 29 September 2026, is one always-on owner agent on GPT-6 Astra that keeps working between conversations."
     },
     {
       "id": "ORIEL-1001",
