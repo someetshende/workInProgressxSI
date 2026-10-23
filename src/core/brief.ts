@@ -3,6 +3,7 @@ import { AWAY_HOLD_COPY } from "./hold.js";
 import { DISPLAY, phrase } from "./doctrine.js";
 import { TRUST } from "./doctrine.js";
 import { peopleIn } from "./memory.js";
+import { isForwardRequest, type SlackAskKind } from "./policy.js";
 import type { ApprovalKind, Brief, Goal, HandoffAction, LedgerEvent, Policy, SeatChoice, SeatNote } from "./types.js";
 
 const KIND_HELD: Record<ApprovalKind, string> = {
@@ -42,6 +43,22 @@ export function holdSentence(held: ApprovalKind[], skipped: ApprovalKind[]): str
 }
 
 export const DRAFT_ONLY_COPY = "This stays a draft. Nothing was sent.";
+
+export const FORWARD_COPY =
+  "This is a forward. Oriel did not pull the original message or its attachments. Nothing was sent.";
+
+export const FORWARD_DRAFT_NOTE = "Oriel did not pull the original message or its attachments.";
+
+export const FORWARD_TASK =
+  "This is a forward of an existing message. Do not pull an inbox, attachments, or images. Do not send mail.";
+
+export function whoAskedSlackCopy(kind: SlackAskKind | null): string {
+  if (kind === "forward") return "You asked Oriel to forward that Slack note. Nothing was sent from here.";
+  if (kind === "send") return "You asked Oriel to send that Slack note. Nothing was sent from here.";
+  if (kind === "draft") return "You asked Oriel to draft that Slack note. Nothing was sent.";
+  if (kind === "ruled") return "You ruled out that Slack note. Nothing was sent.";
+  return "No Slack note in this record was asked for. Nothing was sent.";
+}
 
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
@@ -86,6 +103,9 @@ export function approvalDetail(kind: ApprovalKind, text: string): string {
   }
   if (kind === "send") {
     const who = people.length ? `People named: ${people.join(", ")}.` : "No recipient was extracted.";
+    if (isForwardRequest(text)) {
+      return `This is a forward. Oriel did not pull the original message or its attachments. ${who} Releasing this hold does not deliver it.`;
+    }
     return `Draft stays here. ${who} Releasing a reference seat does not deliver the message.`;
   }
   if (kind === "delete") return "Nothing is deleted from here. The hold only records whether you would allow it.";
@@ -117,7 +137,12 @@ export function composeBrief(input: {
   const handedLine = input.handed ? HANDOFF_VOICE : "";
   const awayLine = input.away && input.held.length ? AWAY_HOLD_COPY : "";
   const draftLine = input.policy.draftOnly ? DRAFT_ONLY_COPY : "";
-  const voice = [using, recommendation, draftLine, sentence, stayedLine, ruleLine, handedLine, awayLine].filter(Boolean).join(" ");
+  const forwardLine = input.policy.forward ? FORWARD_COPY : "";
+  const forwardDraftLine =
+    !input.policy.forward && input.policy.draftOnly && input.policy.forwardAsked ? FORWARD_DRAFT_NOTE : "";
+  const voice = [using, recommendation, draftLine, forwardDraftLine, forwardLine, sentence, stayedLine, ruleLine, handedLine, awayLine]
+    .filter(Boolean)
+    .join(" ");
   const why = input.skillName
     ? [
         `The skill “${input.skillName}” supplied the method. It does not wake, and it does not approve a hold.`,
@@ -133,6 +158,8 @@ export function composeBrief(input: {
     ...input.notes.map((note) => note.summary),
     input.choice.dissent,
     draftLine || null,
+    forwardDraftLine || null,
+    forwardLine || null,
     sentence || null,
     stayedLine || null,
     ruleLine || null,

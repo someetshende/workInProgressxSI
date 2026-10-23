@@ -14630,6 +14630,121 @@ describe("ORIEL-F72", () => {
   });
 });
 
+describe("ORIEL-F73", () => {
+  it("ORIEL-F73 a forward opens a send and does not pull the original message", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await convene(state, "Forward the vendor email to Maya", undefined, deps);
+      expect(state.goals[0]?.lead).toBe("muse");
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+      expect(state.approvals[0]?.detail).toContain("did not pull the original message");
+      expect(state.goals[0]?.plan.some((step) => step.title === "Note the forward" && step.status === "done")).toBe(true);
+      expect(voice(state)).toContain("This is a forward. Oriel did not pull the original message or its attachments. Nothing was sent.");
+      expect(voice(state)).toContain("I held the send for your approval.");
+      expect(voice(state)).not.toContain("This stays a draft.");
+      const posted = hits.at(-1)?.raw ?? "";
+      expect(posted).toContain('"action":"convene"');
+      expect(posted).toContain("Do not pull an inbox, attachments, or images. Do not send mail.");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const bare = await convene(initialState(), "Please forward this to Maya", undefined, deps);
+      expect(bare.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+      expect(voice(bare)).toContain("This is a forward.");
+      expect(voice(bare)).not.toContain("This stays a draft.");
+
+      const looking = await convene(initialState(), "I look forward to the launch", undefined, deps);
+      expect(looking.approvals.filter((approval) => approval.kind === "send")).toHaveLength(0);
+      expect(voice(looking)).not.toContain("This is a forward.");
+
+      const topic = await convene(initialState(), "Look forward to the launch email", undefined, deps);
+      expect(topic.approvals.filter((approval) => approval.kind === "send" && approval.status === "open")).toHaveLength(1);
+      expect(voice(topic)).toContain("I held the send for your approval.");
+      expect(voice(topic)).not.toContain("This is a forward.");
+
+      const ruled = await convene(initialState(), "Do not forward this to Maya", undefined, deps);
+      expect(ruled.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
+      expect(voice(ruled)).toContain("I left the send unsent, because you ruled it out.");
+      expect(voice(ruled)).not.toContain("This is a forward.");
+
+      const drafted = await convene(initialState(), "Forward the email as a draft", undefined, deps);
+      expect(drafted.approvals.filter((approval) => approval.kind === "send")).toHaveLength(0);
+      expect(voice(drafted)).toContain("This stays a draft. Nothing was sent.");
+      expect(voice(drafted)).toContain("Oriel did not pull the original message or its attachments.");
+      expect(voice(drafted)).not.toContain("This is a forward.");
+
+      const client = await convene(
+        initialState(),
+        "Forward the client email about the confidential filing",
+        undefined,
+        deps,
+      );
+      expect(client.goals[0]?.brief.seatReads.map((note) => note.seat)).not.toContain("muse");
+      expect(client.approvals.filter((approval) => approval.kind === "send" && approval.status === "open")).toHaveLength(1);
+      expect(voice(client)).toContain("This is a forward.");
+      expect(voice(client)).toContain("Muse will not hold that material");
+
+      const released = await settle(state, state.approvals[0]?.id ?? "", "approve", deps);
+      expect(released.approvals[0]?.status).toBe("approved");
+      expect(released.messages.at(-1)?.text).toContain("Oriel itself still did not send mail");
+      expect(released.messages.at(-1)?.text).not.toContain("I sent");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"') && hit.raw.includes("Do not pull an inbox"))).toBe(true);
+      expect(JSON.stringify(toPublic(released, 0))).not.toContain("Always allow");
+    });
+  });
+
+  it("ORIEL-F73 a drafted forward and a wake still do not send, and who asked reads the record", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+      const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      const before = hits.length;
+      state = await convene(state, "Who asked for the Slack note?", undefined, early);
+      expect(hits.length).toBe(before);
+      expect(state.goals).toHaveLength(0);
+      expect(state.approvals).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).toBe("No Slack note in this record was asked for. Nothing was sent.");
+
+      state = await convene(state, "Please draft a slack reply for the launch", undefined, early);
+      state = await convene(state, "Who requested the Slack message?", undefined, early);
+      expect(state.messages.at(-1)?.text).toBe("You asked Oriel to draft that Slack note. Nothing was sent.");
+      expect(state.approvals.filter((approval) => approval.kind === "send")).toHaveLength(0);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+
+      state = await convene(state, "Forward the Slack note to Maya", undefined, early);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+      const openId = state.approvals.at(-1)?.id ?? "";
+      state = await convene(state, "Who asked for the Slack note?", undefined, early);
+      expect(state.messages.at(-1)?.text).toBe("You asked Oriel to forward that Slack note. Nothing was sent from here.");
+      expect(state.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+      expect(state.goals).toHaveLength(2);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+
+      state = await convene(state, "Do not slack Maya", undefined, early);
+      state = await convene(state, "Please who asked for the slack reply?", undefined, early);
+      expect(state.messages.at(-1)?.text).toBe("You ruled out that Slack note. Nothing was sent.");
+
+      state = await convene(state, "Slack Maya the launch update", undefined, early);
+      state = await convene(state, "Who asked for the Slack note?", undefined, early);
+      expect(state.messages.at(-1)?.text).toBe("You asked Oriel to send that Slack note. Nothing was sent from here.");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      let waking = await convene(initialState(), "Forward the vendor email to Maya", undefined, early);
+      waking = await settle(waking, waking.approvals[0]?.id ?? "", "deny", early);
+      waking = saveRoutine(waking, waking.goals[0]?.id ?? "", "Vendor forward", early);
+      waking = setRoutineCadence(waking, waking.routines[0]?.id ?? "", "hourly", early);
+      waking = await wakeDue(waking, { ...deps, now: () => wakeAt });
+      expect(waking.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+      expect(voice(waking)).toContain("This is a forward.");
+      expect(voice(waking)).toContain("I held the send for your approval.");
+      expect(voice(waking)).not.toContain("This stays a draft.");
+      expect(waking.approvals.some((approval) => approval.status === "approved")).toBe(false);
+    });
+  });
+});
+
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [

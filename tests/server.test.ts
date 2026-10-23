@@ -6419,6 +6419,55 @@ describe("Oriel server", () => {
     expect(JSON.stringify(afterWake)).not.toContain("Always allow");
   });
 
+  it("ORIEL-F73 a forward waits, and who asked for the Slack note does not send", async () => {
+    const server = await boot();
+    const forwarded = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Forward the vendor email to Maya" }),
+    });
+    const forwardBody = await forwarded.json();
+    expect(forwarded.status).toBe(200);
+    expect(forwardBody.approvals.filter((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+    expect(forwardBody.messages.at(-1).text).toContain("This is a forward. Oriel did not pull the original message or its attachments. Nothing was sent.");
+    expect(forwardBody.messages.at(-1).text).not.toContain("This stays a draft.");
+    expect(JSON.stringify(forwardBody)).not.toContain("Always allow");
+    const asked = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Who asked for the Slack note?" }),
+    });
+    const askedBody = await asked.json();
+    expect(askedBody.messages.at(-1).text).toBe("No Slack note in this record was asked for. Nothing was sent.");
+    expect(askedBody.approvals.filter((approval: { status: string }) => approval.status === "open")).toHaveLength(1);
+    const slack = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Forward the Slack note to Maya" }),
+    });
+    const slackBody = await slack.json();
+    const open = slackBody.approvals.filter((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send");
+    expect(open.length).toBeGreaterThan(0);
+    const who = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Who asked for the Slack note?" }),
+    });
+    const whoBody = await who.json();
+    expect(whoBody.messages.at(-1).text).toBe("You asked Oriel to forward that Slack note. Nothing was sent from here.");
+    const held = whoBody.approvals.find((approval: { id: string }) => approval.id === open.at(-1).id);
+    expect(held.status).toBe("open");
+    const decision = await fetch(`${server.url}/api/approvals/${open.at(-1).id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "approve" }),
+    });
+    const done = await decision.json();
+    expect(done.messages.at(-1).text).toContain("Nothing left this computer");
+    expect(done.messages.at(-1).text).not.toContain("I sent");
+    expect(JSON.stringify(done)).not.toContain("Always allow");
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

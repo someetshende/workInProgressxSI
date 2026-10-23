@@ -23,6 +23,9 @@ export function referenceNote(seat: SeatId, _subject: string, policy: Policy): S
     policy.payment ? "Any purchase stays held." : "No payment was asked of this read.",
     policy.forbadeSend ? "You already ruled out sending." : "Outbound work stays with Oriel's hold.",
   ];
+  if (policy.forwardAsked) {
+    points.push("This is a forward. Do not pull an inbox, its images, or its attachments, and do not send it.");
+  }
   if (policy.personPassword || policy.personSignin || policy.personCode) {
     points.push("The password, sign-in, or code stays with the person. Do not type it.");
   }

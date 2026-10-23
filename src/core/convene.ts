@@ -1,5 +1,5 @@
 import { assertBridgeUrl, bridgeFailure, callBridge, describeBridge } from "./bridge.js";
-import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, releaseCopy, stayedSentence } from "./brief.js";
+import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, stayedSentence, whoAskedSlackCopy } from "./brief.js";
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
@@ -8,7 +8,7 @@ import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenNotMention, SpokenS
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
-import { applyHandoffRules, kindsFor, readPolicy, withSkillProhibitions } from "./policy.js";
+import { applyHandoffRules, isWhoAskedSlack, kindsFor, readPolicy, slackAskKind, withSkillProhibitions } from "./policy.js";
 import { clamp, redactSecrets } from "./redact.js";
 import { skillInstruction } from "./skill.js";
 import { consultSeat, subjectLine } from "./seats.js";
@@ -168,6 +168,8 @@ export async function convene(
   }
 
   if (presence === "present") swept = clearHeldBack(swept);
+
+  if (isWhoAskedSlack(original)) return answerWhoAskedSlack(swept, original, deps);
 
   const spokenRule = readSpokenRule(original);
   if (spokenRule?.kind === "reject" && spokenRule.reason === "phrase") {
@@ -470,10 +472,11 @@ export async function convene(
     step(draft, "Frame the outcome", "Oriel states one recommendation and keeps the record.", "oriel", "done"),
   ];
   const draftStop = policy.draftOnly ? "\n\nThis is a draft only. Do not send mail." : "";
+  const forwardStop = policy.forwardAsked ? `\n\n${FORWARD_TASK}` : "";
   const taskForSeats = `${applied ? skillInstruction(applied.name, applied.method, stored) : stored}${taskSuffix(
     policy,
     applied ? skillGuardsSeat(applied.method) : false,
-  )}${wakeStop(stayed)}${draftStop}`;
+  )}${wakeStop(stayed)}${draftStop}${forwardStop}`;
   const consulted = await Promise.all(
     choice.picked.map(async (seat) => {
       const connector = draft.connectors.find((item) => item.id === seat);
@@ -499,6 +502,9 @@ export async function convene(
   const approvalIds: string[] = [];
   if (policy.draftOnly) {
     plan.push(step(draft, "Keep the note as a draft", DRAFT_ONLY_COPY, "oriel", "done"));
+  }
+  if (policy.forward) {
+    plan.push(step(draft, "Note the forward", FORWARD_COPY, "oriel", "done"));
   }
   for (const kind of skipped) {
     plan.push(step(draft, `Leave the ${kind} undone`, approvalDetail(kind, stored), "oriel", "skipped", kind));
@@ -702,9 +708,29 @@ export async function settle(
 }
 
 function releaseTask(goal: Goal, handoffs: Handoff[]): string {
-  return handoffs.some((item) => item.goalId === goal.id)
+  const base = handoffs.some((item) => item.goalId === goal.id)
     ? `${goal.text}\n\n${HANDOFF_TASK} Do not perform the step that was handed to the person.`
     : goal.text;
+  return readPolicy(goal.text, { preferences: [], people: [] }).forward ? `${base}\n\n${FORWARD_TASK}` : base;
+}
+
+function answerWhoAskedSlack(state: AppState, raw: string, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  let kind: ReturnType<typeof slackAskKind> = null;
+  for (let index = draft.goals.length - 1; index >= 0; index -= 1) {
+    const goal = draft.goals[index];
+    if (!goal) continue;
+    const found = slackAskKind(goal.text);
+    if (found) {
+      kind = found;
+      break;
+    }
+  }
+  const reply = whoAskedSlackCopy(kind);
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, "asked_read", reply, deps);
+  return draft;
 }
 
 export async function settleHandoff(

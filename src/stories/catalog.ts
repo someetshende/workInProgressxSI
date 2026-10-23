@@ -361,6 +361,12 @@ export const constraints: Constraint[] = [
     text: "a sentence can ask whether one action is handed over, and the answer names only that rule",
     proof: "Is a deletion handed to me names only the deletion. A phrase is only those words, and other rules stay unnamed.",
   },
+  {
+    id: "no-inbox-pull",
+    short: "Do not pull the inbox",
+    text: "a forward does not pull the original message, its images, or its attachments, and nothing is sent until I decide",
+    proof: "A forward opens a send hold or stays a draft, says the original message stayed put, and approving a hold still does not send mail.",
+  },
 ];
 
 let cache: Story[] | null = null;

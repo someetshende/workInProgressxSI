@@ -243,6 +243,10 @@ export type Policy = {
   forbadePost: boolean;
   /** The person asked for the words of a message, not for it to be sent. */
   draftOnly: boolean;
+  /** The person asked to forward an existing message. */
+  forwardAsked: boolean;
+  /** That forward is a real send: not a draft, and not ruled out. */
+  forward: boolean;
   preferShort: boolean;
   handoff: boolean;
   replaces: ApprovalKind[];

@@ -1372,6 +1372,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F73",
+      persona: "a support lead",
+      role: "operator",
+      surface: "thread",
+      capability: "Forward a message without pulling the inbox",
+      title: "A forward is a send and does not pull the original message",
+      story:
+        "As a support lead, I want Oriel to treat a forward as a send and leave the original message where it is, so that asking who requested a Slack note reads the record and nothing is delivered.",
+      acceptance: [
+        "Asking to forward a message opens a send hold, says the original message and its attachments stayed put, and approving that hold still does not send mail.",
+        "Asking only to draft a forward does not open a send, and asking who asked for the Slack note does not open a card or call a bridge.",
+        "A routine whose instruction is a forward still waits on a hold, and client work in that forward stays off Muse.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

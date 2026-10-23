@@ -58,6 +58,7 @@ export async function startLocalSeat(options: { seat: SeatId; token?: string; po
         action?: unknown;
         kind?: unknown;
         businessSensitive?: unknown;
+        task?: unknown;
       };
       if (options.seat === "muse" && body.businessSensitive === true) {
         send(res, 409, { error: "Muse stand-in refuses client, patient, and confidential work." });
@@ -66,12 +67,15 @@ export async function startLocalSeat(options: { seat: SeatId; token?: string; po
       hits += 1;
       const allowed = new Set(["send", "pay", "delete", "post", "credential"]);
       const kind = typeof body.kind === "string" && allowed.has(body.kind) ? body.kind : "hold";
+      const forwarding = typeof body.task === "string" && /do not pull an inbox/i.test(body.task);
       const summary =
         body.action === "released"
           ? `Acknowledged a ${kind} release. This stand-in did not send, pay, delete, post, or sign in.`
           : body.action === "status"
             ? `Bridge is reachable. This stand-in for ${DISPLAY[options.seat]} did not send, pay, delete, post, or sign in.`
-            : VOICE[options.seat];
+            : forwarding
+              ? `${VOICE[options.seat]} This stand-in did not pull an inbox or its attachments.`
+              : VOICE[options.seat];
       send(res, 200, {
         summary,
         points: ["This process is a local stand-in. It is not Grok Bot, Dots, or Muse."],

@@ -6544,6 +6544,35 @@ test("ORIEL-F72 a drafted email stays a draft and a send still waits", async ({ 
   await page.screenshot({ path: "test-results/oriel-draft-only.png" });
 });
 
+test("ORIEL-F73 a forward stays held and the Slack record says who asked", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Forward the vendor email to Maya");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toContainText(
+    "This is a forward. Oriel did not pull the original message or its attachments. Nothing was sent.",
+  );
+  await expect(page.getByTestId("synthesis")).not.toContainText("This stays a draft.");
+  await expect(page.getByTestId("forward-note")).toContainText("Note the forward");
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("thread")).toContainText("Nothing left this computer");
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await page.getByTestId("composer").fill("Forward the Slack note to Maya");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await page.getByTestId("composer").fill("Who asked for the Slack note?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText("You asked Oriel to forward that Slack note. Nothing was sent from here.");
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-forward.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

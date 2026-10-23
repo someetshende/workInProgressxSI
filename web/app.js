@@ -720,6 +720,7 @@ function renderBrief(goal) {
   for (const step of goal.plan) {
     const attrs = { text: `${step.title} — ${step.status}` };
     if (step.title === "Keep the note as a draft") attrs["data-testid"] = "draft-note";
+    if (step.title === "Note the forward") attrs["data-testid"] = "forward-note";
     plan.append(el("li", attrs));
   }
   details.append(plan);

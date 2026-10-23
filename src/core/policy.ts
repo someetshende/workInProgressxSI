@@ -16,6 +16,24 @@ export function wantsShort(text: string, memory: Memory): boolean {
 }
 
 const MESSAGE_NOUN = "(?:e-?mails?|messages?|slacks?|whatsapps?|replies|reply|notes?)";
+
+const FORWARD_WORD = /\b(?:forward|forwards|forwarding)\b/i;
+
+/** A request to pass on an existing message. "Look forward" and "the way forward" are not that. */
+export function isForwardRequest(text: string): boolean {
+  const stripped = text
+    .replace(/\blook(?:ing)? forward\b/gi, " ")
+    .replace(/\bways? forward\b/gi, " ")
+    .replace(/\bfast[-\s]?forward(?:ing|ed|s)?\b/gi, " ");
+  return FORWARD_WORD.test(stripped);
+}
+
+const WHO_ASKED_SLACK =
+  /^(?:please\s+)?who (?:asked|requested)(?: for)? the slack (?:note|message|reply)\s*\??$/i;
+
+export function isWhoAskedSlack(text: string): boolean {
+  return WHO_ASKED_SLACK.test(text.trim());
+}
 const DRAFT_PHRASE = new RegExp(
   `\\b(?:draft|drafts|drafting)\\b(?:\\s+\\w+){0,6}?\\s+(?:an?\\s+|the\\s+)?${MESSAGE_NOUN}\\b`,
   "i",
@@ -52,12 +70,14 @@ function kindActive(policy: Policy, kind: ApprovalKind): boolean {
 }
 
 export function readPolicy(text: string, memory: Memory): Policy {
-  const forbadeSend = forbade(text, "send|sending|email|e-mail|emailing|message|messaging|slack");
+  const forbadeSend = forbade(text, "send|sending|email|e-mail|emailing|message|messaging|slack|forward|forwards|forwarding");
   const forbadePay = forbade(text, "pay|paying|purchase|purchasing|buy|buying|spend|spending|transfer|transferring");
   const forbadeDelete = forbade(text, "delete|deleting|erase|erasing|wipe|wiping");
   const forbadePost = forbade(text, "publish|publishing|tweet|tweeting|post publicly");
   const facts = handoffFacts(text);
   const draftOnly = isDraftOnlySend(text) && !forbadeSend;
+  const forwardAsked = isForwardRequest(text);
+  const forward = forwardAsked && !draftOnly && !forbadeSend;
   const replaces = facts.replaces.filter((kind) => {
     if (kind === "send") return !forbadeSend;
     if (kind === "pay") return !forbadePay;
@@ -71,7 +91,9 @@ export function readPolicy(text: string, memory: Memory): Policy {
   const credentials =
     mentionsSecret && !replaces.includes("credential") && !(facts.personPassword && !separateSecret);
   return {
-    outbound: !draftOnly && /\b(email|e-mail|send|slack|message|whatsapp)\b/i.test(text),
+    outbound:
+      !draftOnly &&
+      (/\b(email|e-mail|send|slack|message|whatsapp)\b/i.test(text) || forwardAsked),
     payment: /\b(pay|purchase|buy|checkout|transfer|wire)\b/i.test(text) || /\$\d/.test(text),
     deletion: /\b(delete|erase|wipe)\b/i.test(text),
     publicPost: /\b(tweet|publish|post publicly)\b/i.test(text),
@@ -79,6 +101,8 @@ export function readPolicy(text: string, memory: Memory): Policy {
     businessSensitive: /\b(client|clients|patient|patients|hipaa|law firm|customer data|confidential)\b/i.test(text),
     forbadeSend,
     draftOnly,
+    forwardAsked,
+    forward,
     forbadePay,
     forbadeDelete,
     forbadePost,
@@ -97,11 +121,13 @@ export function withSkillProhibitions(user: Policy, method: string, memory: Memo
   for (const kind of skill.replaces) {
     if (kindActive(user, kind) && !replaces.includes(kind)) replaces.push(kind);
   }
+  const forbadeSend = user.forbadeSend || (skill.forbadeSend && user.outbound);
   return {
     ...user,
     businessSensitive: user.businessSensitive || skill.businessSensitive,
     preferShort: user.preferShort || skill.preferShort,
-    forbadeSend: user.forbadeSend || (skill.forbadeSend && user.outbound),
+    forbadeSend,
+    forward: user.forward && !forbadeSend && !user.draftOnly,
     forbadePay: user.forbadePay || (skill.forbadePay && user.payment),
     forbadeDelete: user.forbadeDelete || (skill.forbadeDelete && user.deletion),
     forbadePost: user.forbadePost || (skill.forbadePost && user.publicPost),
@@ -160,4 +186,17 @@ export function kindsFor(policy: Policy): { held: ApprovalKind[]; skipped: Appro
   consider(policy.publicPost, policy.forbadePost, "post");
   if (policy.credentials && !policy.replaces.includes("credential")) held.push("credential");
   return { held, skipped };
+}
+
+export type SlackAskKind = "forward" | "send" | "draft" | "ruled";
+
+/** How a saved request treated a Slack note, if it mentioned one. */
+export function slackAskKind(text: string): SlackAskKind | null {
+  if (!/\bslack\b/i.test(text)) return null;
+  const policy = readPolicy(text, { preferences: [], people: [] });
+  if (policy.draftOnly) return "draft";
+  if (policy.forbadeSend) return "ruled";
+  if (policy.forward) return "forward";
+  if (policy.outbound) return "send";
+  return null;
 }
