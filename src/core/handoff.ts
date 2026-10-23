@@ -1003,6 +1003,60 @@ export function loosensSpokenUnsharedWith(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_NOT_SHARE_WORDS =
+  /^(?:please,?\s+)?which words?\s+(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+not\s+shar(?:e|es|ing)(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export type SpokenNotShareWords = { kind: "ask"; action: HandoffAction } | { kind: "reject"; reason: "action" };
+
+export function readSpokenNotShareWords(text: string): SpokenNotShareWords | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bshar(?:e|es|ing)\s+words\s+with\b/i.test(normalized)) return null;
+  if (/\bnot\s+shar(?:e|es|ing)\s+with\b/i.test(normalized)) return null;
+  const match = normalized.match(SPOKEN_NOT_SHARE_WORDS);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action };
+}
+
+export function spokenNotShareWordsCopy(action: HandoffAction, rules: HandoffRule[]): string {
+  const rule = rules.find((item) => item.action === action);
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a comparison and did not quote a phrase. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const key = phraseKey(rule.phrase);
+  const others = READ_ORDER.flatMap((item) => {
+    if (item === action) return [];
+    const other = rules.find((candidate) => candidate.action === item);
+    if (!other?.phrase || phraseKey(other.phrase) !== key) return [];
+    return [other];
+  });
+  const quoted = `The words are “${rule.phrase}”.`;
+  if (!others.length) {
+    return `${READ_LABEL[action]} does not share these words. ${quoted} Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const names = joinLabels(others.map((other) => READ_LABEL[other.action]));
+  const verb = others.length === 1 ? "uses" : "use";
+  return `${READ_LABEL[action]} does share these words. ${quoted} ${names} ${verb} them. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenNotShareWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bshar(?:e|es|ing)\s+words\s+with\b/i.test(normalized)) return false;
+  if (/\bnot\s+shar(?:e|es|ing)\s+with\b/i.test(normalized)) return false;
+  if (
+    !/^(?:please,?\s+)?which words?\s+(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+shar(?:e|es|ing)\b/i.test(
+      normalized,
+    )
+  ) {
+    return false;
+  }
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 const SPOKEN_SHARE_WORDS =
   /^(?:please,?\s+)?which words?\s+(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+shar(?:e|es|ing)(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
 

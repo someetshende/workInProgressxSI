@@ -3216,6 +3216,208 @@ test("ORIEL-F47 a sentence asks which words one step shares and does not act", a
   await page.screenshot({ path: "test-results/oriel-words-one-step-shares.png" });
 });
 
+test("ORIEL-F48 a sentence asks which words one step does not share and does not act", async ({ page }) => {
+  async function chooseAction(action: string) {
+    const picker = page.getByTestId("rule-phrase-action");
+    await expect(async () => {
+      await picker.selectOption(action);
+      await expect(picker).toHaveValue(action, { timeout: 500 });
+    }).toPass();
+  }
+
+  async function narrow(action: string, phrase: string) {
+    await chooseAction(action);
+    const input = page.getByTestId("rule-phrase");
+    await input.click();
+    await input.fill(phrase);
+    await expect(input).toHaveValue(phrase);
+    await expect(page.getByTestId("rule-phrase-action")).toHaveValue(action);
+    const saved = page.waitForResponse(
+      (res) => res.url().includes("/api/handoff-rules") && res.request().method() === "POST" && res.ok(),
+    );
+    await page.getByTestId("rule-phrase-save").click();
+    await saved;
+  }
+
+  await page.goto("/");
+  await expect(page.locator(".rule-note")).toContainText("Which words does a deletion not share?");
+  await expect(page.locator(".rule-note")).toContainText("Which words does a deletion share?");
+  await expect(page.locator(".rule-note")).toContainText("Which words does a deletion hand to me?");
+  await page.getByTestId("composer").fill("Which words does a deletion not share?");
+  await page.getByTestId("send").click();
+  const reply = () => page.locator(".turn.oriel").last();
+  await expect(reply()).toContainText("There is no handoff rule for a deletion");
+  await expect(reply()).toContainText("named no other step");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("does not share these words");
+  await expect(reply()).not.toContainText("with the deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which words does a note not share?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("does not name a send, a payment, a deletion, or a public post");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which words does a send not share?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("There is no handoff rule for a send");
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("with the send");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("composer").fill("Which words does a deletion not share?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("names no words and is the whole deletion");
+  await expect(reply()).toContainText("did not treat this question as a comparison and did not quote a phrase");
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("does not share these words");
+  await expect(reply()).not.toContainText("with the deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await narrow("send", "Shared Project Files");
+  await expect(page.getByTestId("rule-phrase-send")).toContainText("Shared Project Files");
+  await narrow("delete", "shared project files");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await narrow("pay", "unshared project files");
+  await expect(page.getByTestId("rule-phrase-pay")).toContainText("unshared project files");
+  await narrow("post", "shared project files");
+  await expect(page.getByTestId("rule-phrase-post")).toContainText("shared project files");
+  await chooseAction("pay");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("unshared project files");
+  await page.getByTestId("rule-phrase").fill("notes I just typed");
+  await page.getByTestId("rule-phrase-action").dispatchEvent("change");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("notes I just typed");
+  await chooseAction("delete");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+  await page.getByTestId("composer").fill("Please, which words does a deletion not share?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion does share these words");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).toContainText("The send and The public post use them");
+  await expect(reply()).not.toContainText("The deletion shares these words");
+  await expect(reply()).not.toContainText("with the deletion");
+  await expect(reply()).not.toContainText("These steps share those words");
+  await expect(reply()).not.toContainText("The payment");
+  await expect(reply()).not.toContainText("unshared project files");
+  await expect(reply()).not.toContainText("the whole");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await page.getByTestId("composer").fill("Which words does a deletion not share handed over to you?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await expect(reply()).toContainText("The deletion does share these words");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which words does a payment not share to me?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The payment does not share these words");
+  await expect(reply()).toContainText("unshared project files");
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("Those words are used once");
+  await expect(reply()).not.toContainText("with the payment");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which words does a send not share?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The send does share these words");
+  await expect(reply()).toContainText("Shared Project Files");
+  await expect(reply()).toContainText("The deletion and The public post use them");
+  await expect(reply()).not.toContainText("with the send");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which words does a deletion share?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion shares these words");
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("does not share these words");
+
+  await page.getByTestId("composer").fill("Which words does a deletion hand to me?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).not.toContainText("does share these words");
+
+  await page.getByTestId("composer").fill("Which words are shared?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("These words are shared");
+  await expect(reply()).not.toContainText("does share these words");
+
+  await page.getByTestId("composer").fill("Which words are not shared?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("These words are used once");
+  await expect(reply()).not.toContainText("does not share these words");
+
+  await page.getByTestId("composer").fill("Which steps do not share words with a deletion?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("do share those words with the deletion");
+  await expect(reply()).not.toContainText("does share these words");
+
+  await page.getByTestId("composer").fill("Does a deletion not share words?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("does share those words");
+  await expect(reply()).not.toContainText("does share these words");
+
+  await page.getByTestId("composer").fill("Does a deletion share words with a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("with the send");
+  await expect(reply()).not.toContainText("does share these words");
+
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Which words does a deletion not share and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval")).toContainText("Release a deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("does not share these words");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-phrase-delete")).toHaveCount(0);
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Which words does a deletion not share and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("composer").fill("Hand deletions to me");
+  await page.getByTestId("send").click();
+  await expect(reply()).not.toContainText("does share these words");
+  await expect(reply()).not.toContainText("does not share these words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("rule-phrase-pay")).toContainText("unshared project files");
+
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.getByTestId("rule-phrase").scrollIntoViewIfNeeded();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("away-handoff")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-words-one-step-does-not-share.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

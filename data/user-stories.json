@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3413,
-  "flagship": 47,
+  "count": 3414,
+  "flagship": 48,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -846,6 +846,24 @@
       "acceptance": [
         "Asking which words a deletion shares quotes the phrase saved on that deletion. When other steps use it, Oriel says the deletion shares these words and names only those steps.",
         "When no other step uses those words, Oriel says those words are used once and names no other step. It does not say the deletion shares these words.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F48",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask which words one step does not share",
+      "title": "A sentence can ask which words one step does not share",
+      "story": "As a security admin, I want to ask Oriel which words one step does not share, so that it quotes that step's phrase and does not delete anything.",
+      "acceptance": [
+        "Asking which words a deletion does not share quotes the phrase saved on that deletion. When other steps use it, Oriel says the deletion does share these words and names only those steps.",
+        "When no other step uses those words, Oriel says the deletion does not share these words and names no other step. It does not say those words are used once.",
         "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
       ],
       "priority": "p0",
