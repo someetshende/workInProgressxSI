@@ -498,6 +498,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F27",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Say the handoff",
+      title: "A sentence can name the words that stay yours",
+      story:
+        "As a security admin, I want to tell Oriel which words hand a deletion to me, so that the sentence saves the rule and does not itself delete anything.",
+      acceptance: [
+        "Saying the same words twice saves one rule, and a different phrase updates that rule instead of adding a second.",
+        "The sentence does not open a handoff, call a bridge, or approve a hold that is already open.",
+        "A later deletion that mentions the words is handed to you, and a sentence that would not delete does not save a rule or open a card.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

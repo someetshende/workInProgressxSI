@@ -47,6 +47,8 @@ In the rail, **Hand off to you** can save a rule for Send, Pay, Delete, or Post.
 
 **Narrow** describes one of those steps in your own words, such as shared project files. The rule then applies only when a later request would do that action and mentions those words. A deletion that leaves the words out stays a hold. The match is the words themselves. Saving the same words again does not duplicate the rule. Changing the words keeps the one rule. There is still no control that takes the action without asking.
 
+You can say the same rule. `Hand deletions that mention shared project files to me` saves one handoff for deletions, and only when a later request mentions those words. Saying it does not open a card, call a bridge, or approve a hold. Saying it again does not duplicate the rule. A different phrase updates that one rule. A sentence that does not name a send, a payment, a deletion, or a public post does not save a rule and does not open a card. A draft still does not.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:

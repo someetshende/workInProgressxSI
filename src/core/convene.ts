@@ -3,7 +3,8 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, skillGuardsSeat, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, loosensHandoff, readSpokenRule, skillGuardsSeat, spokenRuleCopy, taskSuffix } from "./handoff.js";
+import type { SpokenRule } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
@@ -145,6 +146,15 @@ export async function convene(
     }
     return settleHandoff(swept, open.id, handDecision, deps);
   }
+
+  const spokenRule = readSpokenRule(original);
+  if (spokenRule?.kind === "reject" && spokenRule.reason === "phrase") {
+    throw new OrielError("Name the step in a short phrase. Oriel will not run it.");
+  }
+  if (!spokenRule && loosensHandoff(original)) {
+    throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
+  }
+  if (spokenRule) return applySpokenRule(swept, original, spokenRule, deps);
 
   const stored = redactSecrets(original);
   const memoryTurn = isMemoryQuery(stored) || isMemoryOnly(stored);
@@ -519,6 +529,24 @@ export function setConnector(
   if (typeof patch.enabled === "boolean") {
     pushEvent(draft, null, "seat", `${DISPLAY[id]} is ${connector.enabled ? "on" : "off"}.`, deps);
   }
+  return draft;
+}
+
+function applySpokenRule(state: AppState, raw: string, spoken: SpokenRule, deps: Deps): AppState {
+  if (spoken.kind === "reject") {
+    const draft = structuredClone(state);
+    pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+    const reply =
+      "That sentence does not name a send, a payment, a deletion, or a public post. Oriel did not save a rule and did not open a card. Nothing was sent or spent.";
+    pushMessage(draft, { role: "oriel", text: reply }, deps);
+    pushEvent(draft, null, "rule_ignored", reply, deps);
+    return draft;
+  }
+  const existing = (state.handoffRules ?? []).find((rule) => rule.action === spoken.action);
+  const mode = !existing ? "saved" : existing.phrase === spoken.phrase ? "same" : "updated";
+  const draft = mode === "same" ? structuredClone(state) : setHandoffRule(state, spoken.action, true, deps, spoken.phrase);
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: spokenRuleCopy(spoken.action, spoken.phrase, mode) }, deps);
   return draft;
 }
 

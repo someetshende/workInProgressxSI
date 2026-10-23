@@ -150,6 +150,99 @@ export function cleanPhrase(value: string): string | null {
   return phrase;
 }
 
+const SPOKEN_NOUNS: Record<string, HandoffAction> = {
+  send: "send",
+  sends: "send",
+  sending: "send",
+  email: "send",
+  emails: "send",
+  "e-mail": "send",
+  "e-mails": "send",
+  message: "send",
+  messages: "send",
+  mail: "send",
+  pay: "pay",
+  pays: "pay",
+  paying: "pay",
+  payment: "pay",
+  payments: "pay",
+  purchase: "pay",
+  purchases: "pay",
+  delete: "delete",
+  deletes: "delete",
+  deleting: "delete",
+  deletion: "delete",
+  deletions: "delete",
+  erase: "delete",
+  erases: "delete",
+  erasing: "delete",
+  post: "post",
+  posts: "post",
+  posting: "post",
+  publish: "post",
+  publishes: "post",
+  publishing: "post",
+  tweet: "post",
+  tweets: "post",
+  tweeting: "post",
+};
+
+const SPOKEN_RULE =
+  /^(?:please\s+)?hand(?:\s+over|\s+off|-off)?(?:\s+(?:me|you))?\s+(?:the\s+|an\s+|a\s+|any\s+)?([a-z][a-z-]*)\s+(?:that\s+)?mention(?:s|ing)?\s+(.+?)\s+to\s+(?:me|you)$/i;
+
+const SPOKEN_WOULD: Record<HandoffAction, string> = {
+  send: "send",
+  pay: "pay",
+  delete: "delete",
+  post: "post",
+};
+
+export type SpokenRule =
+  | { kind: "save"; action: HandoffAction; phrase: string }
+  | { kind: "reject"; reason: "phrase" | "action" };
+
+function unwrapPhrase(value: string): string {
+  const trimmed = value.trim();
+  const pairs = [
+    ['"', '"'],
+    ["'", "'"],
+    ["“", "”"],
+    ["‘", "’"],
+  ] as const;
+  for (const [open, close] of pairs) {
+    if (trimmed.startsWith(open) && trimmed.endsWith(close) && trimmed.length > open.length + close.length) {
+      return trimmed.slice(open.length, trimmed.length - close.length).trim();
+    }
+  }
+  return trimmed;
+}
+
+export function readSpokenRule(text: string): SpokenRule | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_RULE);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  const phrase = cleanPhrase(unwrapPhrase(match[2] ?? ""));
+  if (!phrase) return { kind: "reject", reason: "phrase" };
+  return { kind: "save", action, phrase };
+}
+
+export function spokenRuleCopy(action: HandoffAction, phrase: string, mode: "saved" | "same" | "updated"): string {
+  const step = SPOKEN_WOULD[action];
+  const scope = `When a request would ${step} and mentions “${phrase}”, that step is yours.`;
+  const tail = "This did not run the step, send mail, or move money, and it did not approve a hold.";
+  if (mode === "same") return `That handoff rule is already saved. ${scope} ${tail}`;
+  if (mode === "updated") return `Updated the one handoff rule for a ${step}. ${scope} ${tail}`;
+  return `Saved one handoff rule for a ${step}. ${scope} ${tail}`;
+}
+
+export function loosensHandoff(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please\s+)?hand(?:\s+over|\s+off|-off)?\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 export function phraseMatches(text: string, phrase: string | null): boolean {
   if (!phrase) return true;
   const hay = text.toLowerCase().replace(/\s+/g, " ");

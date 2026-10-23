@@ -53,7 +53,7 @@ export function readPolicy(text: string, memory: Memory): Policy {
     forbadeDelete,
     forbadePost,
     preferShort: wantsShort(text, memory),
-    handoff: facts.personPassword || facts.personSignin || facts.personCode || facts.hands || replaces.length > 0,
+    handoff: facts.personPassword || facts.personSignin || facts.personCode || replaces.length > 0,
     replaces,
     personPassword: facts.personPassword,
     personSignin: facts.personSignin,

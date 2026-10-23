@@ -337,6 +337,12 @@ export const constraints: Constraint[] = [
     text: "a handoff rule can name a phrase, and a request that leaves those words out is not handed over",
     proof: "The phrase is a literal mention. Omitting it does not open a handoff, and the rule does not run the step.",
   },
+  {
+    id: "spoken-rule",
+    short: "Say the words",
+    text: "a sentence can name the words on a handoff rule, and saying it does not run the step or open a card",
+    proof: "The sentence saves one rule for that action. A sentence that would not do the action does not save a rule and does not open a handoff.",
+  },
 ];
 
 let cache: Story[] | null = null;

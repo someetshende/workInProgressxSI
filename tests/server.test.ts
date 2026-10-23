@@ -582,6 +582,96 @@ describe("Oriel server", () => {
     expect(disk).not.toContain("hunter2");
   });
 
+  it("ORIEL-F27 saves a spoken phrase without opening a card", async () => {
+    const server = await boot();
+    const short = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention ab to me" }),
+    });
+    expect(short.status).toBe(400);
+    const banned = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention shared project files to me without asking" }),
+    });
+    expect(banned.status).toBe(400);
+    expect(await banned.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const secret = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention password is hunter2 to me" }),
+    });
+    expect(secret.status).toBe(400);
+    expect(await secret.text()).not.toContain("hunter2");
+    const notes = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand notes that mention shared project files to me" }),
+    });
+    const ignored = await notes.json();
+    expect(notes.status).toBe(200);
+    expect(ignored.goals).toHaveLength(0);
+    expect(ignored.handoffs).toHaveLength(0);
+    expect(ignored.handoffRules).toHaveLength(0);
+    expect(ignored.messages.at(-1).text).toContain("did not open a card");
+    const saved = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention shared project files to me" }),
+    });
+    const first = await saved.json();
+    expect(saved.status).toBe(200);
+    expect(first.goals).toHaveLength(0);
+    expect(first.handoffs).toHaveLength(0);
+    expect(first.handoffRules).toHaveLength(1);
+    expect(first.handoffRules[0].phrase).toBe("shared project files");
+    const again = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions that mention shared project files to me" }),
+    });
+    const same = await again.json();
+    expect(same.handoffRules).toHaveLength(1);
+    expect(same.handoffRules[0].id).toBe(first.handoffRules[0].id);
+    expect(same.events.filter((event: { type: string }) => event.type === "rule_saved")).toHaveLength(1);
+    expect(same.messages.at(-1).text).toContain("already saved");
+    const draft = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Draft the weekly close" }),
+    });
+    expect((await draft.json()).handoffs).toHaveLength(0);
+    const other = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Delete the archive" }),
+    });
+    const held = await other.json();
+    expect(held.handoffs).toHaveLength(0);
+    expect(held.approvals.filter((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+    const turn = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Delete the shared project files" }),
+    });
+    const opened = await turn.json();
+    const latest = opened.goals.at(-1).id;
+    expect(opened.handoffs.filter((item: { goalId: string; status: string }) => item.goalId === latest && item.status === "open")).toHaveLength(1);
+    expect(opened.approvals.filter((approval: { goalId: string }) => approval.goalId === latest)).toHaveLength(0);
+    expect(JSON.stringify(opened)).not.toContain("Always allow");
+    const done = await fetch(`${server.url}/api/handoffs/${opened.handoffs.at(-1).id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "done" }),
+    });
+    const after = await done.json();
+    expect(after.handoffs.at(-1).status).toBe("done");
+    expect(after.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const disk = await readFile(path.join(server.dir, "state.json"), "utf8");
+    expect(disk).not.toContain("hunter2");
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

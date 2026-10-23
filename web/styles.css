@@ -225,6 +225,7 @@ aside {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 .rules { display: flex; flex-wrap: wrap; gap: 6px; }
 .rule {
@@ -300,6 +301,7 @@ aside {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .atlas-link { color: var(--ink); }
