@@ -1,0 +1,219 @@
+import { spawn, type ChildProcess } from "node:child_process";
+import { expect, test } from "@playwright/test";
+
+function startSeat(seat: string, token: string): Promise<{ url: string; stop: () => Promise<void> }> {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value === "string") env[key] = value;
+  }
+  env.ORIEL_SEAT = seat;
+  env.ORIEL_SEAT_TOKEN = token;
+  return new Promise((resolve, reject) => {
+    const child: ChildProcess = spawn("node_modules/.bin/tsx", ["src/seats/local.ts"], {
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let buf = "";
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error(`Local seat did not start. ${buf}`));
+    }, 15000);
+    const fail = (error: Error) => {
+      clearTimeout(timer);
+      reject(error);
+    };
+    child.once("error", fail);
+    child.stdout?.on("data", (chunk: Buffer) => {
+      buf += chunk.toString("utf8");
+      const match = buf.match(/listening (http:\/\/127\.0\.0\.1:\d+\/tasks)/);
+      const url = match?.[1];
+      if (!url) return;
+      clearTimeout(timer);
+      child.removeListener("error", fail);
+      resolve({
+        url,
+        stop: () =>
+          new Promise((done) => {
+            if (child.exitCode !== null) {
+              done();
+              return;
+            }
+            child.once("exit", () => done());
+            child.kill();
+          }),
+      });
+    });
+  });
+}
+
+test.describe.configure({ mode: "serial" });
+
+test.beforeEach(async ({ request }) => {
+  const response = await request.post("/api/reset");
+  expect(response.ok()).toBeTruthy();
+});
+
+test("ORIEL-F01 ORIEL-F14 a client comparison stays off Muse and unsent", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Tell Oriel what to finish." })).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-empty.png" });
+  await page.getByTestId("prompt-compare").click();
+  await expect(page.getByTestId("composer")).toHaveValue(/Do not email anyone/);
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toContainText("Grok Bot should lead");
+  await expect(page.getByTestId("synthesis")).toContainText("ruled it out");
+  await expect(page.getByTestId("why")).toContainText("consumer seat");
+  await expect(page.getByTestId("seat-note-muse")).toHaveCount(0);
+  await expect(page.getByTestId("seat-note-grok")).toBeVisible();
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-compare.png" });
+});
+
+test("ORIEL-F04 ORIEL-F11 a payment can be approved and a send can be refused", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Plan a family dinner under $80 and hold any purchase.");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval")).toContainText("Release a payment");
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("thread")).toContainText("did not move money");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Email Maya the launch update");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval").last()).toContainText("Maya");
+  await page.getByTestId("deny").click();
+  await expect(page.getByTestId("thread")).toContainText("Nothing was released.");
+});
+
+test("ORIEL-F05 ORIEL-F18 a short preference is remembered and collapses the brief", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Remember that I prefer short briefs.");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("thread")).toContainText("I'll keep that.");
+  await page.getByTestId("composer").fill("What do you remember?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText("I prefer short briefs");
+  await page.getByTestId("composer").fill("Compare the market landscape");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toContainText("should lead");
+  const open = await page.getByTestId("brief-rest").evaluate((element) => (element as HTMLDetailsElement).open);
+  expect(open).toBe(false);
+});
+
+test("ORIEL-F06 switching Grok Bot off moves the work", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("agent-grok").click();
+  await expect(page.getByTestId("agent-grok")).toHaveAttribute("aria-pressed", "false");
+  await page.getByTestId("composer").fill("Fix the failing test in the repo");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toContainText("Dots should lead");
+  await expect(page.getByTestId("why")).toContainText("Grok Bot is switched off");
+  await expect(page.getByTestId("seat-note-grok")).toHaveCount(0);
+});
+
+test("ORIEL-F07 a routine runs again without growing a send", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  await page.locator("[data-testid^='run-routine-']").click();
+  await expect(page.getByTestId("thread")).toContainText("weekly close");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='goal-goal_']")).toHaveCount(2);
+});
+
+test("ORIEL-F08 the return card keeps a watch after the hold is released", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Buy a $20 gift for the dinner and keep an eye on the guest list.");
+  await page.getByTestId("send").click();
+  await page.reload();
+  await expect(page.getByTestId("away-card")).toContainText("While you were away");
+  await expect(page.getByTestId("away-card")).toContainText("Release a payment");
+  await expect(page.getByTestId("away-card")).toContainText("Watch: the guest list");
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("away-card")).toContainText("Watch: the guest list");
+  await expect(page.getByTestId("away-card")).not.toContainText("Release a payment");
+});
+
+test("ORIEL-F09 a bridge token is not echoed into the window", async ({ page }) => {
+  const token = "window-token-not-for-display";
+  await page.goto("/");
+  await page.getByTestId("bridge-open-grok").click();
+  await page.getByLabel("Grok Bot bridge URL").fill("http://127.0.0.1:9/tasks");
+  await page.getByTestId("token-grok").fill(token);
+  await page.getByRole("button", { name: "Save bridge" }).click();
+  await expect(page.getByTestId("agent-grok")).toContainText("Bridged");
+  await expect(page.locator("body")).not.toContainText(token);
+  const leaked = await page.evaluate(async (secret) => {
+    const response = await fetch("/api/state");
+    const text = await response.text();
+    return text.includes(secret);
+  }, token);
+  expect(leaked).toBe(false);
+});
+
+test("ORIEL-F15 user text cannot become markup", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill('<img src=x alt="xss-probe">');
+  await page.getByTestId("send").click();
+  await expect(page.locator('img[alt="xss-probe"]')).toHaveCount(0);
+  await expect(page.getByTestId("thread")).toContainText('<img src=x alt="xss-probe">');
+});
+
+test("the atlas shows the full story count and can be searched", async ({ page }) => {
+  await page.goto("/atlas");
+  const health = await page.request.get("/api/health");
+  const body = await health.json();
+  expect(body.atlas).toBeGreaterThanOrEqual(1000);
+  await expect(page.getByTestId("atlas-count")).toHaveText(String(body.atlas));
+  await page.getByTestId("atlas-search").fill("clinic administrator");
+  await page.getByRole("button", { name: "Search" }).click();
+  await expect(page.getByTestId("atlas-list")).toContainText("clinic administrator");
+  await page.screenshot({ path: "test-results/oriel-atlas.png" });
+});
+
+test("a bridged Muse stand-in answers live and a check spends nothing", async ({ page }) => {
+  const token = "e2e-seat-token";
+  const seat = await startSeat("muse", token);
+  try {
+    const saved = await page.request.post("/api/connectors/muse", {
+      data: { bridgeUrl: seat.url, token },
+    });
+    expect(saved.ok()).toBeTruthy();
+    await page.goto("/");
+    await expect(page.getByTestId("agent-muse")).toContainText("Bridged");
+    await page.getByTestId("composer").fill("Plan a family dinner under $80 and hold any purchase.");
+    await page.getByTestId("send").click();
+    await expect(page.getByTestId("agent-muse")).toContainText("Live");
+    await expect(page.getByTestId("seat-note-muse")).toContainText("Local stand-in for Muse");
+    await expect(page.locator("body")).not.toContainText(token);
+    await page.getByTestId("review-watches").click();
+    await expect(page.getByTestId("thread")).toContainText("Nothing moved");
+    await expect(page.getByTestId("approve")).toBeVisible();
+    await page.getByTestId("approve").click();
+    await expect(page.getByTestId("thread")).toContainText("did not send mail, move money");
+    await expect(page.getByTestId("approve")).toHaveCount(0);
+    await page.screenshot({ path: "test-results/oriel-live-seat.png" });
+  } finally {
+    await seat.stop();
+  }
+});
+
+test("a phone in the dark still fits the composer", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  await expect(page.getByTestId("composer")).toBeVisible();
+  const metrics = await page.evaluate(() => {
+    const bg = getComputedStyle(document.body).backgroundColor;
+    return {
+      overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      bg,
+    };
+  });
+  expect(metrics.overflow).toBe(false);
+  const channels = metrics.bg.match(/\d+/g)?.map(Number) ?? [];
+  expect((channels[0] ?? 255) + (channels[1] ?? 255) + (channels[2] ?? 255)).toBeLessThan(120);
+  await page.screenshot({ path: "test-results/oriel-phone.png" });
+});
