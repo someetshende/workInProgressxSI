@@ -548,7 +548,68 @@ export function spokenNotMentionCopy(phrase: string, rules: HandoffRule[]): stri
 
 export function loosensSpokenNotMention(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\b(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+mention/i.test(normalized)) {
+    return false;
+  }
   if (!/^(?:please,?\s+)?which steps?\s+(?:do|does)\s+not\s+mention/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+const SPOKEN_STEP_NOT_MENTION =
+  /^(?:please,?\s+)?(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+not\s+mention(?:s|ing)?\s+(.+)$/i;
+
+export type SpokenStepNotMention =
+  | { kind: "ask"; action: HandoffAction; phrase: string }
+  | { kind: "reject"; reason: "phrase" | "action" };
+
+function stepNotMentionWouldAct(text: string): boolean {
+  const body = text.replace(
+    /^(?:please,?\s+)?(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+mention(?:s|ing)?\s+/i,
+    "",
+  );
+  if (/[.!?]/.test(body)) return true;
+  return /\b(?:and|then)\s+(?:please\s+)?(?:also\s+)?(?:delete|deleting|send|sending|email|e-mail|pay|paying|post|posting|publish|publishing|buy|buying|purchase)\s+(?:the|a|an|that|this|those|these|them|it)\b/i.test(
+    text,
+  );
+}
+
+export function readSpokenStepNotMention(text: string): SpokenStepNotMention | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_STEP_NOT_MENTION);
+  if (!match || stepNotMentionWouldAct(normalized)) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  let raw = unwrapPhrase(match[2] ?? "");
+  if (LOOSE_TAIL.test(raw)) return null;
+  raw = unwrapPhrase(raw.replace(STEP_ADDRESS, "").trim());
+  if (!raw || LOOSE_TAIL.test(raw)) return null;
+  if (!action) return { kind: "reject", reason: "action" };
+  const phrase = cleanPhrase(raw);
+  if (!phrase) return { kind: "reject", reason: "phrase" };
+  return { kind: "ask", action, phrase };
+}
+
+export function spokenStepNotMentionCopy(action: HandoffAction, phrase: string, rule: HandoffRule | undefined): string {
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a mention and did not quote a phrase. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (spokenPhraseMatches(rule.phrase, phrase)) {
+    return `${READ_LABEL[action]} does mention those words. The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  return `${READ_LABEL[action]} does not mention those words. The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenStepNotMention(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (
+    !/^(?:please,?\s+)?(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+mention/i.test(
+      normalized,
+    )
+  ) {
+    return false;
+  }
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 

@@ -973,6 +973,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F52",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask whether one step does not mention certain words",
+      title: "A sentence can ask whether one step does not mention certain words",
+      story:
+        "As a security admin, I want to ask Oriel whether one step does not mention certain words, so that it quotes only that step and does not delete anything.",
+      acceptance: [
+        "Asking whether a deletion does not mention those words says the deletion does mention those words when the saved phrase is those words, and quotes that phrase.",
+        "When the saved phrase is different, Oriel says the deletion does not mention those words and quotes only the saved phrase.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

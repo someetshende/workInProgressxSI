@@ -3934,6 +3934,171 @@ test("ORIEL-F51 a sentence asks which steps do not mention certain words and doe
   await page.screenshot({ path: "test-results/oriel-steps-do-not-mention.png" });
 });
 
+test("ORIEL-F52 a sentence asks whether one step does not mention certain words and does not act", async ({ page }) => {
+  async function chooseAction(action: string) {
+    const picker = page.getByTestId("rule-phrase-action");
+    await expect(async () => {
+      await picker.selectOption(action);
+      await expect(picker).toHaveValue(action, { timeout: 500 });
+    }).toPass();
+  }
+
+  async function narrow(action: string, phrase: string) {
+    await chooseAction(action);
+    const input = page.getByTestId("rule-phrase");
+    await input.click();
+    await input.fill(phrase);
+    await expect(input).toHaveValue(phrase);
+    await expect(page.getByTestId("rule-phrase-action")).toHaveValue(action);
+    const saved = page.waitForResponse(
+      (res) => res.url().includes("/api/handoff-rules") && res.request().method() === "POST" && res.ok(),
+    );
+    await page.getByTestId("rule-phrase-save").click();
+    await saved;
+  }
+
+  await page.goto("/");
+  await expect(page.locator(".rule-note")).toContainText("Does a deletion not mention shared project files?");
+  await expect(page.locator(".rule-note")).toContainText("Which steps do not mention shared project files?");
+  await page.getByTestId("composer").fill("Does a deletion not mention shared project files?");
+  await page.getByTestId("send").click();
+  const reply = () => page.locator(".turn.oriel").last();
+  await expect(reply()).toContainText("The deletion is not handed to you");
+  await expect(reply()).toContainText("named no other step");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(reply()).not.toContainText("does mention those words");
+  await expect(reply()).not.toContainText("does not mention those words");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Does a note not mention shared project files?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("does not name a send, a payment, a deletion, or a public post");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("composer").fill("Please, does the deletion not mention shared project files?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("names no words");
+  await expect(reply()).toContainText("the whole deletion");
+  await expect(reply()).toContainText("did not treat this question as a mention");
+  await expect(reply()).not.toContainText("does mention those words");
+  await expect(reply()).not.toContainText("does not mention those words");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+
+  await narrow("delete", "shared project files");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await narrow("pay", "the vendor invoice");
+  await expect(page.getByTestId("rule-phrase-pay")).toContainText("the vendor invoice");
+  await chooseAction("pay");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("the vendor invoice");
+  await page.getByTestId("rule-phrase").fill("notes I just typed");
+  await page.getByTestId("rule-phrase-action").dispatchEvent("change");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("notes I just typed");
+  await chooseAction("delete");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+  await page.getByTestId("composer").fill("Does a deletion not mention “Shared Project Files”?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion does mention those words");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).not.toContainText("The deletion does not mention those words");
+  await expect(reply()).not.toContainText("These steps do not mention those words");
+  await expect(reply()).not.toContainText("The payment");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.getByTestId("rule-phrase-action")).toHaveValue("delete");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+
+  await page.getByTestId("composer").fill("Does a deletion not mention unshared project files?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion does not mention those words");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).not.toContainText("The deletion does mention those words");
+  await expect(reply()).not.toContainText("unshared project files");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await page.getByTestId("composer").fill("Does a deletion not mentioning shared project files to me?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await expect(reply()).toContainText("The deletion does mention those words");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which steps do not mention shared project files?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The payment does not mention those words");
+  await expect(reply()).toContainText("the vendor invoice");
+  await expect(reply()).not.toContainText("These steps do not mention those words");
+  await expect(reply()).not.toContainText("does mention those words");
+  await expect(reply()).not.toContainText("The deletion");
+
+  await page.getByTestId("composer").fill("Which step mentions shared project files?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion mentions");
+  await expect(reply()).not.toContainText("does not mention");
+
+  await page.getByTestId("composer").fill("Which words does a deletion not share with a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("does not share these words with the send");
+  await expect(reply()).not.toContainText("does not mention");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Does a deletion not mention shared project files and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("approval")).toHaveCount(0);
+  await expect(reply()).not.toContainText("does mention those words");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await narrow("delete", "the vendor archive");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("the vendor archive");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Does a deletion not mention shared project files and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval")).toContainText("Release a deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("the vendor archive");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-phrase-delete")).toHaveCount(0);
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Does a deletion mention shared project files?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approval")).toHaveCount(0);
+  await expect(reply()).not.toContainText("The deletion does mention those words");
+  await expect(reply()).not.toContainText("The deletion does not mention those words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.locator(".goal")).toHaveCount(3);
+
+  await page.getByTestId("composer").fill("Hand deletions to me");
+  await page.getByTestId("send").click();
+  await expect(reply()).not.toContainText("The deletion does mention those words");
+  await expect(reply()).not.toContainText("The deletion does not mention those words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("rule-phrase-pay")).toContainText("the vendor invoice");
+
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.getByTestId("rule-phrase").scrollIntoViewIfNeeded();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("away-handoff")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-step-does-not-mention.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");
