@@ -49,6 +49,8 @@ In the rail, **Hand off to you** can save a rule for Send, Pay, Delete, or Post.
 
 You can say the same rule. `Hand deletions that mention shared project files to me` saves one handoff for deletions, and only when a later request mentions those words. Saying it does not open a card, call a bridge, or approve a hold. Saying it again does not duplicate the rule. A different phrase updates that one rule. A sentence that does not name a send, a payment, a deletion, or a public post does not save a rule and does not open a card. A draft still does not.
 
+You can take that rule back in the same voice. `Stop handing deletions that mention shared project files to me` clears the one rule that uses those words. Different words leave the rule in place. A sentence that would delete is ordinary work, and it does not clear the rule. Saying it does not open a card, call a bridge, approve a hold, send mail, or move money.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:

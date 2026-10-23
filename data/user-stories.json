@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 2475,
-  "flagship": 27,
+  "count": 2476,
+  "flagship": 28,
   "atlas": 2448,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -487,6 +487,24 @@
         "Saying the same words twice saves one rule, and a different phrase updates that rule instead of adding a second.",
         "The sentence does not open a handoff, call a bridge, or approve a hold that is already open.",
         "A later deletion that mentions the words is handed to you, and a sentence that would not delete does not save a rule or open a card."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "Dots, announced by OpenAI on 29 September 2026, is one always-on owner agent on GPT-6 Astra that keeps working between conversations."
+    },
+    {
+      "id": "ORIEL-F28",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Clear a handoff",
+      "title": "A sentence can clear the words that stay yours",
+      "story": "As a security admin, I want to tell Oriel to stop handing a deletion that mentions certain words to me, so that the sentence clears that rule and does not itself delete anything.",
+      "acceptance": [
+        "Saying the saved words clears that one rule, and words that are not the saved phrase leave the rule in place.",
+        "The sentence does not open a handoff, call a bridge, approve a hold, send mail, or move money.",
+        "A sentence that would delete is not a clear, and there is still no always-allow."
       ],
       "priority": "p0",
       "kind": "flagship",
