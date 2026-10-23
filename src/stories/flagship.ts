@@ -878,6 +878,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F47",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which words one step shares",
+      title: "A sentence can ask which words one step shares",
+      story:
+        "As a security admin, I want to ask Oriel which words one step shares, so that it quotes that step's phrase and does not delete anything.",
+      acceptance: [
+        "Asking which words a deletion shares quotes the phrase saved on that deletion. When other steps use it, Oriel says the deletion shares these words and names only those steps.",
+        "When no other step uses those words, Oriel says those words are used once and names no other step. It does not say the deletion shares these words.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {
