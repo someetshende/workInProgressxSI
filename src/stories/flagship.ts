@@ -650,6 +650,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F35",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which steps name no words",
+      title: "A sentence can ask which steps name no words",
+      story:
+        "As a security admin, I want to ask Oriel which steps name no words, so that it names only those rules and does not delete anything.",
+      acceptance: [
+        "Asking which steps name no words names only the actions whose rules have no phrase, including more than one.",
+        "A rule that names words is left out, and its phrase is not quoted. If none are phrase-less, Oriel says so.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

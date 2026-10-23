@@ -2585,6 +2585,245 @@ describe("hand off to you", () => {
       expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
     });
   });
+
+  it("ORIEL-F35 a sentence asks which steps name no words and does not act", async () => {
+    const start = initialState();
+    await expect(convene(start, "Which steps name no words without asking", undefined, deps)).rejects.toThrow(/without asking/);
+    await expect(convene(start, "Which steps name no words always allow", undefined, deps)).rejects.toThrow(/without asking/);
+    await expect(convene(start, "Please, which step names no words allow automatically", undefined, deps)).rejects.toThrow(
+      /without asking/,
+    );
+    expect(start.messages).toHaveLength(0);
+    expect(start.goals).toHaveLength(0);
+    expect(start.handoffRules).toHaveLength(0);
+
+    const none = await convene(initialState(), "Which steps name no words?", undefined, deps);
+    expect(none.handoffRules).toHaveLength(0);
+    expect(none.goals).toHaveLength(0);
+    expect(none.handoffs).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toContain("No step names no words");
+    expect(none.messages.at(-1)?.text).toContain("named no other step");
+    expect(none.messages.at(-1)?.text).toContain("did not open a card");
+    expect(none.messages.at(-1)?.text).not.toContain("The deletion");
+    expect(none.messages.at(-1)?.text).not.toContain("These steps name no words");
+    expect(none.messages.at(-1)?.text).not.toContain("Nothing is handed to you");
+    expect(none.events.some((event) => event.type === "rule_read")).toBe(true);
+    expect(none.events.some((event) => event.type === "rule_saved" || event.type === "rule_cleared" || event.type === "approved")).toBe(false);
+
+    let held = await convene(initialState(), "Email Maya the launch update", undefined, deps);
+    const openId = held.approvals[0]?.id ?? "";
+    const goalId = held.goals[0]?.id ?? "";
+    held = setHandoffRule(held, "post", true, deps);
+    held = setHandoffRule(held, "delete", true, deps);
+    held = setHandoffRule(held, "send", true, deps);
+    held = setHandoffRule(held, "pay", true, deps, "the vendor invoice");
+    const ids = held.handoffRules.map((rule) => rule.id);
+    held = await convene(held, "Please, which steps name no words?", goalId, deps, "skill_missing");
+    expect(held.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+    expect(held.goals).toHaveLength(1);
+    expect(held.goals[0]?.status).toBe("waiting");
+    expect(held.handoffs).toHaveLength(0);
+    expect(held.handoffRules.map((rule) => rule.id)).toEqual(ids);
+    const listed = held.messages.at(-1)?.text ?? "";
+    expect(listed).toContain("These steps name no words");
+    expect(listed.indexOf("The send")).toBeGreaterThan(-1);
+    expect(listed.indexOf("The deletion")).toBeGreaterThan(listed.indexOf("The send"));
+    expect(listed.indexOf("The public post")).toBeGreaterThan(listed.indexOf("The deletion"));
+    expect(listed).toContain("the whole send");
+    expect(listed).toContain("the whole deletion");
+    expect(listed).toContain("the whole public post");
+    expect(listed).not.toContain("The payment");
+    expect(listed).not.toContain("the vendor invoice");
+    expect(listed).toContain("named no other step");
+    expect(listed).toContain("did not approve a hold");
+    expect(listed).not.toContain("No step names no words");
+
+    let named = setHandoffRule(held, "delete", true, deps, "shared project files");
+    named = await convene(named, "Which step names no words?", undefined, deps);
+    expect(named.handoffRules.find((rule) => rule.action === "delete")?.phrase).toBe("shared project files");
+    expect(named.goals).toHaveLength(1);
+    const twoBare = named.messages.at(-1)?.text ?? "";
+    expect(twoBare).toContain("These steps name no words");
+    expect(twoBare.indexOf("The send")).toBeGreaterThan(-1);
+    expect(twoBare.indexOf("The public post")).toBeGreaterThan(twoBare.indexOf("The send"));
+    expect(twoBare).toContain("the whole send");
+    expect(twoBare).toContain("the whole public post");
+    expect(twoBare).not.toContain("No step names no words");
+    expect(twoBare).not.toContain("The deletion");
+    expect(twoBare).not.toContain("The payment");
+    expect(twoBare).not.toContain("shared project files");
+    expect(twoBare).not.toContain("the vendor invoice");
+
+    named = setHandoffRule(named, "post", true, deps, "the launch note");
+    const both = await convene(named, "Which steps naming no words handed over to you?", undefined, deps);
+    expect(both.handoffRules.find((rule) => rule.action === "send")?.phrase).toBeNull();
+    expect(both.goals).toHaveLength(1);
+    const onlySend = both.messages.at(-1)?.text ?? "";
+    expect(onlySend).toContain("The send is handed to you");
+    expect(onlySend).toContain("the whole send");
+    expect(onlySend).not.toContain("These steps name no words");
+    expect(onlySend).not.toContain("The deletion");
+    expect(onlySend).not.toContain("The public post");
+    expect(onlySend).not.toContain("shared project files");
+    expect(onlySend).not.toContain("the launch note");
+    expect(onlySend).not.toContain("the vendor invoice");
+
+    const mentioned = await convene(both, "Which step mentions shared project files?", undefined, deps);
+    expect(mentioned.messages.at(-1)?.text).toContain("The deletion mentions “shared project files”");
+    expect(mentioned.messages.at(-1)?.text).not.toContain("No step names no words");
+    expect(mentioned.messages.at(-1)?.text).not.toContain("the whole send");
+    expect(mentioned.messages.at(-1)?.text).not.toContain("the vendor invoice");
+
+    const words = await convene(mentioned, "Which words does a deletion hand to me?", undefined, deps);
+    expect(words.messages.at(-1)?.text).toContain("The words are “shared project files”");
+    expect(words.messages.at(-1)?.text).not.toContain("No step names no words");
+    expect(words.messages.at(-1)?.text).not.toContain("the whole send");
+
+    const one = await convene(words, "Is a deletion handed to me?", undefined, deps);
+    expect(one.messages.at(-1)?.text).toContain("only “shared project files”");
+    expect(one.messages.at(-1)?.text).not.toContain("No step names no words");
+    expect(one.messages.at(-1)?.text).not.toContain("the whole send");
+    expect(one.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+
+    const every = await convene(one, "What is handed to me?", undefined, deps);
+    expect(every.goals).toHaveLength(1);
+    expect(every.messages.at(-1)?.text).toContain("These steps are handed to you");
+    expect(every.messages.at(-1)?.text).toContain("the whole send");
+    expect(every.messages.at(-1)?.text).toContain("only “shared project files”");
+    expect(every.messages.at(-1)?.text).toContain("only “the vendor invoice”");
+    expect(every.messages.at(-1)?.text).toContain("only “the launch note”");
+    expect(every.messages.at(-1)?.text).not.toContain("No step names no words");
+
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let parked = await convene(initialState(), "Draft the weekly close", undefined, early);
+    parked = saveRoutine(parked, parked.goals[0]?.id ?? "", "Close", early);
+    parked = setRoutineCadence(parked, parked.routines[0]?.id ?? "", "hourly", early);
+    const nextRun = parked.routines[0]?.nextRunAt;
+    parked = setPaused(parked, true, early);
+    parked = setHandoffRule(parked, "delete", true, early);
+    parked = setHandoffRule(parked, "pay", true, early, "the vendor invoice");
+    parked = await convene(parked, "Which steps name no words to me?", undefined, {
+      ...deps,
+      now: () => new Date("2026-10-23T13:30:00.000Z"),
+    });
+    expect(parked.paused).toBe(true);
+    expect(parked.routines[0]?.nextRunAt).toBe(nextRun);
+    expect(parked.events.some((event) => event.type === "woke" || event.type === "approved")).toBe(false);
+    expect(parked.messages.at(-1)?.text).toContain("The deletion is handed to you");
+    expect(parked.messages.at(-1)?.text).toContain("the whole deletion");
+    expect(parked.messages.at(-1)?.text).not.toContain("The payment");
+    expect(parked.messages.at(-1)?.text).not.toContain("the vendor invoice");
+    expect(parked.handoffRules.find((rule) => rule.action === "delete")?.phrase).toBeNull();
+
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = setPaused(state, true, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = setHandoffRule(state, "send", true, deps);
+      state = setHandoffRule(state, "pay", true, deps, "the vendor invoice");
+      const before = state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`);
+      state = await convene(state, "Which steps name no words to you?", undefined, deps);
+      expect(hits).toHaveLength(0);
+      expect(state.paused).toBe(true);
+      expect(state.goals).toHaveLength(0);
+      expect(state.handoffs).toHaveLength(0);
+      expect(state.approvals).toHaveLength(0);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      expect(state.messages.at(-1)?.text).toContain("The send is handed to you");
+      expect(state.messages.at(-1)?.text).toContain("the whole send");
+      expect(state.messages.at(-1)?.text).not.toContain("The deletion");
+      expect(state.messages.at(-1)?.text).not.toContain("shared project files");
+      expect(state.messages.at(-1)?.text).not.toContain("the vendor invoice");
+      state = await convene(state, "Which steps name no words and delete the archive", undefined, deps);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      const archive = state.goals.at(-1)?.id;
+      expect(state.approvals.filter((approval) => approval.goalId === archive && approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+      expect(state.handoffs.filter((item) => item.goalId === archive)).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).not.toContain("named no other step");
+      expect(state.messages.at(-1)?.text).not.toContain("No step names no words");
+      state = setHandoffRule(state, "delete", false, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      const bareBefore = state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`);
+      state = await convene(state, "Which steps name no words and delete the archive", undefined, deps);
+      const handed = state.goals.at(-1)?.id;
+      expect(state.handoffs.filter((item) => item.goalId === handed && item.status === "open")).toHaveLength(1);
+      expect(state.approvals.filter((approval) => approval.goalId === handed)).toHaveLength(0);
+      expect(state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`)).toEqual(bareBefore);
+      expect(state.messages.at(-1)?.text).not.toContain("No step names no words");
+      expect(state.messages.at(-1)?.text).not.toContain("named no other step");
+      const beforeOrdinary = state.goals.length;
+      state = await convene(state, "Hand deletions to me", undefined, deps);
+      expect(state.goals.length).toBe(beforeOrdinary + 1);
+      expect(state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`)).toEqual(bareBefore);
+      expect(state.messages.at(-1)?.text).not.toContain("No step names no words");
+      expect(state.messages.at(-1)?.text).not.toContain("These steps name no words");
+      state = await convene(state, "Which step mentions shared project files?", undefined, deps);
+      expect(state.messages.at(-1)?.text).toContain("No step mentions “shared project files”");
+      expect(state.messages.at(-1)?.text).not.toContain("No step names no words");
+      expect(state.messages.at(-1)?.text).not.toContain("the whole send");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(hits.every((hit) => hit.raw.includes('"action":"convene"'))).toBe(true);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+
+  it("ORIEL-F35 asking which steps name no words keeps client work off Muse", async () => {
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      state = setHandoffRule(state, "send", true, deps, "shared project files");
+      state = await convene(state, "Which steps name no words?", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(0);
+      expect(state.goals).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).toContain("the whole deletion");
+      expect(state.messages.at(-1)?.text).not.toContain("shared project files");
+      state = await convene(state, "Delete the client files", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(1);
+      expect(state.approvals).toHaveLength(0);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
+  });
+
+  it("ORIEL-F35 a woken deletion still follows the rule the question did not change", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = setHandoffRule(state, "delete", true, early);
+      state = await convene(state, "Delete the shared project files", undefined, early);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(1);
+      const openId = state.handoffs[0]?.id ?? "";
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Archive", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Which steps name no words?", state.goals[0]?.id, early, "skill_missing");
+      expect(state.handoffRules).toHaveLength(1);
+      expect(state.handoffRules[0]?.phrase).toBeNull();
+      expect(state.handoffs.find((item) => item.id === openId)?.status).toBe("open");
+      expect(state.messages.at(-1)?.text).toContain("the whole deletion");
+      expect(state.messages.at(-1)?.text).not.toContain("shared project files");
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      expect(state.goals).toHaveLength(2);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(2);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(0);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
 });
 
 describe("flagship traceability", () => {

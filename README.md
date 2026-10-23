@@ -63,6 +63,8 @@ You can take that rule back in the same voice. `Stop handing deletions that ment
 
 `Which step mentions shared project files?` asks which steps use those words. It names only the actions whose phrase is those words. If more than one rule uses them, Oriel names each of those actions and no others. A rule with no words of its own is not those words. If none use them, Oriel says so and does not name the others. Asking does not create a goal, open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money. `Which words does a deletion hand to me?` still names only that rule's phrase.
 
+`Which steps name no words?` asks which steps have no words of their own. It names only those actions, in send, pay, delete, and post order. If more than one rule names no words, Oriel names each of those actions and no others. A rule that names words is left out, and its phrase is not quoted. If none are saved that way, Oriel says so and does not name the others. Asking does not create a goal, open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money. `Which step mentions shared project files?` still names only the actions whose phrase is those words.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:
