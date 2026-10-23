@@ -355,6 +355,12 @@ export const constraints: Constraint[] = [
     text: "a sentence can read which steps are handed over, and reading them does not run a step or open a card",
     proof: "What is handed to me names each saved rule. A deletion with no phrase is the whole deletion, and a phrase is only those words.",
   },
+  {
+    id: "ask-one",
+    short: "Ask about one step",
+    text: "a sentence can ask whether one action is handed over, and the answer names only that rule",
+    proof: "Is a deletion handed to me names only the deletion. A phrase is only those words, and other rules stay unnamed.",
+  },
 ];
 
 let cache: Story[] | null = null;

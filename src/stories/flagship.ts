@@ -574,6 +574,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F31",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask about one handoff",
+      title: "A sentence can ask whether one step is handed to you",
+      story:
+        "As a security admin, I want to ask Oriel whether a deletion is handed to me, so that it names only that rule and does not mention the others or delete anything.",
+      acceptance: [
+        "Asking whether a deletion is handed to me names only that rule, and it says so when that action has no rule.",
+        "A deletion with no phrase is the whole deletion, and a phrase such as shared project files is only those words.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

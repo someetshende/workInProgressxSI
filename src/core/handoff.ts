@@ -199,6 +199,9 @@ const SPOKEN_BARE_CLEAR =
 const SPOKEN_READ =
   /^(?:please,?\s+)?(?:what(?:'s| is)|which steps are|which rules are)\s+handed(?:\s+(?:off|over))?\s+to\s+(?:me|you)$/i;
 
+const SPOKEN_ASK =
+  /^(?:please,?\s+)?(?:is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+handed(?:\s+(?:off|over))?\s+to\s+(?:me|you)$/i;
+
 const SPOKEN_WOULD: Record<HandoffAction, string> = {
   send: "send",
   pay: "pay",
@@ -346,9 +349,44 @@ export function spokenReadCopy(rules: HandoffRule[]): string {
   return `${head} ${lines} Saying this did not save or clear a rule and did not open a card. It did not call a bridge, did not approve a hold, send mail, or move money.`;
 }
 
+const ASK_ONE: Record<HandoffAction, string> = {
+  send: "a send",
+  pay: "a payment",
+  delete: "a deletion",
+  post: "a public post",
+};
+
+const ASK_TAIL =
+  "Saying this did not save or clear a rule and did not open a card. It did not call a bridge, did not approve a hold, send mail, or move money.";
+
+export type SpokenAsk = { kind: "ask"; action: HandoffAction } | { kind: "reject"; reason: "action" };
+
+export function readSpokenAsk(text: string): SpokenAsk | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_ASK);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action };
+}
+
+export function spokenAskCopy(action: HandoffAction, rule: HandoffRule | undefined): string {
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  return `${READ_LABEL[action]} is handed to you. ${handoffRuleLine(rule)} Oriel named no other step. ${ASK_TAIL}`;
+}
+
 export function loosensSpokenRead(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please,?\s+)?(?:what(?:'s| is)|which)\b/i.test(normalized)) return false;
+  if (!/\bhanded(?:\s+(?:off|over))?\s+to\s+(?:me|you)\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+export function loosensSpokenAsk(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?(?:is|are)\b/i.test(normalized)) return false;
   if (!/\bhanded(?:\s+(?:off|over))?\s+to\s+(?:me|you)\b/i.test(normalized)) return false;
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }

@@ -155,7 +155,7 @@ function renderRail() {
   rail.append(
     el("p", {
       class: "rule-note",
-      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me?",
+      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me? To ask about one, say: Is a deletion handed to me?",
     }),
   );
   const rules = el("div", { class: "rules", "data-testid": "handoff-rules" });
