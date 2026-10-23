@@ -617,7 +617,7 @@ function joinLabels(labels: string[]): string {
   return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
 }
 
-export function spokenSharedWordsCopy(rules: HandoffRule[]): string {
+function groupedNamedPhrases(rules: HandoffRule[]): { phrase: string; actions: HandoffAction[] }[] {
   const named = READ_ORDER.flatMap((action) => {
     const rule = rules.find((item) => item.action === action);
     if (!rule?.phrase) return [];
@@ -630,19 +630,48 @@ export function spokenSharedWordsCopy(rules: HandoffRule[]): string {
     if (group) group.actions.push(rule.action);
     else groups.set(key, { phrase: rule.phrase ?? "", actions: [rule.action] });
   }
-  const shared = [...groups.values()].filter((group) => group.actions.length >= 2);
+  return [...groups.values()];
+}
+
+function phraseUseLine(group: { phrase: string; actions: HandoffAction[] }): string {
+  return `“${group.phrase}” is used by ${joinLabels(group.actions.map((action) => READ_LABEL[action]))}.`;
+}
+
+export function spokenSharedWordsCopy(rules: HandoffRule[]): string {
+  const shared = groupedNamedPhrases(rules).filter((group) => group.actions.length >= 2);
   if (!shared.length) {
     return `No words are shared. Oriel named no other step. ${ASK_TAIL}`;
   }
-  const lines = shared
-    .map((group) => `“${group.phrase}” is used by ${joinLabels(group.actions.map((action) => READ_LABEL[action]))}.`)
-    .join(" ");
+  const lines = shared.map((group) => phraseUseLine(group)).join(" ");
   return `These words are shared. ${lines} Oriel named no other step. ${ASK_TAIL}`;
 }
 
 export function loosensSpokenSharedWords(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please,?\s+)?which words?\s+(?:are|is)\s+shared\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+const SPOKEN_UNSHARED_WORDS =
+  /^(?:please,?\s+)?which words?\s+(?:are|is)\s+not\s+shared(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export function isSpokenUnsharedWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  return SPOKEN_UNSHARED_WORDS.test(normalized);
+}
+
+export function spokenUnsharedWordsCopy(rules: HandoffRule[]): string {
+  const once = groupedNamedPhrases(rules).filter((group) => group.actions.length === 1);
+  if (!once.length) {
+    return `No words are used once. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const lines = once.map((group) => phraseUseLine(group)).join(" ");
+  return `These words are used once. ${lines} Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenUnsharedWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which words?\s+(?:are|is)\s+not\s+shared\b/i.test(normalized)) return false;
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
