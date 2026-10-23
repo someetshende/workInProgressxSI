@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3409,
-  "flagship": 43,
+  "count": 3410,
+  "flagship": 44,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -773,6 +773,24 @@
       "story": "As a security admin, I want to ask Oriel whether one step shares words with one other step, so that it quotes that step's phrase and does not delete anything.",
       "acceptance": [
         "Asking whether a deletion shares words with a send quotes the phrase saved on that deletion and names only that other step when the phrases match.",
+        "If the other step has no rule, no phrase, or different words, Oriel says the deletion does not share those words with the send and quotes only the deletion.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F44",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask whether one step does not share words with another",
+      "title": "A sentence can ask whether one step does not share words with another",
+      "story": "As a security admin, I want to ask Oriel whether one step does not share words with one other step, so that it quotes that step's phrase and does not delete anything.",
+      "acceptance": [
+        "Asking whether a deletion does not share words with a send quotes the phrase saved on that deletion. If the phrases match, Oriel says that step does share those words with the send.",
         "If the other step has no rule, no phrase, or different words, Oriel says the deletion does not share those words with the send and quotes only the deletion.",
         "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
       ],

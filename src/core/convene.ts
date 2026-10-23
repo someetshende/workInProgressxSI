@@ -3,8 +3,8 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenSharedWords, isSpokenUnnamed, isSpokenUnsharedSteps, isSpokenUnsharedWords, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenNotShare, loosensSpokenRead, loosensSpokenShare, loosensSpokenShareWith, loosensSpokenShared, loosensSpokenSharedWords, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenUnsharedSteps, loosensSpokenUnsharedWords, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenNotShare, readSpokenRule, readSpokenShare, readSpokenShareWith, readSpokenStep, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenNotShareCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenShareCopy, spokenShareWithCopy, spokenSharedCopy, spokenSharedWordsCopy, spokenStepCopy, spokenUnnamedCopy, spokenUnsharedStepsCopy, spokenUnsharedWordsCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
-import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenNotShare, SpokenRule, SpokenShare, SpokenShareWith, SpokenStep, SpokenWords } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenSharedWords, isSpokenUnnamed, isSpokenUnsharedSteps, isSpokenUnsharedWords, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenNotShare, loosensSpokenNotShareWith, loosensSpokenRead, loosensSpokenShare, loosensSpokenShareWith, loosensSpokenShared, loosensSpokenSharedWords, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenUnsharedSteps, loosensSpokenUnsharedWords, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenNotShare, readSpokenNotShareWith, readSpokenRule, readSpokenShare, readSpokenShareWith, readSpokenStep, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenNotShareCopy, spokenNotShareWithCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenShareCopy, spokenShareWithCopy, spokenSharedCopy, spokenSharedWordsCopy, spokenStepCopy, spokenUnnamedCopy, spokenUnsharedStepsCopy, spokenUnsharedWordsCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
+import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenNotShare, SpokenNotShareWith, SpokenRule, SpokenShare, SpokenShareWith, SpokenStep, SpokenWords } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
@@ -184,6 +184,8 @@ export async function convene(
   }
   if (isSpokenUnnamed(original)) return applySpokenUnnamed(swept, original, deps);
   if (isSpokenNamed(original)) return applySpokenNamed(swept, original, deps);
+  const spokenNotShareWith = readSpokenNotShareWith(original);
+  if (spokenNotShareWith) return applySpokenNotShareWith(swept, original, spokenNotShareWith, deps);
   const spokenShareWith = readSpokenShareWith(original);
   if (spokenShareWith) return applySpokenShareWith(swept, original, spokenShareWith, deps);
   const spokenNotShare = readSpokenNotShare(original);
@@ -202,6 +204,7 @@ export async function convene(
     loosensSpokenUnnamed(original) ||
     loosensSpokenNamed(original) ||
     loosensSpokenNotShare(original) ||
+    loosensSpokenNotShareWith(original) ||
     loosensSpokenShareWith(original) ||
     loosensSpokenShare(original) ||
     loosensSpokenUnsharedSteps(original) ||
@@ -674,6 +677,18 @@ function applySpokenNamed(state: AppState, raw: string, deps: Deps): AppState {
   pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
   pushMessage(draft, { role: "oriel", text: reply }, deps);
   pushEvent(draft, null, "rule_read", reply, deps);
+  return draft;
+}
+
+function applySpokenNotShareWith(state: AppState, raw: string, spoken: SpokenNotShareWith, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  const reply =
+    spoken.kind === "reject"
+      ? "That sentence does not name two different steps. Oriel did not open a card. Nothing was sent or spent."
+      : spokenNotShareWithCopy(spoken.action, spoken.other, draft.handoffRules ?? []);
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, spoken.kind === "reject" ? "rule_ignored" : "rule_read", reply, deps);
   return draft;
 }
 
