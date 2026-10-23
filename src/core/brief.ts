@@ -82,13 +82,15 @@ export function composeBrief(input: {
   handed?: boolean;
   skillName?: string | null;
   rules?: HandoffAction[];
+  rulePhrases?: Partial<Record<HandoffAction, string>>;
   away?: boolean;
 }): Brief {
   const recommendation = recommend(input.choice, input.policy);
   const sentence = holdSentence(input.held, input.skipped);
   const using = input.skillName ? `Using the skill “${input.skillName}”.` : "";
   const rules = input.rules ?? [];
-  const ruleLine = ruleSentence(rules);
+  const rulePhrases = input.rulePhrases ?? {};
+  const ruleLine = ruleSentence(rules, rulePhrases);
   const handedLine = input.handed ? HANDOFF_VOICE : "";
   const awayLine = input.away && input.held.length ? AWAY_HOLD_COPY : "";
   const voice = [using, recommendation, sentence, ruleLine, handedLine, awayLine].filter(Boolean).join(" ");
@@ -130,6 +132,7 @@ export function composeBrief(input: {
     referenceOnly: input.notes.every((note) => note.mode === "reference"),
     skill: input.skillName ?? null,
     rules,
+    rulePhrases,
   };
 }
 
@@ -162,7 +165,7 @@ export function renderMarkdown(goal: Goal, events: LedgerEvent[]): string {
     lines.push("", "## Disagreement", goal.brief.dissent);
   }
   if (goal.brief.rules?.length) {
-    lines.push("", "## Handoff rule", ruleSentence(goal.brief.rules));
+    lines.push("", "## Handoff rule", ruleSentence(goal.brief.rules, goal.brief.rulePhrases));
   }
   if (goal.brief.handed) {
     lines.push(

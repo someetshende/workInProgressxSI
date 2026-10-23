@@ -155,7 +155,7 @@ function renderRail() {
   rail.append(
     el("p", {
       class: "rule-note",
-      text: "When a request would do one of these, that step is yours.",
+      text: "When a request would do one of these, that step is yours. Describe it if only the matching words should.",
     }),
   );
   const rules = el("div", { class: "rules", "data-testid": "handoff-rules" });
@@ -165,22 +165,90 @@ function renderRail() {
     ["delete", "Delete"],
     ["post", "Post"],
   ]) {
-    const saved = Boolean(state.handoffRules?.some((rule) => rule.action === action));
+    const savedRule = state.handoffRules?.find((rule) => rule.action === action);
+    const saved = Boolean(savedRule);
+    const phrase = savedRule?.phrase;
+    let title = `Save a handoff rule for ${action}. A later request that would do it is yours. This does not run the step.`;
+    if (phrase) {
+      title = `A request that would ${action} and mentions “${phrase}” is yours. Clearing this does not run it or approve a hold.`;
+    } else if (saved) {
+      title = `A request that would ${action} is yours. Clearing this does not run it or approve a hold.`;
+    }
     rules.append(
       el("button", {
         type: "button",
         class: "rule",
         "data-testid": `rule-${action}`,
         "aria-pressed": saved ? "true" : "false",
-        title: saved
-          ? `A request that would ${action} is yours. Clearing this does not run it or approve a hold.`
-          : `Save a handoff rule for ${action}. A later request that would do it is yours. This does not run the step.`,
+        title,
         text: label,
         onclick: () => post("/api/handoff-rules", { action, enabled: !saved }),
       }),
     );
   }
   rail.append(rules);
+  const phraseForm = el("form", { class: "rule-phrase", "data-testid": "rule-phrase-form" });
+  const actionPick = el("select", {
+    "data-testid": "rule-phrase-action",
+    "aria-label": "Action to describe",
+    name: "action",
+  });
+  for (const [value, label] of [
+    ["send", "Send"],
+    ["pay", "Pay"],
+    ["delete", "Delete"],
+    ["post", "Post"],
+  ]) {
+    actionPick.append(el("option", { value, text: label }));
+  }
+  actionPick.value = "delete";
+  const phraseInput = el("input", {
+    name: "phrase",
+    type: "text",
+    maxlength: "80",
+    placeholder: "shared project files",
+    "data-testid": "rule-phrase",
+    "aria-label": "Words that narrow the step",
+    autocomplete: "off",
+  });
+  const described = state.handoffRules?.find((rule) => rule.action === "delete");
+  if (described?.phrase) phraseInput.value = described.phrase;
+  actionPick.addEventListener("change", () => {
+    const rule = state.handoffRules?.find((item) => item.action === actionPick.value);
+    phraseInput.value = rule?.phrase || "";
+  });
+  phraseForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const words = phraseInput.value.trim().replace(/\s+/g, " ");
+    if (words.length < 3) {
+      error.hidden = false;
+      error.textContent = "Name the words that narrow this step.";
+      return;
+    }
+    post("/api/handoff-rules", { action: actionPick.value, enabled: true, phrase: words });
+  });
+  phraseForm.append(
+    actionPick,
+    phraseInput,
+    el("button", {
+      type: "submit",
+      "data-testid": "rule-phrase-save",
+      text: "Narrow",
+      title: "Save these words on the chosen step. This does not run the step.",
+    }),
+  );
+  rail.append(phraseForm);
+  for (const rule of state.handoffRules ?? []) {
+    if (!rule.phrase) continue;
+    const label = rule.action.slice(0, 1).toUpperCase() + rule.action.slice(1);
+    rail.append(
+      el("p", {
+        class: "rule-saved",
+        "data-testid": `rule-phrase-${rule.action}`,
+        text: `${label} only when it mentions “${rule.phrase}”.`,
+      }),
+    );
+  }
   rail.append(
     el("button", {
       type: "button",
@@ -638,7 +706,6 @@ function renderBrief(goal) {
   );
 
   const wrap = el("div");
-  wrap.append(details);
   const approvals = state.approvals.filter((approval) => approval.goalId === goal.id);
   for (const approval of approvals) {
     wrap.append(renderHold(approval, { card: "approval", approve: "approve", deny: "deny" }));
@@ -646,6 +713,7 @@ function renderBrief(goal) {
   for (const handoff of (state.handoffs || []).filter((item) => item.goalId === goal.id)) {
     wrap.append(renderHandoff(handoff, { card: "handoff", done: "did-this", leave: "leave-step" }));
   }
+  wrap.append(details);
   return wrap;
 }
 

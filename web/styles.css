@@ -240,6 +240,37 @@ aside {
   border-color: var(--signal);
   background: color-mix(in srgb, var(--card) 80%, transparent);
 }
+.rule-phrase {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+.rule-phrase select,
+.rule-phrase input {
+  width: 100%;
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.rule-phrase button {
+  justify-self: start;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.rule-saved {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
 .bridge-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .bridge-actions button {
   background: var(--button);

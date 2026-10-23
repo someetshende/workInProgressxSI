@@ -479,6 +479,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F26",
+      persona: "a security admin",
+      role: "security",
+      surface: "approvals",
+      capability: "Narrow a handoff",
+      title: "A handoff rule can name the words that stay yours",
+      story:
+        "As a security admin, I want Oriel to let a handoff rule name a phrase, so that only a request that mentions those words is mine and every other request stays a hold.",
+      acceptance: [
+        "Saving the same phrase twice does not duplicate the rule, and a different phrase updates that one rule.",
+        "A deletion that omits the phrase is held, and a deletion that includes the phrase is handed to you.",
+        "Marking the step done does not call the bridge, and there is still no always-allow.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

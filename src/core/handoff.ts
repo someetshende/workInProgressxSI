@@ -1,3 +1,4 @@
+import { redactSecrets } from "./redact.js";
 import { HANDOFF_ACTIONS, type ApprovalKind, type Handoff, type HandoffAction, type HandoffRule, type Policy } from "./types.js";
 
 export const HANDOFF_TASK =
@@ -140,11 +141,53 @@ export function isHandoffAction(value: string): value is HandoffAction {
   return (HANDOFF_ACTIONS as readonly string[]).includes(value);
 }
 
-export function ruleSentence(actions: HandoffAction[]): string {
+export function cleanPhrase(value: string): string | null {
+  const phrase = value.replace(/\s+/g, " ").trim();
+  if (phrase.length < 3 || phrase.length > 80) return null;
+  if (/[\u0000-\u001f]/.test(phrase)) return null;
+  if (/always[-\s]?allow|without asking|allow automatically|take action without/i.test(phrase)) return null;
+  if (redactSecrets(phrase) !== phrase) return null;
+  return phrase;
+}
+
+export function phraseMatches(text: string, phrase: string | null): boolean {
+  if (!phrase) return true;
+  const hay = text.toLowerCase().replace(/\s+/g, " ");
+  const needle = phrase.toLowerCase().replace(/\s+/g, " ");
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, "i").test(hay);
+}
+
+export function ruleSentence(
+  actions: HandoffAction[],
+  phrases?: Partial<Record<HandoffAction, string | null | undefined>>,
+): string {
   if (!actions.length) return "";
-  const names = actions.map((action) => RULE_NOUN[action]);
-  const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
-  return `Your rule hands ${list} to you. It does not run the step, and it does not approve a hold.`;
+  const named = actions.some((action) => phrases?.[action]);
+  if (!named) {
+    const names = actions.map((action) => RULE_NOUN[action]);
+    const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+    return `Your rule hands ${list} to you. It does not run the step, and it does not approve a hold.`;
+  }
+  const parts = actions.map((action) => {
+    const phrase = phrases?.[action];
+    const base = `${RULE_NOUN[action]} to you`;
+    return phrase ? `${base} when the request mentions “${phrase}”` : base;
+  });
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(" and ")} and ${parts.at(-1)}`;
+  return `Your rule hands ${list}. It does not run the step, and it does not approve a hold.`;
+}
+
+export function handoffCardDetail(
+  facts: Pick<HandoffFacts, "personPassword" | "personSignin" | "personCode" | "replaces">,
+  phrases: Partial<Record<HandoffAction, string>> = {},
+): string {
+  const base = handoffDetail(facts);
+  if (facts.personPassword || facts.personSignin || facts.personCode) return base;
+  const kind = (["delete", "pay", "send", "post"] as const).find((item) => facts.replaces.includes(item));
+  const phrase = kind ? phrases[kind] : undefined;
+  if (!phrase) return base;
+  return `${base} This rule applies when the request mentions “${phrase}”.`;
 }
 
 export function normalizeHandoffRule(value: unknown): HandoffRule | null {
@@ -153,7 +196,14 @@ export function normalizeHandoffRule(value: unknown): HandoffRule | null {
   if (typeof rule.id !== "string" || !rule.id.trim()) return null;
   if (typeof rule.action !== "string" || !isHandoffAction(rule.action)) return null;
   if (typeof rule.createdAt !== "string" || !rule.createdAt) return null;
-  return { id: rule.id, action: rule.action, createdAt: rule.createdAt };
+  let phrase: string | null = null;
+  if ("phrase" in rule && rule.phrase != null && rule.phrase !== "") {
+    if (typeof rule.phrase !== "string") return null;
+    const cleaned = cleanPhrase(rule.phrase);
+    if (!cleaned) return null;
+    phrase = cleaned;
+  }
+  return { id: rule.id, action: rule.action, phrase, createdAt: rule.createdAt };
 }
 
 export function normalizeHandoff(value: unknown): Handoff | null {

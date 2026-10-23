@@ -1,4 +1,4 @@
-import { handoffFacts } from "./handoff.js";
+import { handoffFacts, phraseMatches } from "./handoff.js";
 import { HANDOFF_ACTIONS, type ApprovalKind, type HandoffAction, type HandoffRule, type Memory, type Policy } from "./types.js";
 
 function forbade(text: string, verbs: string): boolean {
@@ -88,17 +88,26 @@ function actionActive(policy: Policy, action: HandoffAction): boolean {
   return policy.publicPost && !policy.forbadePost;
 }
 
-export function applyHandoffRules(policy: Policy, rules: HandoffRule[]): { policy: Policy; fired: HandoffAction[] } {
+export function applyHandoffRules(
+  policy: Policy,
+  rules: HandoffRule[],
+  text: string,
+): { policy: Policy; fired: HandoffAction[]; phrases: Partial<Record<HandoffAction, string>> } {
   const replaces = [...policy.replaces];
   const fired: HandoffAction[] = [];
+  const phrases: Partial<Record<HandoffAction, string>> = {};
   for (const action of HANDOFF_ACTIONS) {
-    if (!rules.some((rule) => rule.action === action)) continue;
+    const rule = rules.find((item) => item.action === action);
+    if (!rule) continue;
     if (!actionActive(policy, action)) continue;
+    if (!phraseMatches(text, rule.phrase)) continue;
     if (!replaces.includes(action)) replaces.push(action);
     fired.push(action);
+    if (rule.phrase) phrases[action] = rule.phrase;
   }
   return {
     fired,
+    phrases,
     policy: {
       ...policy,
       replaces,

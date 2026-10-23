@@ -45,6 +45,8 @@ A password change, a sign-in, or a one-time code is handed to you. The card says
 
 In the rail, **Hand off to you** can save a rule for Send, Pay, Delete, or Post. A later request that would do that action is yours. A draft that would not do it does not open a card. Saving the same action twice does not duplicate the rule. Clearing it does not approve a hold, send mail, or move money. The rule does not wake. There is no control that takes the action without asking.
 
+**Narrow** describes one of those steps in your own words, such as shared project files. The rule then applies only when a later request would do that action and mentions those words. A deletion that leaves the words out stays a hold. The match is the words themselves. Saving the same words again does not duplicate the rule. Changing the words keeps the one rule. There is still no control that takes the action without asking.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:

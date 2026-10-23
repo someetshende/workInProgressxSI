@@ -75,6 +75,7 @@ export type Brief = {
   referenceOnly: boolean;
   skill: string | null;
   rules: HandoffAction[];
+  rulePhrases?: Partial<Record<HandoffAction, string>>;
 };
 
 export type Goal = {
@@ -125,6 +126,8 @@ export type Handoff = {
 export type HandoffRule = {
   id: string;
   action: HandoffAction;
+  /** Null covers every request that would do the action. A phrase covers only a request that mentions those words. */
+  phrase: string | null;
   createdAt: string;
 };
 

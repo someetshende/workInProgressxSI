@@ -3,7 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, handoffDetail, handoffTitle, isHandoffAction, isHandoffDecision, skillGuardsSeat, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, skillGuardsSeat, taskSuffix } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
@@ -158,9 +158,10 @@ export async function convene(
   draft.memory = remember(draft.memory, stored);
   let policy = readPolicy(original, draft.memory);
   if (applied) policy = withSkillProhibitions(policy, applied.method, draft.memory);
-  const ruled = applyHandoffRules(policy, draft.handoffRules);
+  const ruled = applyHandoffRules(policy, draft.handoffRules, original);
   policy = ruled.policy;
   const fired = ruled.fired;
+  const rulePhrases = ruled.phrases;
 
   let goal: Goal | null = null;
   if (goalId) {
@@ -228,6 +229,7 @@ export async function convene(
         skillName: applied?.name ?? null,
         handed: policy.handoff,
         rules: fired,
+        rulePhrases,
         away: presence === "away",
       }),
       openLoops: extractLoops(stored),
@@ -301,7 +303,7 @@ export async function convene(
     approvalIds.push(approval.id);
   }
   if (policy.handoff) {
-    const detail = handoffDetail(policy);
+    const detail = handoffCardDetail(policy, rulePhrases);
     const planned = step(draft, "Hand off to you", detail, "oriel", "waiting");
     plan.push(planned);
     draft.handoffs.push({
@@ -335,6 +337,7 @@ export async function convene(
     handed: policy.handoff,
     skillName: applied?.name ?? null,
     rules: fired,
+    rulePhrases,
     away: presence === "away",
   });
   goal.status = goalStatus(goal, draft.approvals, draft.handoffs);
@@ -519,11 +522,23 @@ export function setConnector(
   return draft;
 }
 
-export function setHandoffRule(state: AppState, action: string, enabled: boolean, deps: Deps): AppState {
+export function setHandoffRule(
+  state: AppState,
+  action: string,
+  enabled: boolean,
+  deps: Deps,
+  phrase?: string,
+): AppState {
   if (!isHandoffAction(action)) throw new OrielError("A handoff rule names send, pay, delete, or post.");
   const rules = state.handoffRules ?? [];
   const existing = rules.find((rule) => rule.action === action);
-  if (enabled && existing) return state;
+  let storedPhrase: string | null = null;
+  if (phrase !== undefined) {
+    storedPhrase = cleanPhrase(phrase);
+    if (!storedPhrase) throw new OrielError("Name the step in a short phrase. Oriel will not run it.");
+  }
+  if (enabled && existing && phrase === undefined) return state;
+  if (enabled && existing && existing.phrase === storedPhrase) return state;
   if (!enabled && !existing) return state;
   const draft = structuredClone(state);
   draft.handoffRules = [...(draft.handoffRules ?? [])];
@@ -538,16 +553,30 @@ export function setHandoffRule(state: AppState, action: string, enabled: boolean
     );
     return draft;
   }
+  const current = draft.handoffRules.find((rule) => rule.action === action);
+  if (current) {
+    current.phrase = storedPhrase;
+    pushEvent(
+      draft,
+      null,
+      "rule_saved",
+      `Narrowed the handoff rule for ${action} to “${storedPhrase}”. The rule does not run it, wake, or approve a hold.`,
+      deps,
+    );
+    return draft;
+  }
   draft.handoffRules.push({
     id: nid(draft, "rule"),
     action,
+    phrase: storedPhrase,
     createdAt: at(deps),
   });
+  const scope = storedPhrase ? `mentions “${storedPhrase}”` : "would do that";
   pushEvent(
     draft,
     null,
     "rule_saved",
-    `Saved a handoff rule for ${action}. When a request would do that, the step is yours. The rule does not run it, wake, or approve a hold.`,
+    `Saved a handoff rule for ${action}. When a request ${scope}, the step is yours. The rule does not run it, wake, or approve a hold.`,
     deps,
   );
   return draft;

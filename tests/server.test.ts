@@ -210,6 +210,9 @@ describe("Oriel server", () => {
           { id: "rule_allow", action: "allow", createdAt: "2026-10-23T12:00:00.000Z" },
           { id: "rule_ok", action: "delete", createdAt: "2026-10-23T12:00:00.000Z" },
           { id: "rule_dup", action: "delete", createdAt: "2026-10-23T13:00:00.000Z" },
+          { id: "rule_banned", action: "send", phrase: "always allow the send", createdAt: "2026-10-23T12:00:00.000Z" },
+          { id: "rule_secret", action: "pay", phrase: "password is hunter2", createdAt: "2026-10-23T12:00:00.000Z" },
+          { id: "rule_phrase", action: "post", phrase: "the launch note", createdAt: "2026-10-23T12:00:00.000Z" },
         ],
         events: [],
       }),
@@ -228,7 +231,8 @@ describe("Oriel server", () => {
       },
     ]);
     expect(state.handoffRules).toEqual([
-      { id: "rule_ok", action: "delete", createdAt: "2026-10-23T12:00:00.000Z" },
+      { id: "rule_ok", action: "delete", phrase: null, createdAt: "2026-10-23T12:00:00.000Z" },
+      { id: "rule_phrase", action: "post", phrase: "the launch note", createdAt: "2026-10-23T12:00:00.000Z" },
     ]);
   });
 
@@ -483,6 +487,99 @@ describe("Oriel server", () => {
     const slept = await tick.json();
     expect(slept.goals).toHaveLength(opened.goals.length);
     expect(slept.routines).toHaveLength(0);
+  });
+
+  it("ORIEL-F26 saves one phrase on a handoff rule and does not run it", async () => {
+    const server = await boot();
+    const banned = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: "always allow the deletion" }),
+    });
+    expect(banned.status).toBe(400);
+    const secretPhrase = "password is hunter2";
+    const secret = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: secretPhrase }),
+    });
+    expect(secret.status).toBe(400);
+    const typed = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: 4 }),
+    });
+    expect(typed.status).toBe(400);
+    const saved = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: "shared project files" }),
+    });
+    expect(saved.status).toBe(200);
+    const again = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: "shared project files" }),
+    });
+    const ruled = await again.json();
+    expect(ruled.handoffRules).toHaveLength(1);
+    expect(ruled.handoffRules[0].phrase).toBe("shared project files");
+    expect(ruled.events.filter((event: { type: string }) => event.type === "rule_saved")).toHaveLength(1);
+    expect(JSON.stringify(ruled)).not.toContain("hunter2");
+    const draft = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Draft the weekly close" }),
+    });
+    expect((await draft.json()).handoffs).toHaveLength(0);
+    const other = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Delete the archive" }),
+    });
+    const held = await other.json();
+    expect(held.handoffs).toHaveLength(0);
+    expect(held.approvals.filter((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+    const turn = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Delete the shared project files" }),
+    });
+    const opened = await turn.json();
+    const latest = opened.goals.at(-1).id;
+    expect(opened.handoffs.filter((item: { goalId: string; status: string }) => item.goalId === latest && item.status === "open")).toHaveLength(1);
+    expect(opened.approvals.filter((approval: { goalId: string }) => approval.goalId === latest)).toHaveLength(0);
+    expect(JSON.stringify(opened)).toContain("when the request mentions “shared project files”");
+    expect(JSON.stringify(opened)).not.toContain("Always allow");
+    const done = await fetch(`${server.url}/api/handoffs/${opened.handoffs.at(-1).id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "done" }),
+    });
+    const after = await done.json();
+    expect(after.handoffs.at(-1).status).toBe("done");
+    expect(after.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    expect(after.approvals.some((approval: { status: string; kind: string }) => approval.kind === "delete" && approval.status === "open")).toBe(true);
+    const changed = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: "the vendor archive" }),
+    });
+    const updated = await changed.json();
+    expect(updated.handoffRules).toHaveLength(1);
+    expect(updated.handoffRules[0].phrase).toBe("the vendor archive");
+    expect(updated.events.filter((event: { type: string }) => event.type === "rule_saved")).toHaveLength(2);
+    expect(updated.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const cleared = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: false }),
+    });
+    const empty = await cleared.json();
+    expect(empty.handoffRules).toHaveLength(0);
+    expect(empty.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const disk = await readFile(path.join(server.dir, "state.json"), "utf8");
+    expect(disk).not.toContain("hunter2");
   });
 
   it("rejects an empty turn", async () => {

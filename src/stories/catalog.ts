@@ -331,6 +331,12 @@ export const constraints: Constraint[] = [
     text: "a failed live bridge is named, and the reference seat continues",
     proof: "Bridge failure is written on the seat read and the mode falls back to reference.",
   },
+  {
+    id: "narrow-phrase",
+    short: "Name the phrase",
+    text: "a handoff rule can name a phrase, and a request that leaves those words out is not handed over",
+    proof: "The phrase is a literal mention. Omitting it does not open a handoff, and the rule does not run the step.",
+  },
 ];
 
 let cache: Story[] | null = null;

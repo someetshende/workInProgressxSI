@@ -398,6 +398,54 @@ test("ORIEL-F25 a rail rule hands a deletion to you and leaves a draft alone", a
   await page.screenshot({ path: "test-results/oriel-rule.png" });
 });
 
+test("ORIEL-F26 a phrase hands over only the deletion that mentions it", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("rule-phrase-action").selectOption("delete");
+  await page.getByTestId("rule-phrase").fill("ab");
+  await page.getByTestId("rule-phrase-save").click();
+  await expect(page.getByTestId("error")).toContainText("Name the words that narrow this step.");
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "false");
+  await page.getByTestId("rule-phrase").fill("shared project files");
+  await page.getByTestId("rule-phrase-save").click();
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+  await page.getByTestId("composer").fill("Draft the weekly close");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toBeVisible();
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval")).toContainText("Release a deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Delete the shared project files");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("handoff")).toContainText("shared project files");
+  await expect(page.getByTestId("synthesis")).toContainText("when the request mentions “shared project files”");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='away-approve-']")).toBeVisible();
+  await page.getByTestId("did-this").click();
+  await expect(page.getByTestId("thread")).toContainText("did not type a password");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+  await expect(page.locator("[data-testid^='away-approve-']")).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.getByTestId("rule-phrase").scrollIntoViewIfNeeded();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("rule-phrase-delete")).toBeVisible();
+  await page.getByTestId("handoff").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("handoff")).toBeVisible();
+  await expect(page.getByTestId("handoff")).toContainText("You did this");
+  await page.screenshot({ path: "test-results/oriel-phrase.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

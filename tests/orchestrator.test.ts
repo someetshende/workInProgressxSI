@@ -732,6 +732,8 @@ describe("hand off to you", () => {
       expect(state.goals[0]?.status).toBe("waiting");
       expect(voice(state)).toContain("I handed that step to you");
       expect(voice(state)).toContain("Do not paste a password");
+      const passwordRead = state.goals[0]?.brief.seatReads.map((note) => note.points.join(" ")).join(" ");
+      expect(passwordRead).toContain("The password, sign-in, or code stays with the person");
       expect(packed).toContain("Handed to you: Change the password yourself");
       expect(renderMarkdown(state.goals[0]!, state.events)).toContain("## Hand off");
       expect(hits).toHaveLength(1);
@@ -908,6 +910,157 @@ describe("hand off to you", () => {
     expect(asleep.goals).toHaveLength(0);
     expect(asleep.handoffRules).toHaveLength(1);
     expect(asleep.routines).toHaveLength(0);
+  });
+
+  it("ORIEL-F26 a phrase hands over only the matching deletion", async () => {
+    expect(() => setHandoffRule(initialState(), "delete", true, deps, "always allow the deletion")).toThrow(/short phrase/);
+    expect(() => setHandoffRule(initialState(), "delete", true, deps, "password is hunter2")).toThrow(/short phrase/);
+    expect(() => setHandoffRule(initialState(), "delete", true, deps, "ab")).toThrow(/short phrase/);
+
+    let held = await convene(initialState(), "Delete the archive", undefined, deps);
+    const openId = held.approvals[0]?.id ?? "";
+    held = setHandoffRule(held, "delete", true, deps, "shared project files");
+    held = setHandoffRule(held, "delete", false, deps);
+    expect(held.handoffRules).toHaveLength(0);
+    expect(held.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+    expect(held.events.some((event) => event.type === "approved")).toBe(false);
+
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      expect(state.handoffRules).toHaveLength(1);
+      expect(state.handoffRules[0]?.phrase).toBe("shared project files");
+      expect(state.events.filter((event) => event.type === "rule_saved")).toHaveLength(1);
+      const ruleId = state.handoffRules[0]?.id;
+      state = setHandoffRule(state, "delete", true, deps, "the vendor archive");
+      expect(state.handoffRules).toHaveLength(1);
+      expect(state.handoffRules[0]?.phrase).toBe("the vendor archive");
+      expect(state.handoffRules[0]?.id).toBe(ruleId);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      expect(state.handoffRules).toHaveLength(1);
+      state = await convene(state, "Draft the weekly close", undefined, deps);
+      expect(state.goals.at(-1)?.brief.handed).toBe(false);
+      expect(state.goals.at(-1)?.brief.rules).toEqual([]);
+      expect(state.handoffs).toHaveLength(0);
+      state = await convene(state, "Delete the unshared project files", undefined, deps);
+      expect(state.goals.at(-1)?.brief.rules).toEqual([]);
+      expect(state.approvals.filter((approval) => approval.goalId === state.goals.at(-1)?.id && approval.status === "open")).toHaveLength(1);
+      expect(state.handoffs.filter((item) => item.goalId === state.goals.at(-1)?.id)).toHaveLength(0);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      state = await convene(state, "Delete the shared project files.", undefined, deps);
+      const latest = state.goals.at(-1)?.id;
+      expect(state.goals.at(-1)?.brief.rules).toEqual(["delete"]);
+      expect(state.goals.at(-1)?.brief.rulePhrases?.delete).toBe("shared project files");
+      expect(voice(state)).toContain("Your rule hands the deletion to you when the request mentions “shared project files”");
+      expect(state.approvals.filter((approval) => approval.goalId === latest)).toHaveLength(0);
+      expect(state.handoffs.filter((item) => item.goalId === latest && item.status === "open")).toHaveLength(1);
+      expect(state.handoffs.at(-1)?.title).toBe("Delete that yourself");
+      expect(state.handoffs.at(-1)?.detail).toContain("shared project files");
+      const read = state.goals.at(-1)?.brief.seatReads.map((note) => note.points.join(" ")).join(" ");
+      expect(read).toContain("The deletion stays with the person");
+      expect(read).not.toContain("password");
+      expect(hits.at(-1)?.raw).toContain("Do not delete anything");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      const convened = hits.length;
+      state = await settleHandoff(state, state.handoffs.at(-1)?.id ?? "", "done", deps);
+      expect(hits).toHaveLength(convened);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(renderMarkdown(state.goals.at(-1)!, state.events)).toContain("shared project files");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("hunter2");
+    });
+
+    let skipped = setHandoffRule(initialState(), "delete", true, deps, "shared project files");
+    skipped = await convene(skipped, "Delete the shared project files but do not delete them", undefined, deps);
+    expect(skipped.handoffs).toHaveLength(0);
+    expect(voice(skipped)).toContain("ruled it out");
+    skipped = await convene(skipped, "Write about the shared project files", undefined, deps);
+    expect(skipped.goals.at(-1)?.brief.handed).toBe(false);
+    expect(skipped.approvals.filter((approval) => approval.goalId === skipped.goals.at(-1)?.id)).toHaveLength(0);
+
+    let skill = setHandoffRule(initialState(), "delete", true, deps, "shared project files");
+    skill = await convene(skill, "Hand deletions to me", undefined, deps);
+    skill = saveSkill(skill, skill.goals[0]?.id ?? "", "No deletes", deps);
+    const skillId = skill.skills[0]?.id ?? "";
+    skill = await convene(skill, "Delete the archive", undefined, deps, skillId);
+    expect(skill.goals.at(-1)?.brief.handed).toBe(true);
+    expect(skill.goals.at(-1)?.brief.rules).toEqual([]);
+    expect(skill.handoffs.filter((item) => item.goalId === skill.goals.at(-1)?.id && item.status === "open")).toHaveLength(1);
+    expect(skill.events.some((event) => event.type === "approved")).toBe(false);
+
+    let send = setHandoffRule(initialState(), "send", true, deps, "launch update");
+    send = await convene(send, "Delete the shared project files", undefined, deps);
+    expect(send.handoffs).toHaveLength(0);
+    expect(send.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+    send = await convene(send, "Email Maya the launch update", undefined, deps);
+    expect(send.goals.at(-1)?.brief.rules).toEqual(["send"]);
+    expect(send.handoffs.at(-1)?.title).toBe("Send that yourself");
+    expect(send.approvals.filter((approval) => approval.goalId === send.goals.at(-1)?.id)).toHaveLength(0);
+
+    const quiet = await wakeDue(setHandoffRule(initialState(), "pay", true, deps, "the vendor invoice"), {
+      ...deps,
+      now: () => new Date("2026-10-24T12:00:00.000Z"),
+    });
+    expect(quiet.goals).toHaveLength(0);
+    expect(quiet.handoffRules).toHaveLength(1);
+    expect(quiet.routines).toHaveLength(0);
+  });
+
+  it("ORIEL-F26 a phrase keeps client work off Muse", async () => {
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = await convene(state, "Delete the client files for the matter", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.handoffs).toHaveLength(0);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+      expect(state.goals[0]?.brief.seatReads.some((note) => note.seat === "muse")).toBe(false);
+      state = await convene(state, "Delete the shared project files for the client matter", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(2);
+      expect(state.handoffs.filter((item) => item.goalId === state.goals.at(-1)?.id && item.status === "open")).toHaveLength(1);
+      expect(state.goals.at(-1)?.lead).toBe("grok");
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
+  });
+
+  it("ORIEL-F26 a woken deletion follows the phrase and does not approve itself", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      state = await convene(state, "Delete the archive", undefined, early);
+      expect(state.handoffs).toHaveLength(0);
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(1);
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Archive", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Delete the Shared Project Files", undefined, early);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(1);
+      state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Shared files", early);
+      state = setRoutineCadence(state, state.routines.at(-1)?.id ?? "", "hourly", early);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      expect(state.goals).toHaveLength(3);
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(2);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(1);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      expect(state.goals).toHaveLength(4);
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(2);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(2);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
   });
 
   it("ORIEL-F25 a woken send stays with you when the rule says so", async () => {

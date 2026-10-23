@@ -319,7 +319,13 @@ export async function startServer(options: {
         const body = asObject(await readBody(req));
         if (typeof body.action !== "string") throw new OrielError("A handoff rule names send, pay, delete, or post.");
         if (typeof body.enabled !== "boolean") throw new OrielError("Enabled must be true or false.");
-        const next = await store.update((current) => setHandoffRule(current, body.action as string, body.enabled === true, depsFor()));
+        if ("phrase" in body && typeof body.phrase !== "string") {
+          throw new OrielError("A phrase is a short description of the step.");
+        }
+        const phrase = typeof body.phrase === "string" ? body.phrase : undefined;
+        const next = await store.update((current) =>
+          setHandoffRule(current, body.action as string, body.enabled === true, depsFor(), phrase),
+        );
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }
