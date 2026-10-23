@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Oriel</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/fonts/newsreader/latin-400.css" />
+    <link rel="stylesheet" href="/fonts/newsreader/latin-400-italic.css" />
+    <link rel="stylesheet" href="/fonts/newsreader/latin-500.css" />
+    <link rel="stylesheet" href="/fonts/inter/latin-400.css" />
+    <link rel="stylesheet" href="/fonts/inter/latin-500.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#input">Skip to Oriel</a>
+    <div class="shell" data-testid="app">
+      <aside id="rail" aria-label="Seats and goals"></aside>
+      <main>
+        <div id="thread" class="thread" data-testid="thread" aria-live="polite"></div>
+        <form id="composer" class="composer" data-testid="composer-form">
+          <div class="composer-inner">
+            <p id="context" data-testid="composer-context">This starts a new goal</p>
+            <div class="composer-row">
+              <label class="sr" for="input">Message Oriel</label>
+              <textarea
+                id="input"
+                data-testid="composer"
+                rows="1"
+                placeholder="Tell Oriel what to finish"
+                required
+              ></textarea>
+              <button type="submit" data-testid="send">Send</button>
+            </div>
+            <p id="error" data-testid="error" hidden></p>
+          </div>
+        </form>
+      </main>
+    </div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
