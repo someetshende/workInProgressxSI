@@ -349,6 +349,12 @@ export const constraints: Constraint[] = [
     text: "a sentence can clear a handoff rule that names no phrase, and it does not clear a rule that names other words",
     proof: "Stop handing deletions to me clears only a deletion rule with no phrase. A phrased rule stays, and the sentence does not run the step.",
   },
+  {
+    id: "read-rules",
+    short: "Read the handoffs",
+    text: "a sentence can read which steps are handed over, and reading them does not run a step or open a card",
+    proof: "What is handed to me names each saved rule. A deletion with no phrase is the whole deletion, and a phrase is only those words.",
+  },
 ];
 
 let cache: Story[] | null = null;

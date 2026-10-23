@@ -615,6 +615,97 @@ test("ORIEL-F29 a sentence clears a rule with no words and leaves a phrased rule
   await page.screenshot({ path: "test-results/oriel-clear-whole.png" });
 });
 
+test("ORIEL-F30 a sentence reads the handoff rules and does not act", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("What is handed to me?");
+  await page.getByTestId("send").click();
+  const reply = () => page.locator(".turn.oriel").last();
+  await expect(reply()).toContainText("Nothing is handed to you");
+  await expect(reply()).toContainText("no handoff rule");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "false");
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("composer").fill("What's handed to me");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("This step is handed to you");
+  await expect(reply()).toContainText("the whole deletion");
+  await expect(reply()).toContainText("did not approve a hold");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("What is handed to me and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("composer").fill("Please, what is handed to me?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("the whole deletion");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(page.getByTestId("did-this")).toBeVisible();
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByTestId("composer").fill("Hand deletions that mention shared project files to me");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("rule-whole-delete")).toHaveCount(0);
+  await page.getByTestId("composer").fill("Which steps are handed to me?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("only");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).not.toContainText("the whole deletion");
+  await expect(page.getByTestId("did-this")).toBeVisible();
+
+  await page.getByTestId("rule-send").click();
+  await expect(page.getByTestId("rule-whole-send")).toContainText("the whole send");
+  await page.getByTestId("composer").fill("What is handed to you?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("These steps are handed to you");
+  await expect(reply()).toContainText("the whole send");
+  await expect(reply()).toContainText("shared project files");
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await page.getByTestId("composer").fill("What is handed to me?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await expect(reply()).toContainText("These steps are handed to you");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+
+  await page.getByTestId("composer").fill("Hand deletions to me");
+  await page.getByTestId("send").click();
+  await expect(reply()).not.toContainText("These steps are handed to you");
+  await expect(reply()).not.toContainText("Nothing is handed to you");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("rule-whole-send")).toContainText("the whole send");
+  await expect(page.getByTestId("away-handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval")).toContainText("Release a deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.getByTestId("rule-phrase").scrollIntoViewIfNeeded();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("approval")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-read-rules.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

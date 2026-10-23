@@ -196,6 +196,9 @@ const SPOKEN_CLEAR =
 const SPOKEN_BARE_CLEAR =
   /^(?:please\s+)?(?:stop|don'?t|do not)\s+hand(?:ing)?(?:\s+over|\s+off|-off)?(?:\s+(?:me|you))?\s+(?:the\s+|an\s+|a\s+|any\s+)?([a-z][a-z-]*)\s+to\s+(?:me|you)$/i;
 
+const SPOKEN_READ =
+  /^(?:please,?\s+)?(?:what(?:'s| is)|which steps are|which rules are)\s+handed(?:\s+(?:off|over))?\s+to\s+(?:me|you)$/i;
+
 const SPOKEN_WOULD: Record<HandoffAction, string> = {
   send: "send",
   pay: "pay",
@@ -301,6 +304,52 @@ export function spokenClearMissCopy(action: HandoffAction, phrase: string, saved
 export function loosensSpokenClear(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please\s+)?(?:stop|don'?t|do not)\s+hand(?:ing)?\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+const READ_ORDER: HandoffAction[] = ["send", "pay", "delete", "post"];
+
+const READ_LABEL: Record<HandoffAction, string> = {
+  send: "The send",
+  pay: "The payment",
+  delete: "The deletion",
+  post: "The public post",
+};
+
+const READ_WHOLE: Record<HandoffAction, string> = {
+  send: "the whole send",
+  pay: "the whole payment",
+  delete: "the whole deletion",
+  post: "the whole public post",
+};
+
+export function isSpokenRead(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  return SPOKEN_READ.test(normalized);
+}
+
+export function handoffRuleLine(rule: Pick<HandoffRule, "action" | "phrase">): string {
+  if (!rule.phrase) return `${READ_LABEL[rule.action]} is ${READ_WHOLE[rule.action]}.`;
+  return `${READ_LABEL[rule.action]} is only “${rule.phrase}”.`;
+}
+
+export function spokenReadCopy(rules: HandoffRule[]): string {
+  const saved = READ_ORDER.flatMap((action) => {
+    const rule = rules.find((item) => item.action === action);
+    return rule ? [rule] : [];
+  });
+  if (!saved.length) {
+    return "Nothing is handed to you. There is no handoff rule. Oriel did not open a card. Nothing was sent or spent.";
+  }
+  const head = saved.length === 1 ? "This step is handed to you." : "These steps are handed to you.";
+  const lines = saved.map((rule) => handoffRuleLine(rule)).join(" ");
+  return `${head} ${lines} Saying this did not save or clear a rule and did not open a card. It did not call a bridge, did not approve a hold, send mail, or move money.`;
+}
+
+export function loosensSpokenRead(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?(?:what(?:'s| is)|which)\b/i.test(normalized)) return false;
+  if (!/\bhanded(?:\s+(?:off|over))?\s+to\s+(?:me|you)\b/i.test(normalized)) return false;
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 

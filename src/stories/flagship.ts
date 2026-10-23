@@ -555,6 +555,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F30",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Read the handoffs",
+      title: "A sentence can read which steps are handed to you",
+      story:
+        "As a security admin, I want to ask Oriel what is handed to me, so that it names each saved rule and does not itself delete, send, or spend.",
+      acceptance: [
+        "Asking what is handed to me names every saved rule, and it says so when none are saved.",
+        "A deletion with no phrase is the whole deletion, and a phrase such as shared project files is only those words.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

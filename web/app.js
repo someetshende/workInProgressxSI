@@ -155,7 +155,7 @@ function renderRail() {
   rail.append(
     el("p", {
       class: "rule-note",
-      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me.",
+      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me?",
     }),
   );
   const rules = el("div", { class: "rules", "data-testid": "handoff-rules" });
@@ -238,14 +238,27 @@ function renderRail() {
     }),
   );
   rail.append(phraseForm);
-  for (const rule of state.handoffRules ?? []) {
-    if (!rule.phrase) continue;
-    const label = rule.action.slice(0, 1).toUpperCase() + rule.action.slice(1);
+  const whole = {
+    send: "the whole send",
+    pay: "the whole payment",
+    delete: "the whole deletion",
+    post: "the whole public post",
+  };
+  const noun = {
+    send: "The send",
+    pay: "The payment",
+    delete: "The deletion",
+    post: "The public post",
+  };
+  for (const action of ["send", "pay", "delete", "post"]) {
+    const rule = state.handoffRules?.find((item) => item.action === action);
+    if (!rule) continue;
+    const phrase = rule.phrase;
     rail.append(
       el("p", {
         class: "rule-saved",
-        "data-testid": `rule-phrase-${rule.action}`,
-        text: `${label} only when it mentions “${rule.phrase}”.`,
+        "data-testid": phrase ? `rule-phrase-${action}` : `rule-whole-${action}`,
+        text: phrase ? `${noun[action]} is only “${phrase}”.` : `${noun[action]} is ${whole[action]}.`,
       }),
     );
   }

@@ -3,7 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, loosensHandoff, loosensSpokenClear, readSpokenClear, readSpokenRule, skillGuardsSeat, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenPhraseMatches, spokenRuleCopy, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenRead, loosensHandoff, loosensSpokenClear, loosensSpokenRead, readSpokenClear, readSpokenRule, skillGuardsSeat, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, taskSuffix } from "./handoff.js";
 import type { SpokenClear, SpokenRule } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
@@ -164,6 +164,11 @@ export async function convene(
     throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
   }
   if (spokenClear) return applySpokenClear(swept, original, spokenClear, deps);
+
+  if (isSpokenRead(original)) return applySpokenRead(swept, original, deps);
+  if (loosensSpokenRead(original)) {
+    throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
+  }
 
   const stored = redactSecrets(original);
   const memoryTurn = isMemoryQuery(stored) || isMemoryOnly(stored);
@@ -575,6 +580,15 @@ function applySpokenClear(state: AppState, raw: string, spoken: SpokenClear, dep
   const draft = setHandoffRule(state, spoken.action, false, deps);
   pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
   pushMessage(draft, { role: "oriel", text: spokenClearCopy(spoken.action, savedPhrase) }, deps);
+  return draft;
+}
+
+function applySpokenRead(state: AppState, raw: string, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  const reply = spokenReadCopy(draft.handoffRules ?? []);
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, "rule_read", reply, deps);
   return draft;
 }
 

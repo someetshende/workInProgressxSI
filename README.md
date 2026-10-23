@@ -53,6 +53,8 @@ You can take that rule back in the same voice. `Stop handing deletions that ment
 
 `Stop handing deletions to me` clears a deletion rule that has no words of its own. It does not clear a rule whose words are something else, such as shared project files. A sentence that would delete is still ordinary work. Saying it does not open a card, call a bridge, approve a hold, send mail, or move money.
 
+`What is handed to me?` reads the rules back. A deletion with no words of its own is the whole deletion. A rule whose words are shared project files is only those words. If none are saved, Oriel says so. Asking does not create a goal, open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money. `Hand deletions to me` is still ordinary work.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:
