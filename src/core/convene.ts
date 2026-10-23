@@ -1,0 +1,348 @@
+import { assertBridgeUrl, bridgeFailure, callBridge, describeBridge } from "./bridge.js";
+import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy } from "./brief.js";
+import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
+import { OrielError } from "./errors.js";
+import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
+import { kindsFor, readPolicy } from "./policy.js";
+import { redactSecrets } from "./redact.js";
+import { consultSeat, subjectLine } from "./seats.js";
+import { goalStatus, titleFrom } from "./state.js";
+import type {
+  ActorId,
+  AppState,
+  ApprovalKind,
+  Deps,
+  Goal,
+  LedgerEvent,
+  Message,
+  PlanStep,
+  SeatId,
+} from "./types.js";
+
+export { initialState } from "./state.js";
+
+function nid(draft: AppState, prefix: string): string {
+  draft.seq += 1;
+  return `${prefix}_${draft.seq}`;
+}
+
+function at(deps: Deps): string {
+  return deps.now().toISOString();
+}
+
+function pushEvent(draft: AppState, goalId: string | null, type: string, detail: string, deps: Deps): LedgerEvent {
+  const event: LedgerEvent = { id: nid(draft, "event"), at: at(deps), goalId, type, detail: redactSecrets(detail) };
+  draft.events.push(event);
+  return event;
+}
+
+function pushMessage(draft: AppState, message: Omit<Message, "id" | "at">, deps: Deps): Message {
+  const full: Message = { ...message, id: nid(draft, "msg"), at: at(deps), text: redactSecrets(message.text) };
+  draft.messages.push(full);
+  return full;
+}
+
+function step(
+  draft: AppState,
+  title: string,
+  detail: string,
+  seat: ActorId,
+  status: PlanStep["status"],
+  kind?: ApprovalKind,
+): PlanStep {
+  return { id: nid(draft, "step"), title, detail, seat, status, ...(kind ? { kind } : {}) };
+}
+
+export async function convene(
+  state: AppState,
+  raw: string,
+  goalId: string | undefined,
+  deps: Deps,
+): Promise<AppState> {
+  const original = raw.trim();
+  if (!original) throw new OrielError("Say what you want finished.");
+  if (original.length > 8000) throw new OrielError("That is too long to convene in one turn.");
+
+  const decision = isBareDecision(original);
+  if (decision) {
+    const open = [...state.approvals].reverse().find((approval) => approval.status === "open");
+    if (!open) throw new OrielError("Nothing is waiting on you.");
+    return settle(state, open.id, decision, deps);
+  }
+
+  const draft = structuredClone(state);
+  const stored = redactSecrets(original);
+  draft.memory = remember(draft.memory, stored);
+  const policy = readPolicy(original, draft.memory);
+
+  let goal: Goal | null = null;
+  if (goalId) {
+    const existing = draft.goals.find((item) => item.id === goalId);
+    if (!existing) throw new OrielError("That goal is not in the record.", 404);
+    goal = existing;
+    for (const approval of draft.approvals) {
+      if (approval.goalId === goal.id && approval.status === "open") {
+        approval.status = "denied";
+        approval.resolution = "Superseded by a newer request on this goal.";
+        approval.settledAt = at(deps);
+        const old = goal.plan.find((item) => item.id === approval.stepId);
+        if (old && old.status === "waiting") old.status = "denied";
+      }
+    }
+  }
+
+  pushMessage(draft, { role: "you", text: stored, ...(goal ? { goalId: goal.id } : {}) }, deps);
+
+  if (isMemoryQuery(stored)) {
+    pushMessage(draft, { role: "oriel", text: recall(draft.memory) }, deps);
+    pushEvent(draft, null, "memory", "Recalled what Oriel has been asked to keep.", deps);
+    return draft;
+  }
+
+  if (isMemoryOnly(stored)) {
+    const latest = draft.memory.preferences.at(-1);
+    pushMessage(draft, { role: "oriel", text: `I'll keep that. ${latest ?? ""}`.trim() }, deps);
+    pushEvent(draft, null, "memory", "Stored a preference.", deps);
+    return draft;
+  }
+
+  const choice = chooseSeats(original, policy.businessSensitive, draft.connectors);
+  const { held, skipped } = kindsFor(policy);
+  const subject = subjectLine(stored);
+  const now = at(deps);
+  const created = !goal;
+  if (!goal) {
+    goal = {
+      id: nid(draft, "goal"),
+      title: titleFrom(stored),
+      origin: stored,
+      text: stored,
+      status: "done",
+      createdAt: now,
+      updatedAt: now,
+      lead: choice.lead,
+      plan: [],
+      brief: composeBrief({ title: titleFrom(stored), choice, policy, notes: [], held, skipped }),
+      openLoops: extractLoops(stored),
+      prose: null,
+    };
+    draft.goals.push(goal);
+  } else {
+    goal.text = stored;
+    goal.title = titleFrom(stored);
+    goal.updatedAt = now;
+    goal.lead = choice.lead;
+    goal.openLoops = extractLoops(stored);
+    goal.prose = null;
+  }
+  const you = draft.messages.at(-1);
+  if (you && you.role === "you") you.goalId = goal.id;
+
+  const plan: PlanStep[] = [
+    step(draft, "Frame the outcome", "Oriel states one recommendation and keeps the record.", "oriel", "done"),
+  ];
+  const notes = [];
+  for (const seat of choice.picked) {
+    const connector = draft.connectors.find((item) => item.id === seat);
+    if (!connector) continue;
+    const note = await consultSeat({ connector, subject, task: stored, intents: choice.intents, policy, deps });
+    notes.push(note);
+    plan.push(
+      step(
+        draft,
+        `Read from ${DISPLAY[seat]}`,
+        note.liveError ? `Fell back to a reference read. ${note.liveError}` : note.summary,
+        seat,
+        "done",
+      ),
+    );
+  }
+
+  const approvalIds: string[] = [];
+  for (const kind of skipped) {
+    plan.push(step(draft, `Leave the ${kind} undone`, approvalDetail(kind, stored), "oriel", "skipped", kind));
+  }
+  for (const kind of held) {
+    const planned = step(draft, APPROVAL_TITLE[kind], approvalDetail(kind, stored), "oriel", "waiting", kind);
+    plan.push(planned);
+    const approval = {
+      id: nid(draft, "approval"),
+      goalId: goal.id,
+      stepId: planned.id,
+      title: APPROVAL_TITLE[kind],
+      detail: planned.detail,
+      kind,
+      status: "open" as const,
+      resolution: null,
+      createdAt: now,
+      settledAt: null,
+    };
+    draft.approvals.push(approval);
+    approvalIds.push(approval.id);
+  }
+
+  goal.plan = plan;
+  goal.brief = composeBrief({
+    title: goal.title,
+    choice,
+    policy,
+    notes,
+    held,
+    skipped,
+  });
+  goal.status = goalStatus(goal, draft.approvals);
+
+  let spoken = goal.brief.voice;
+  if (!goal.brief.tight && deps.refine) {
+    const prose = await deps.refine(goal.brief.synthesis);
+    if (prose) {
+      goal.prose = prose;
+      spoken = prose;
+    }
+  }
+
+  pushMessage(
+    draft,
+    { role: "oriel", text: spoken, goalId: goal.id, approvalIds, tight: goal.brief.tight },
+    deps,
+  );
+  const convened = choice.picked.map((id) => DISPLAY[id]).join(", ") || "no work seat";
+  pushEvent(
+    draft,
+    goal.id,
+    created ? "convened" : "continued",
+    `${created ? "Convened" : "Continued with"} ${convened}.`,
+    deps,
+  );
+  for (const note of notes) {
+    if (note.liveError) {
+      pushEvent(draft, goal.id, "fallback", `${DISPLAY[note.seat]} fell back: ${note.liveError}`, deps);
+    }
+  }
+  return draft;
+}
+
+export async function settle(
+  state: AppState,
+  approvalId: string,
+  decision: "approve" | "deny",
+  deps: Deps,
+): Promise<AppState> {
+  const draft = structuredClone(state);
+  const approval = draft.approvals.find((item) => item.id === approvalId);
+  if (!approval) throw new OrielError("That hold is not in the record.", 404);
+  if (approval.status !== "open") throw new OrielError("That hold is already settled.", 409);
+  const goal = draft.goals.find((item) => item.id === approval.goalId);
+  if (!goal) throw new OrielError("That goal is not in the record.", 404);
+  const planned = goal.plan.find((item) => item.id === approval.stepId);
+
+  approval.settledAt = at(deps);
+  if (decision === "deny") {
+    approval.status = "denied";
+    approval.resolution = DENIAL_COPY;
+    if (planned) planned.status = "denied";
+    pushEvent(draft, goal.id, "denied", `${approval.title} was held back.`, deps);
+  } else {
+    approval.status = "approved";
+    if (planned) planned.status = "done";
+    let liveSummary: string | null = null;
+    const lead = goal.lead ? draft.connectors.find((connector) => connector.id === goal.lead) : undefined;
+    if (lead?.bridgeUrl) {
+      try {
+        const reply = await callBridge({
+          url: lead.bridgeUrl,
+          token: lead.token,
+          fetchImpl: deps.fetchImpl,
+          payload: {
+            product: "Oriel",
+            action: "released",
+            seat: lead.id,
+            task: goal.text,
+            intents: [],
+            businessSensitive: /client|patient|confidential/i.test(goal.text),
+            kind: approval.kind,
+          },
+        });
+        liveSummary = reply.summary;
+        lead.lastResult = "live";
+        lead.lastError = null;
+      } catch (error) {
+        const message = bridgeFailure(error, lead.token);
+        lead.lastResult = "fallback";
+        lead.lastError = message;
+        pushEvent(draft, goal.id, "fallback", `${DISPLAY[lead.id]} could not take the release: ${message}`, deps);
+      }
+    }
+    approval.resolution = releaseCopy(approval.kind, liveSummary);
+    pushEvent(draft, goal.id, "approved", approval.resolution, deps);
+  }
+
+  goal.updatedAt = at(deps);
+  goal.status = goalStatus(goal, draft.approvals);
+  pushMessage(draft, { role: "oriel", text: approval.resolution ?? DENIAL_COPY, goalId: goal.id }, deps);
+  return draft;
+}
+
+export function setConnector(
+  state: AppState,
+  id: string,
+  patch: { enabled?: boolean; bridgeUrl?: string | null; token?: string },
+  deps: Deps,
+): AppState {
+  if (!isSeatId(id)) throw new OrielError("Unknown seat.", 404);
+  const draft = structuredClone(state);
+  const connector = draft.connectors.find((item) => item.id === id);
+  if (!connector) throw new OrielError("Unknown seat.", 404);
+  if (typeof patch.enabled === "boolean") connector.enabled = patch.enabled;
+  if (patch.bridgeUrl === null) {
+    connector.bridgeUrl = null;
+    connector.lastResult = "idle";
+    connector.lastError = null;
+  } else if (typeof patch.bridgeUrl === "string") {
+    connector.bridgeUrl = assertBridgeUrl(patch.bridgeUrl);
+    connector.lastResult = "idle";
+    connector.lastError = null;
+    pushEvent(draft, null, "bridge", `Bridge saved for ${DISPLAY[id]} at ${describeBridge(connector.bridgeUrl)}.`, deps);
+  }
+  if (patch.token === "") connector.token = null;
+  else if (typeof patch.token === "string") {
+    connector.token = patch.token;
+    pushEvent(draft, null, "bridge", `Token updated for ${DISPLAY[id]}.`, deps);
+  }
+  if (typeof patch.enabled === "boolean") {
+    pushEvent(draft, null, "seat", `${DISPLAY[id]} is ${connector.enabled ? "on" : "off"}.`, deps);
+  }
+  return draft;
+}
+
+export function saveRoutine(state: AppState, goalId: string, name: string | undefined, deps: Deps): AppState {
+  const goal = state.goals.find((item) => item.id === goalId);
+  if (!goal) throw new OrielError("That goal is not in the record.", 404);
+  const existing = state.routines.find((routine) => routine.instruction === goal.text);
+  if (existing) return state;
+  const draft = structuredClone(state);
+  const routine = {
+    id: nid(draft, "routine"),
+    name: (name?.trim() || titleFrom(goal.text)).slice(0, 80),
+    instruction: goal.text,
+    createdAt: at(deps),
+    lastRunAt: null,
+  };
+  draft.routines.push(routine);
+  pushEvent(draft, goal.id, "routine_saved", `Saved routine “${routine.name}”. Holds still apply when it runs.`, deps);
+  return draft;
+}
+
+export async function runRoutine(state: AppState, routineId: string, deps: Deps): Promise<AppState> {
+  const routine = state.routines.find((item) => item.id === routineId);
+  if (!routine) throw new OrielError("That routine is not in the record.", 404);
+  const next = await convene(state, routine.instruction, undefined, deps);
+  const saved = next.routines.find((item) => item.id === routineId);
+  if (saved) saved.lastRunAt = at(deps);
+  pushEvent(next, null, "routine_ran", `Ran routine “${routine.name}”.`, deps);
+  return next;
+}
+
+export function leadSeat(goal: Goal): SeatId | null {
+  return goal.lead;
+}
