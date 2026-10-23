@@ -533,6 +533,37 @@ export function loosensSpokenUnnamed(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_NAMED =
+  /^(?:please,?\s+)?which steps?\s+nam(?:e|es|ing)\s+words(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export function isSpokenNamed(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  return SPOKEN_NAMED.test(normalized);
+}
+
+export function spokenNamedCopy(rules: HandoffRule[]): string {
+  const matched = READ_ORDER.flatMap((action) => {
+    const rule = rules.find((item) => item.action === action);
+    if (!rule?.phrase) return [];
+    return [rule];
+  });
+  if (!matched.length) {
+    return `No step names words. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const lines = matched
+    .map((rule) => `${READ_LABEL[rule.action]} is handed to you. The words are “${rule.phrase}”.`)
+    .join(" ");
+  if (matched.length === 1) return `${lines} Oriel named no other step. ${ASK_TAIL}`;
+  return `These steps name words. ${lines} Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenNamed(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which steps?\s+nam(?:e|es|ing)\s+words\b/i.test(normalized)) return false;
+  if (/\bnam(?:e|es|ing)\s+no words\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 export function loosensHandoff(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please\s+)?hand(?:\s+over|\s+off|-off)?\b/i.test(normalized)) return false;

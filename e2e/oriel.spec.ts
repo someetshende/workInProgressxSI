@@ -1283,6 +1283,123 @@ test("ORIEL-F35 a sentence asks which steps name no words and does not act", asy
   await page.screenshot({ path: "test-results/oriel-unnamed-steps.png" });
 });
 
+test("ORIEL-F36 a sentence asks which steps name words and does not act", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".rule-note")).toContainText("Which steps name words?");
+  await expect(page.locator(".rule-note")).toContainText("Which steps name no words?");
+  await page.getByTestId("composer").fill("Which steps name words?");
+  await page.getByTestId("send").click();
+  const reply = () => page.locator(".turn.oriel").last();
+  await expect(reply()).toContainText("No step names words");
+  await expect(reply()).toContainText("named no other step");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(reply()).not.toContainText("The deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("rule-pay").click();
+  await expect(page.getByTestId("rule-whole-pay")).toContainText("the whole payment");
+  await page.getByTestId("composer").fill("Please, which steps name words?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("No step names words");
+  await expect(reply()).not.toContainText("The deletion");
+  await expect(reply()).not.toContainText("The payment");
+  await expect(reply()).not.toContainText("the whole");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+
+  await page.getByTestId("rule-phrase-action").selectOption("delete");
+  await page.getByTestId("rule-phrase").click();
+  await page.getByTestId("rule-phrase").fill("shared project files");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+  await page.getByTestId("rule-phrase-save").click();
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await page.getByTestId("rule-phrase-action").selectOption("send");
+  await page.getByTestId("rule-phrase").fill("the vendor files");
+  await page.getByTestId("rule-phrase-save").click();
+  await expect(page.getByTestId("rule-phrase-send")).toContainText("the vendor files");
+  await page.getByTestId("composer").fill("Which step names words?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("These steps name words");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).toContainText("the vendor files");
+  await expect(reply()).not.toContainText("The payment");
+  await expect(reply()).not.toContainText("the whole");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await page.getByTestId("composer").fill("Which steps naming words handed over to you?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).toContainText("the vendor files");
+  await expect(reply()).not.toContainText("The payment");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Which steps name no words?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("the whole payment");
+  await expect(reply()).not.toContainText("shared project files");
+  await expect(reply()).not.toContainText("These steps name words");
+
+  await page.getByTestId("composer").fill("Which steps name words and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval")).toContainText("Release a deletion");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-phrase-delete")).toHaveCount(0);
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Which steps name words and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(reply()).not.toContainText("No step names words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("composer").fill("Hand deletions to me");
+  await page.getByTestId("send").click();
+  await expect(reply()).not.toContainText("No step names words");
+  await expect(reply()).not.toContainText("These steps name words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("rule-phrase-send")).toContainText("the vendor files");
+
+  await page.getByTestId("composer").fill("Which words does a deletion hand to me?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("names no words");
+  await expect(reply()).toContainText("the whole deletion");
+  await expect(reply()).not.toContainText("No step names words");
+  await expect(reply()).not.toContainText("the vendor files");
+
+  await page.getByTestId("composer").fill("Which step mentions shared project files?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("No step mentions");
+  await expect(reply()).not.toContainText("No step names words");
+
+  await page.getByTestId("composer").fill("What is handed to me?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("These steps are handed to you");
+  await expect(reply()).toContainText("the whole deletion");
+  await expect(reply()).toContainText("the vendor files");
+
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.getByTestId("rule-phrase").scrollIntoViewIfNeeded();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("away-handoff")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-named-steps.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");
