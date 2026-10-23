@@ -1575,6 +1575,47 @@ export function loosensSpokenShareWords(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_MENTION_WORDS =
+  /^(?:please,?\s+)?which words?\s+(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+mention(?:s|ing)?(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export type SpokenMentionWords = { kind: "ask"; action: HandoffAction } | { kind: "reject"; reason: "action" };
+
+export function readSpokenMentionWords(text: string): SpokenMentionWords | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bnot\s+mention/i.test(normalized)) return null;
+  if (/\bsame\s+words\b/i.test(normalized)) return null;
+  const match = normalized.match(SPOKEN_MENTION_WORDS);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action };
+}
+
+export function spokenMentionWordsCopy(action: HandoffAction, rules: HandoffRule[]): string {
+  const rule = rules.find((item) => item.action === action);
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a mention and did not quote a phrase. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  return `${READ_LABEL[action]} mentions these words. The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenMentionWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bnot\s+mention/i.test(normalized)) return false;
+  if (/\bsame\s+words\b/i.test(normalized)) return false;
+  if (
+    !/^(?:please,?\s+)?which words?\s+(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+mention(?:s|ing)?\b/i.test(
+      normalized,
+    )
+  ) {
+    return false;
+  }
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 export function loosensHandoff(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please\s+)?hand(?:\s+over|\s+off|-off)?\b/i.test(normalized)) return false;

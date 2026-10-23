@@ -1087,6 +1087,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F58",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which words one step mentions",
+      title: "A sentence can ask which words one step mentions",
+      story:
+        "As a security admin, I want to ask Oriel which words one step mentions, so that it quotes that step's phrase and does not delete anything.",
+      acceptance: [
+        "Asking which words a deletion mentions quotes the phrase saved on that deletion, says the deletion mentions these words, and names no other step.",
+        "A deletion with no words of its own says the rule names no words and is the whole deletion, and Oriel does not treat the question as a mention.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

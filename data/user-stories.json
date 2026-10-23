@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3423,
-  "flagship": 57,
+  "count": 3424,
+  "flagship": 58,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -1026,6 +1026,24 @@
       "acceptance": [
         "Asking which steps do not mention the same words as a deletion quotes the phrase saved on that deletion. When more than one other step uses it, Oriel says those steps do mention the same words.",
         "When one other step uses those words, Oriel says that step does mention them. When none do, it says no other step mentions them and does not say that no other step does mention them.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F58",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask which words one step mentions",
+      "title": "A sentence can ask which words one step mentions",
+      "story": "As a security admin, I want to ask Oriel which words one step mentions, so that it quotes that step's phrase and does not delete anything.",
+      "acceptance": [
+        "Asking which words a deletion mentions quotes the phrase saved on that deletion, says the deletion mentions these words, and names no other step.",
+        "A deletion with no words of its own says the rule names no words and is the whole deletion, and Oriel does not treat the question as a mention.",
         "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
       ],
       "priority": "p0",
