@@ -677,6 +677,51 @@ export function loosensSpokenStepMention(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_SAME_NOT_MENTION =
+  /^(?:please,?\s+)?(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+not\s+mention(?:s|ing)?\s+(?:the\s+)?same\s+words\s+as\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export type SpokenSameNotMention =
+  | { kind: "ask"; action: HandoffAction; other: HandoffAction }
+  | { kind: "reject"; reason: "action" };
+
+export function readSpokenSameNotMention(text: string): SpokenSameNotMention | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_SAME_NOT_MENTION);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  const other = SPOKEN_NOUNS[(match[2] ?? "").toLowerCase()];
+  if (!action || !other || action === other) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action, other };
+}
+
+export function spokenSameNotMentionCopy(action: HandoffAction, other: HandoffAction, rules: HandoffRule[]): string {
+  const rule = rules.find((item) => item.action === action);
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a comparison with the other step and did not quote that step. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const otherRule = rules.find((item) => item.action === other);
+  const same = Boolean(otherRule?.phrase && phraseKey(otherRule.phrase) === phraseKey(rule.phrase));
+  const lead = same
+    ? `${READ_LABEL[action]} does mention the same words as ${WITH_LABEL[other]}.`
+    : `${READ_LABEL[action]} does not mention the same words as ${WITH_LABEL[other]}.`;
+  return `${lead} The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenSameNotMention(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (
+    !/^(?:please,?\s+)?(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+mention(?:s|ing)?\s+(?:the\s+)?same\s+words\s+as\s+/i.test(
+      normalized,
+    )
+  ) {
+    return false;
+  }
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 const SPOKEN_SAME_MENTION =
   /^(?:please,?\s+)?(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+mention(?:s|ing)?\s+(?:the\s+)?same\s+words\s+as\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
 

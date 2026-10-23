@@ -4288,6 +4288,7 @@ test("ORIEL-F54 a sentence asks whether one step mentions the same words as anot
 
   await page.goto("/");
   await expect(page.locator(".rule-note")).toContainText("Does a deletion mention the same words as a send?");
+  await expect(page.locator(".rule-note")).toContainText("Does a deletion not mention the same words as a send?");
   await expect(page.locator(".rule-note")).toContainText("Does a deletion mention shared project files?");
   await page.getByTestId("composer").fill("Does a deletion mention the same words as a send?");
   await page.getByTestId("send").click();
@@ -4369,9 +4370,10 @@ test("ORIEL-F54 a sentence asks whether one step mentions the same words as anot
 
   await page.getByTestId("composer").fill("Does a deletion not mention the same words as a send?");
   await page.getByTestId("send").click();
-  await expect(page.getByTestId("approval")).toContainText("Release a send");
+  await expect(page.getByTestId("approval")).toHaveCount(0);
   await expect(page.getByTestId("handoff")).toHaveCount(0);
-  await expect(reply()).not.toContainText("mentions the same words");
+  await expect(reply()).toContainText("The deletion does mention the same words as the send");
+  await expect(reply()).not.toContainText("The deletion mentions the same words as the send");
   await expect(reply()).not.toContainText("does not mention the same words as the send");
 
   await page.getByTestId("goal-all").click();
@@ -4410,6 +4412,147 @@ test("ORIEL-F54 a sentence asks whether one step mentions the same words as anot
   expect(overflow).toBe(false);
   await expect(page.getByTestId("away-handoff")).toBeVisible();
   await page.screenshot({ path: "test-results/oriel-same-words.png" });
+});
+
+test("ORIEL-F55 a sentence asks whether one step does not mention the same words as another and does not act", async ({ page }) => {
+  async function chooseAction(action: string) {
+    const picker = page.getByTestId("rule-phrase-action");
+    await expect(async () => {
+      await picker.selectOption(action);
+      await expect(picker).toHaveValue(action, { timeout: 500 });
+    }).toPass();
+  }
+
+  async function narrow(action: string, phrase: string) {
+    await chooseAction(action);
+    const input = page.getByTestId("rule-phrase");
+    await input.click();
+    await input.fill(phrase);
+    await expect(input).toHaveValue(phrase);
+    await expect(page.getByTestId("rule-phrase-action")).toHaveValue(action);
+    const saved = page.waitForResponse(
+      (res) => res.url().includes("/api/handoff-rules") && res.request().method() === "POST" && res.ok(),
+    );
+    await page.getByTestId("rule-phrase-save").click();
+    await saved;
+  }
+
+  await page.goto("/");
+  await expect(page.locator(".rule-note")).toContainText("Does a deletion not mention the same words as a send?");
+  await expect(page.locator(".rule-note")).toContainText("Does a deletion mention the same words as a send?");
+  await page.getByTestId("composer").fill("Does a deletion not mention the same words as a send?");
+  await page.getByTestId("send").click();
+  const reply = () => page.locator(".turn.oriel").last();
+  await expect(reply()).toContainText("The deletion is not handed to you");
+  await expect(reply()).toContainText("named no other step");
+  await expect(reply()).toContainText("did not open a card");
+  await expect(reply()).not.toContainText("does mention the same words");
+  await expect(reply()).not.toContainText("does not mention the same words");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator(".goal")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Does a note not mention the same words as a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("does not name two different steps");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("composer").fill("Please, does the deletion not mention the same words as a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("names no words");
+  await expect(reply()).toContainText("the whole deletion");
+  await expect(reply()).toContainText("did not treat this question as a comparison with the other step");
+  await expect(reply()).not.toContainText("does mention the same words");
+  await expect(reply()).not.toContainText("the send");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+
+  await narrow("delete", "shared project files");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await narrow("send", "shared project files");
+  await expect(page.getByTestId("rule-phrase-send")).toContainText("shared project files");
+  await narrow("pay", "the vendor invoice");
+  await expect(page.getByTestId("rule-phrase-pay")).toContainText("the vendor invoice");
+  await chooseAction("pay");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("the vendor invoice");
+  await page.getByTestId("rule-phrase").fill("notes I just typed");
+  await page.getByTestId("rule-phrase-action").dispatchEvent("change");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("notes I just typed");
+  await chooseAction("delete");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+  await page.getByTestId("composer").fill("Does a deletion not mention the same words as a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion does mention the same words as the send");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).not.toContainText("The deletion mentions the same words as the send");
+  await expect(reply()).not.toContainText("The payment");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.getByTestId("rule-phrase-action")).toHaveValue("delete");
+  await expect(page.getByTestId("rule-phrase")).toHaveValue("shared project files");
+
+  await narrow("send", "launch note");
+  await page.getByTestId("composer").fill("Does a deletion not mention the same words as a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion does not mention the same words as the send");
+  await expect(reply()).toContainText("shared project files");
+  await expect(reply()).not.toContainText("launch note");
+  await expect(reply()).not.toContainText("The deletion does mention the same words");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await narrow("send", "shared project files");
+  await page.getByTestId("composer").fill("Does a deletion not mentioning the same words as a send to me?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toContainText("Wakes paused");
+  await expect(reply()).toContainText("The deletion does mention the same words as the send");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Does a deletion mention the same words as a send?");
+  await page.getByTestId("send").click();
+  await expect(reply()).toContainText("The deletion mentions the same words as the send");
+  await expect(reply()).not.toContainText("The deletion does mention the same words");
+
+  await page.getByTestId("composer").fill("Does a deletion not mention the same words as a send and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approval").filter({ hasText: "Release a deletion" })).toHaveCount(1);
+  await expect(page.getByTestId("approval").filter({ hasText: "Release a send" })).toHaveCount(1);
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(reply()).not.toContainText("does mention the same words");
+  await expect(page.getByTestId("rule-phrase-delete")).toContainText("shared project files");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-phrase-delete")).toHaveCount(0);
+  await page.getByTestId("rule-delete").click();
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Does a deletion not mention the same words as a send and delete the archive");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(reply()).not.toContainText("does mention the same words");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+
+  await page.getByTestId("composer").fill("Hand deletions to me");
+  await page.getByTestId("send").click();
+  await expect(reply()).not.toContainText("does mention the same words");
+  await expect(page.getByTestId("rule-whole-delete")).toContainText("the whole deletion");
+  await expect(page.getByTestId("rule-phrase-pay")).toContainText("the vendor invoice");
+
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.getByTestId("rule-phrase").scrollIntoViewIfNeeded();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("away-handoff")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-same-not-words.png" });
 });
 
 test("an earlier hold can be released from the return card", async ({ page }) => {

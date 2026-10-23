@@ -1030,6 +1030,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F55",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask whether one step does not mention the same words as another",
+      title: "A sentence can ask whether one step does not mention the same words as another",
+      story:
+        "As a security admin, I want to ask Oriel whether one step does not mention the same words as another step, so that it quotes only the first step and does not delete anything.",
+      acceptance: [
+        "Asking whether a deletion does not mention the same words as a send says the deletion does mention those words when both saved phrases match, and quotes the phrase saved on the deletion.",
+        "When the send has no rule, no phrase, or different words, Oriel says the deletion does not mention the same words as the send and quotes only the deletion.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {
