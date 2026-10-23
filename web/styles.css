@@ -183,12 +183,42 @@ aside {
 
 .bridge input {
   width: 100%;
+  min-width: 0;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px 10px;
+  font-size: 13px;
 }
 
+.routine-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px;
+  align-items: center;
+}
+.cadence {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+.bridge-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.bridge-actions button {
+  background: var(--button);
+  color: var(--button-ink);
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.bridge-actions button[type="button"] {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
 .goal, .routine, .all { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
 .goal[aria-current="true"], .all[aria-pressed="true"] { background: color-mix(in srgb, var(--card) 75%, transparent); }
 .goal span:first-child, .routine span:first-child { overflow-wrap: anywhere; }
@@ -272,6 +302,8 @@ main {
 }
 
 .turn { margin: 0 0 28px; }
+.turn.wake { max-width: 62ch; }
+.turn.wake .body { color: var(--muted); }
 .turn.you { max-width: 46ch; margin-left: auto; }
 .turn.you .body {
   background: var(--you);

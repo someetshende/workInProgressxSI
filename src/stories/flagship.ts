@@ -345,6 +345,44 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F19",
+      persona: "an operations manager",
+      role: "operator",
+      surface: "routines",
+      capability: "Wake",
+      title: "A cadence wakes one routine and still holds the risky step",
+      story:
+        "As an operations manager, I want Oriel to wake a saved routine when its cadence is due, so that the work continues while I am away and a hold still stops the risky part.",
+      acceptance: [
+        "A manual routine does not run when Oriel wakes the desk.",
+        "When more than one routine is due, only the earliest one runs.",
+        "A send inside the woken routine stays open, and the wake does not approve it.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+    {
+      id: "ORIEL-F20",
+      persona: "an operator",
+      role: "operator",
+      surface: "connectors",
+      capability: "Check a bridge",
+      title: "A bridge can be checked without doing the work",
+      story:
+        "As an operator, I want Oriel to check that a bridge I control is reachable before it hands over work, so that a dead endpoint is obvious and nothing is sent while I check.",
+      acceptance: [
+        "A seat with no bridge URL cannot be checked.",
+        "A reachable bridge is marked live and the reply says nothing was sent or spent.",
+        "The bridge token is absent from the spoken reply and from public state.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 5,
+    },
   ];
 
   return stories.map((story) => {

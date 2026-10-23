@@ -106,14 +106,19 @@ export type Message = {
   goalId?: string;
   approvalIds?: string[];
   tight?: boolean;
+  via?: "wake";
 };
+
+export type Cadence = "manual" | "daily" | "hourly";
 
 export type Routine = {
   id: string;
   name: string;
   instruction: string;
+  cadence: Cadence;
   createdAt: string;
   lastRunAt: string | null;
+  nextRunAt: string | null;
 };
 
 export type LedgerEvent = {

@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
+import { DISPLAY } from "../core/doctrine.js";
 import type { SeatId } from "../core/types.js";
 
 const SEATS = new Set<SeatId>(["grok", "dots", "muse"]);
@@ -68,7 +69,9 @@ export async function startLocalSeat(options: { seat: SeatId; token?: string; po
       const summary =
         body.action === "released"
           ? `Acknowledged a ${kind} release. This stand-in did not send, pay, delete, post, or sign in.`
-          : VOICE[options.seat];
+          : body.action === "status"
+            ? `Bridge is reachable. This stand-in for ${DISPLAY[options.seat]} did not send, pay, delete, post, or sign in.`
+            : VOICE[options.seat];
       send(res, 200, {
         summary,
         points: ["This process is a local stand-in. It is not Grok Bot, Dots, or Muse."],

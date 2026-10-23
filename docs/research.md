@@ -108,6 +108,16 @@ It refuses:
 
 The name is Oriel: a window that projects from the wall, one view made of several panes. Grok Bot, Dots, and Muse stay who they are. Oriel decides who should move, holds the risky step, and speaks once.
 
+## Same-day check
+
+Checked again on 23 October 2026 against the vendor pages. Oriel still did not sign in to a live account.
+
+Grok Bot's overview still describes named bots on one shared cloud computer, with skills and routines. The 11 August launch post said Bot usage is separate from chat. Current billing help for The X Subscription describes one shared weekly pool with Cursor and the Grok apps. Oriel does not meter either arrangement.
+
+Dots' help, current as of this check, still describes an always-on agent that can pause and wake without a fixed schedule, on its own computer, reached from ChatGPT, Slack, and Teams. That pause-and-wake is why a saved Oriel routine can have a cadence, and why the wake still stops for a hold.
+
+The Associated Press reported Muse as available in the United States at the 8 September launch. Some secondary writeups have also said Canada. Oriel does not depend on the region. Muse stays the consumer seat, including on a reachability check: the check sends no client, patient, or confidential text.
+
 ## Sources
 
 - Grok Bot: https://docs.x.ai/grok-bot/overview · https://docs.x.ai/grok-bot/computer-and-apps · https://docs.x.ai/grok-bot/skills-routines-and-automations · https://docs.x.ai/grok-bot/teams-and-enterprises · https://x.ai/news/introducing-grok-bot

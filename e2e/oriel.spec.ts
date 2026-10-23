@@ -200,6 +200,43 @@ test("a bridged Muse stand-in answers live and a check spends nothing", async ({
   }
 });
 
+test("ORIEL-F19 ORIEL-F20 a daily routine wakes and a bridge can be checked", async ({ page }) => {
+  const token = "e2e-probe-token";
+  const seat = await startSeat("grok", token);
+  try {
+    await page.goto("/");
+    await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+    await page.getByTestId("send").click();
+    await page.getByTestId("save-routine").click();
+    const cadence = page.locator("[data-testid^='cadence-']");
+    await expect(cadence).toHaveText("Manual");
+    await cadence.click();
+    await expect(cadence).toHaveText("Daily");
+    const tick = await page.request.post("/api/tick", { data: { force: true } });
+    expect(tick.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText("Routine", { exact: true })).toBeVisible();
+    await expect(page.locator("[data-testid^='goal-goal_']")).toHaveCount(2);
+    await expect(page.getByTestId("approve")).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText(token);
+
+    const saved = await page.request.post("/api/connectors/grok", {
+      data: { bridgeUrl: seat.url, token },
+    });
+    expect(saved.ok()).toBeTruthy();
+    await page.reload();
+    await page.getByTestId("bridge-open-grok").click();
+    await page.getByTestId("probe-grok").click();
+    await expect(page.getByTestId("agent-grok")).toContainText("Live");
+    await expect(page.getByTestId("thread")).toContainText("Bridge is reachable");
+    await expect(page.getByTestId("thread")).toContainText("Nothing was sent or spent");
+    await expect(page.locator("body")).not.toContainText(token);
+    await page.screenshot({ path: "test-results/oriel-wake.png" });
+  } finally {
+    await seat.stop();
+  }
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { normalizeRoutine } from "../core/cadence.js";
 import { initialState } from "../core/state.js";
 import type { AppState } from "../core/types.js";
 
@@ -23,7 +24,9 @@ export class Store {
     await mkdir(this.dir, { recursive: true });
     try {
       const raw = await readFile(path.join(this.dir, "state.json"), "utf8");
-      this.state = JSON.parse(raw) as AppState;
+      const parsed = JSON.parse(raw) as AppState;
+      parsed.routines = (parsed.routines ?? []).map(normalizeRoutine).filter((routine) => routine !== null);
+      this.state = parsed;
     } catch (error) {
       if (!isErrno(error, "ENOENT")) throw error;
       this.state = initialState();

@@ -1,16 +1,18 @@
 import { assertBridgeUrl, bridgeFailure, callBridge, describeBridge } from "./bridge.js";
 import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy } from "./brief.js";
+import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { kindsFor, readPolicy } from "./policy.js";
-import { redactSecrets } from "./redact.js";
+import { clamp, redactSecrets } from "./redact.js";
 import { consultSeat, subjectLine } from "./seats.js";
 import { awayBrief, goalStatus, titleFrom } from "./state.js";
 import type {
   ActorId,
   AppState,
   ApprovalKind,
+  Cadence,
   Deps,
   Goal,
   LedgerEvent,
@@ -322,7 +324,13 @@ export function setConnector(
   return draft;
 }
 
-export function saveRoutine(state: AppState, goalId: string, name: string | undefined, deps: Deps): AppState {
+export function saveRoutine(
+  state: AppState,
+  goalId: string,
+  name: string | undefined,
+  deps: Deps,
+  cadence: Cadence = "manual",
+): AppState {
   const goal = state.goals.find((item) => item.id === goalId);
   if (!goal) throw new OrielError("That goal is not in the record.", 404);
   const existing = state.routines.find((routine) => routine.instruction === goal.text);
@@ -332,22 +340,112 @@ export function saveRoutine(state: AppState, goalId: string, name: string | unde
     id: nid(draft, "routine"),
     name: (name?.trim() || titleFrom(goal.text)).slice(0, 80),
     instruction: goal.text,
+    cadence,
     createdAt: at(deps),
     lastRunAt: null,
+    nextRunAt: nextInstant(cadence, deps.now()),
   };
   draft.routines.push(routine);
   pushEvent(draft, goal.id, "routine_saved", `Saved routine “${routine.name}”. Holds still apply when it runs.`, deps);
   return draft;
 }
 
-export async function runRoutine(state: AppState, routineId: string, deps: Deps): Promise<AppState> {
+export function setRoutineCadence(state: AppState, routineId: string, cadence: Cadence, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  const routine = draft.routines.find((item) => item.id === routineId);
+  if (!routine) throw new OrielError("That routine is not in the record.", 404);
+  if (routine.cadence === cadence) return state;
+  routine.cadence = cadence;
+  routine.nextRunAt = nextInstant(cadence, deps.now());
+  const when = cadence === "manual" ? "only when you run it" : `every ${cadence === "hourly" ? "hour" : "day"}`;
+  pushEvent(draft, null, "cadence", `“${routine.name}” wakes ${when}. A wake does not approve a hold.`, deps);
+  return draft;
+}
+
+export async function runRoutine(
+  state: AppState,
+  routineId: string,
+  deps: Deps,
+  via?: "wake",
+): Promise<AppState> {
   const routine = state.routines.find((item) => item.id === routineId);
   if (!routine) throw new OrielError("That routine is not in the record.", 404);
   const next = await convene(state, routine.instruction, undefined, deps);
   const saved = next.routines.find((item) => item.id === routineId);
-  if (saved) saved.lastRunAt = at(deps);
-  pushEvent(next, null, "routine_ran", `Ran routine “${routine.name}”.`, deps);
+  if (saved) {
+    saved.lastRunAt = at(deps);
+    if (via === "wake") saved.nextRunAt = nextInstant(saved.cadence, deps.now());
+  }
+  const goal = next.goals.at(-1);
+  if (via === "wake" && goal) {
+    const spoken = [...next.messages].reverse().find((message) => message.role === "you" && message.goalId === goal.id);
+    if (spoken) spoken.via = "wake";
+  }
+  pushEvent(next, goal?.id ?? null, "routine_ran", `Ran routine “${routine.name}”.`, deps);
   return next;
+}
+
+export async function wakeDue(state: AppState, deps: Deps): Promise<AppState> {
+  const now = at(deps);
+  const due = state.routines
+    .filter((routine) => routine.cadence !== "manual" && routine.nextRunAt !== null && routine.nextRunAt <= now)
+    .sort((a, b) => (a.nextRunAt ?? "").localeCompare(b.nextRunAt ?? ""));
+  const routine = due[0];
+  if (!routine) return state;
+  try {
+    const next = await runRoutine(state, routine.id, deps, "wake");
+    pushEvent(
+      next,
+      next.goals.at(-1)?.id ?? null,
+      "woke",
+      `Oriel woke “${routine.name}” on its ${routine.cadence} cadence. Holds still apply. Nothing was sent or spent.`,
+      deps,
+    );
+    return next;
+  } catch (error) {
+    const draft = structuredClone(state);
+    const saved = draft.routines.find((item) => item.id === routine.id);
+    if (saved) saved.nextRunAt = nextInstant(saved.cadence, deps.now());
+    const message = error instanceof Error ? error.message : "The routine could not run.";
+    pushEvent(draft, null, "wake_failed", `Oriel could not wake “${routine.name}”: ${clamp(message, 160)}`, deps);
+    return draft;
+  }
+}
+
+export async function probeConnector(state: AppState, id: string, deps: Deps): Promise<AppState> {
+  if (!isSeatId(id)) throw new OrielError("Unknown seat.", 404);
+  const draft = structuredClone(state);
+  const connector = draft.connectors.find((item) => item.id === id);
+  if (!connector) throw new OrielError("Unknown seat.", 404);
+  if (!connector.bridgeUrl) throw new OrielError("Save a bridge before checking it.");
+  try {
+    const reply = await callBridge({
+      url: connector.bridgeUrl,
+      token: connector.token,
+      fetchImpl: deps.fetchImpl,
+      payload: {
+        product: "Oriel",
+        action: "status",
+        seat: connector.id,
+        task: "Confirm the bridge is reachable. Do not send, pay, delete, post, or sign in.",
+        intents: ["direct"],
+        businessSensitive: false,
+      },
+    });
+    connector.lastResult = "live";
+    connector.lastError = null;
+    const spoken = `${DISPLAY[id]} answered. ${clamp(reply.summary, 240)} Nothing was sent or spent.`;
+    pushMessage(draft, { role: "oriel", text: spoken }, deps);
+    pushEvent(draft, null, "probe", spoken, deps);
+  } catch (error) {
+    const message = bridgeFailure(error, connector.token);
+    connector.lastResult = "fallback";
+    connector.lastError = message;
+    const spoken = `${DISPLAY[id]} did not answer (${message}). Nothing was sent or spent.`;
+    pushMessage(draft, { role: "oriel", text: spoken }, deps);
+    pushEvent(draft, null, "probe", spoken, deps);
+  }
+  return draft;
 }
 
 export function leadSeat(goal: Goal): SeatId | null {

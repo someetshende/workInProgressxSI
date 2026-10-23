@@ -2,7 +2,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderMarkdown } from "../core/brief.js";
-import { convene, reviewWatches, runRoutine, saveRoutine, setConnector, settle } from "../core/convene.js";
+import { isCadence } from "../core/cadence.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, setConnector, setRoutineCadence, settle, wakeDue } from "../core/convene.js";
 import type { Deps } from "../core/types.js";
 import { OrielError } from "../core/errors.js";
 import { refineWithGlm } from "../core/glm.js";
@@ -121,6 +122,8 @@ export async function startServer(options: {
   fetchImpl?: typeof fetch;
   refine?: Deps["refine"];
   now?: () => Date;
+  wake?: boolean;
+  wakeMs?: number;
 }): Promise<Running> {
   const store = new Store(options.dataDir);
   await store.load();
@@ -132,6 +135,7 @@ export async function startServer(options: {
     refine: options.refine === undefined ? null : options.refine,
   });
 
+  let waking = false;
   const server = createServer(async (req, res) => {
     try {
       const url = new URL(req.url ?? "/", "http://127.0.0.1");
@@ -182,6 +186,29 @@ export async function startServer(options: {
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }
+      if (method === "POST" && pathname === "/api/tick") {
+        const body = asObject(await readBody(req));
+        let deps = depsFor();
+        if (body.force === true) {
+          if (!testMode) throw new OrielError("Not found.", 404);
+          const dueAt = store
+            .get()
+            .routines.map((routine) => routine.nextRunAt)
+            .filter((value): value is string => typeof value === "string")
+            .sort()[0];
+          if (dueAt) {
+            const atDue = new Date(dueAt);
+            deps = { ...deps, now: () => atDue };
+          }
+        }
+        const next = await store.update(async (current) => {
+          const updated = await wakeDue(current, deps);
+          if (updated !== current) await writeDesk(options.dataDir, updated);
+          return updated;
+        });
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
       if (method === "POST" && pathname === "/api/turn") {
         const body = asObject(await readBody(req));
         if (typeof body.text !== "string") throw new OrielError("Say what you want finished.");
@@ -206,6 +233,13 @@ export async function startServer(options: {
           await writeDesk(options.dataDir, updated);
           return updated;
         });
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      const probeMatch = method === "POST" ? pathname.match(/^\/api\/connectors\/([A-Za-z0-9_]+)\/probe$/) : null;
+      if (probeMatch) {
+        const id = probeMatch[1] ?? "";
+        const next = await store.update(async (current) => probeConnector(current, id, depsFor()));
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }
@@ -236,7 +270,9 @@ export async function startServer(options: {
         const body = asObject(await readBody(req));
         if (typeof body.goalId !== "string") throw new OrielError("A goal is required.");
         const name = typeof body.name === "string" ? body.name : undefined;
-        const next = await store.update((current) => saveRoutine(current, body.goalId as string, name, depsFor()));
+        const cadence = body.cadence === undefined ? "manual" : body.cadence;
+        if (!isCadence(cadence)) throw new OrielError("Cadence must be manual, daily, or hourly.");
+        const next = await store.update((current) => saveRoutine(current, body.goalId as string, name, depsFor(), cadence));
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }
@@ -248,6 +284,16 @@ export async function startServer(options: {
           await writeDesk(options.dataDir, updated);
           return updated;
         });
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      const cadenceMatch = method === "POST" ? pathname.match(/^\/api\/routines\/([A-Za-z0-9_]+)$/) : null;
+      if (cadenceMatch) {
+        const body = asObject(await readBody(req));
+        const cadence = body.cadence;
+        if (!isCadence(cadence)) throw new OrielError("Cadence must be manual, daily, or hourly.");
+        const id = cadenceMatch[1] ?? "";
+        const next = await store.update((current) => setRoutineCadence(current, id, cadence, depsFor()));
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }
@@ -283,12 +329,31 @@ export async function startServer(options: {
   });
   const address = server.address();
   if (!address || typeof address === "string") throw new Error("Oriel could not bind a port.");
+  let timer: ReturnType<typeof setInterval> | undefined;
+  if (options.wake) {
+    timer = setInterval(() => {
+      if (waking) return;
+      waking = true;
+      void store
+        .update(async (current) => {
+          const updated = await wakeDue(current, depsFor());
+          if (updated !== current) await writeDesk(options.dataDir, updated);
+          return updated;
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          waking = false;
+        });
+    }, options.wakeMs ?? 60_000);
+    timer.unref();
+  }
   return {
     port: address.port,
     url: `http://${host}:${address.port}`,
     dir: options.dataDir,
     close: () =>
       new Promise((resolve, reject) => {
+        if (timer) clearInterval(timer);
         server.close((error) => (error ? reject(error) : resolve()));
       }),
   };
@@ -300,12 +365,14 @@ if (entry.endsWith(`${path.sep}src${path.sep}server${path.sep}index.ts`) || entr
   const host = process.env.ORIEL_HOST ?? "127.0.0.1";
   const dataDir = path.resolve(process.env.ORIEL_DATA_DIR ?? path.join("data", "runtime"));
   const useGlm = process.env.ORIEL_USE_GLM === "1";
+  const wake = process.env.ORIEL_TICK !== "0" && process.env.ORIEL_TEST !== "1";
   startServer({
     port,
     host,
     dataDir,
     testMode: process.env.ORIEL_TEST === "1",
     refine: useGlm ? (synthesis) => refineWithGlm(synthesis) : null,
+    wake,
   }).then((running) => {
     process.stdout.write(`Oriel listening on ${running.url}\n`);
   });

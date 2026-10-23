@@ -2,7 +2,7 @@
 
 Oriel is one window onto the agents you already run. Grok Bot, Dots, and Muse stay themselves. Oriel convenes them, holds anything risky, and answers in one voice.
 
-The name is a projecting window: several panes, one view. The research behind the product is in [docs/research.md](docs/research.md). The story atlas has more than a thousand stories in [data/user-stories.json](data/user-stories.json), and the eighteen flagship stories are the spec the tests run.
+The name is a projecting window: several panes, one view. The research behind the product is in [docs/research.md](docs/research.md). The story atlas has more than a thousand stories in [data/user-stories.json](data/user-stories.json), and the twenty flagship stories are the spec the tests run.
 
 Oriel does not sign in to those products. A seat is in **reference** mode until you bridge an endpoint you control. Reference copy says what that seat would do. It does not pretend the work happened on their computer.
 
@@ -35,7 +35,7 @@ npm run check
 5. You get one recommendation. The working brief, the disagreement, and the record stay one click down.
 6. Approving a hold records the decision. Oriel still does not send mail, move money, delete, or publish. There is no always-allow.
 
-Say `Remember that I prefer short briefs.` and the next working brief stays collapsed. `What do you remember?` reads it back. A goal can be continued from the list. `Save as routine` reruns the instruction later, and the holds still apply.
+Say `Remember that I prefer short briefs.` and the next working brief stays collapsed. `What do you remember?` reads it back. A goal can be continued from the list. `Save as routine` reruns the instruction later, and the holds still apply. A saved routine starts as manual. In the rail, the cadence control cycles Manual, Daily, and Hourly. While `npm run dev` is open, Oriel wakes one due routine about once a minute. Set `ORIEL_TICK=0` to keep wakes on the Run button only. A wake does not approve a hold, send mail, or move money. The thread labels that turn Routine.
 
 ## Bridge a seat you already run
 
@@ -72,7 +72,7 @@ To try the connection before a real bridge exists, run a local stand-in. It spea
 ORIEL_SEAT=grok ORIEL_SEAT_TOKEN=a-local-token ORIEL_SEAT_PORT=8791 npm run seat
 ```
 
-Point Grok Bot's bridge at `http://127.0.0.1:8791/tasks` and paste the same token. `ORIEL_SEAT` may be `grok`, `dots`, or `muse`. The token stays in the environment of that process, not in the command's arguments. A Muse stand-in refuses a task marked client, patient, or confidential.
+Point Grok Bot's bridge at `http://127.0.0.1:8791/tasks` and paste the same token. `ORIEL_SEAT` may be `grok`, `dots`, or `muse`. The token stays in the environment of that process, not in the command's arguments. A Muse stand-in refuses a task marked client, patient, or confidential. **Check bridge** asks only whether the saved endpoint answers. That check does not send, pay, delete, post, or sign in.
 
 While a hold or a watch is open, **Check what's open** asks the bridged seats for a status and changes nothing. Muse is left out of that check when the desk is holding client, patient, or confidential work. A watch survives a later turn on the same goal until you say to stop watching.
 

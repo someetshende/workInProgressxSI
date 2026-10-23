@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { renderMarkdown } from "../src/core/brief.js";
-import { convene, reviewWatches, runRoutine, saveRoutine, setConnector, settle } from "../src/core/convene.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, setConnector, setRoutineCadence, settle, wakeDue } from "../src/core/convene.js";
 import { initialState, toPublic } from "../src/core/state.js";
 import { startLocalSeat } from "../src/seats/local.js";
 import type { AppState, Deps } from "../src/core/types.js";
@@ -357,6 +357,95 @@ describe("Oriel convenes", () => {
       await dots.close();
       await muse.close();
     }
+  });
+
+  it("ORIEL-F19 wakes the earliest due routine and leaves the send held", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    state = saveRoutine(state, state.goals[0]?.id ?? "", "Launch note", early);
+    state = await convene(state, "Draft the weekly close but do not send it", undefined, early);
+    state = saveRoutine(state, state.goals[1]?.id ?? "", "Weekly close", early);
+    expect(state.routines.every((routine) => routine.cadence === "manual")).toBe(true);
+    expect((await wakeDue(state, { ...deps, now: () => new Date("2026-10-24T12:00:00.000Z") })).goals).toHaveLength(2);
+
+    const email = state.routines.find((routine) => routine.name === "Launch note");
+    const weekly = state.routines.find((routine) => routine.name === "Weekly close");
+    state = setRoutineCadence(state, email?.id ?? "", "hourly", early);
+    state = setRoutineCadence(state, weekly?.id ?? "", "daily", early);
+    const hourlyDue: Deps = { ...deps, now: () => new Date("2026-10-23T13:00:00.000Z") };
+    state = await wakeDue(state, hourlyDue);
+    expect(state.goals).toHaveLength(3);
+    expect(state.goals[2]?.text).toContain("Email Maya");
+    expect(state.messages.some((message) => message.via === "wake")).toBe(true);
+    expect(state.approvals.filter((approval) => approval.status === "approved")).toHaveLength(0);
+    expect(state.approvals.some((approval) => approval.status === "open" && approval.kind === "send")).toBe(true);
+    expect(state.events.some((event) => event.type === "woke" && event.detail.includes("Nothing was sent or spent"))).toBe(true);
+    expect((await wakeDue(state, hourlyDue)).goals).toHaveLength(3);
+
+    const bothDue: Deps = { ...deps, now: () => new Date("2026-10-24T12:00:00.000Z") };
+    state = await wakeDue(state, bothDue);
+    expect(state.goals).toHaveLength(4);
+    expect(state.goals[3]?.text).toContain("Email Maya");
+    state = await wakeDue(state, bothDue);
+    expect(state.goals).toHaveLength(5);
+    expect(state.goals[4]?.text).toContain("weekly close");
+    expect(state.goals[4]?.plan.some((step) => step.kind === "send" && step.status === "skipped")).toBe(true);
+    expect(state.approvals.filter((approval) => approval.status === "approved")).toHaveLength(0);
+  });
+
+  it("a woken confidential routine still stays off Muse", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let state = await convene(initialState(), "Summarize the confidential client matter", undefined, early);
+    state = saveRoutine(state, state.goals[0]?.id ?? "", "Matter", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "daily", early);
+    state = await wakeDue(state, { ...deps, now: () => new Date("2026-10-24T12:00:00.000Z") });
+    const woken = state.goals.at(-1);
+    expect(woken?.lead).toBe("grok");
+    expect(woken?.brief.seatReads.map((note) => note.seat)).not.toContain("muse");
+    expect(woken?.brief.seatReads.every((note) => note.mode === "reference" || note.mode === "live")).toBe(true);
+  });
+
+  it("ORIEL-F20 checks a bridge without convening work or echoing the token", async () => {
+    await expect(probeConnector(initialState(), "grok", deps)).rejects.toThrow(/Save a bridge/);
+    const token = "bridge-secret-xyz";
+    await withBridge(200, { summary: `Ready. token ${token}`, points: [`echo ${token}`], stance: token }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token }, deps);
+      state = await probeConnector(state, "grok", deps);
+      expect(hits).toHaveLength(1);
+      expect(hits[0]?.raw).toContain('"action":"status"');
+      expect(hits[0]?.raw).toContain("Do not send, pay, delete, post, or sign in.");
+      expect(hits[0]?.raw).not.toContain("client");
+      expect(hits[0]?.authorization).toBe(`Bearer ${token}`);
+      expect(state.connectors.find((connector) => connector.id === "grok")?.lastResult).toBe("live");
+      expect(state.messages.at(-1)?.text).toContain("Nothing was sent or spent.");
+      expect(state.goals).toHaveLength(0);
+      const packed = JSON.stringify(toPublic(state, 0));
+      expect(packed).not.toContain(token);
+    });
+
+    const seat = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: seat.url, token: "tok-grok" }, deps);
+      state = await probeConnector(state, "grok", deps);
+      expect(seat.hits()).toBe(1);
+      expect(state.messages.at(-1)?.text).toContain("Bridge is reachable");
+      expect(state.messages.at(-1)?.text).toContain("Nothing was sent or spent.");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("tok-grok");
+    } finally {
+      await seat.close();
+    }
+  });
+
+  it("a dead bridge check is named and spends nothing", async () => {
+    await withBridge(500, { summary: "no" }, async (url) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await probeConnector(state, "dots", deps);
+      expect(state.connectors.find((connector) => connector.id === "dots")?.lastResult).toBe("fallback");
+      expect(state.messages.at(-1)?.text).toContain("did not answer");
+      expect(state.messages.at(-1)?.text).toContain("Nothing was sent or spent.");
+      expect(state.goals).toHaveLength(0);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+    });
   });
 
   it("a released payment reaches the lead stand-in and still moves no money", async () => {

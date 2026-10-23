@@ -56,6 +56,15 @@ function windowMark() {
   return svg;
 }
 
+function bridgeHint(url) {
+  if (!url) return "https://bridge.example/tasks";
+  try {
+    return new URL(url).host;
+  } catch {
+    return "Bridge saved";
+  }
+}
+
 function statusOf(connector) {
   if (!connector.enabled) return { label: "Off", className: "agent-status" };
   if (connector.lastResult === "live") return { label: "Live", className: "agent-status live" };
@@ -91,7 +100,7 @@ async function post(path, body) {
   error.hidden = true;
   send.disabled = true;
   const previous = send.textContent;
-  send.textContent = "Convening";
+  if (path === "/api/turn") send.textContent = "Convening";
   try {
     state = await api(path, { method: "POST", body: JSON.stringify(body) });
     render();
@@ -176,7 +185,8 @@ function renderRail() {
       const url = el("input", {
         name: "url",
         type: "url",
-        placeholder: connector.bridgeUrl || "https://bridge.example/tasks",
+        placeholder: bridgeHint(connector.bridgeUrl),
+        title: connector.bridgeUrl || "Bridge URL",
         "aria-label": `${connector.displayName} bridge URL`,
       });
       const token = el("input", {
@@ -187,11 +197,21 @@ function renderRail() {
         "data-testid": `token-${connector.id}`,
         "aria-label": `${connector.displayName} bridge token`,
       });
-      const formBridge = el("form", { class: "bridge", "data-testid": `bridge-${connector.id}` }, [
-        url,
-        token,
+      const formBridge = el("form", { class: "bridge", "data-testid": `bridge-${connector.id}` }, [url, token]);
+      const actions = el("div", { class: "bridge-actions" }, [
         el("button", { type: "submit", text: "Save bridge" }),
       ]);
+      if (connector.bridgeUrl) {
+        actions.append(
+          el("button", {
+            type: "button",
+            "data-testid": `probe-${connector.id}`,
+            text: "Check bridge",
+            onclick: () => post(`/api/connectors/${connector.id}/probe`, {}),
+          }),
+        );
+      }
+      formBridge.append(actions);
       formBridge.addEventListener("submit", (event) => {
         event.preventDefault();
         const body = { bridgeUrl: url.value.trim() ? url.value.trim() : null };
@@ -241,17 +261,31 @@ function renderRail() {
   if (state.routines.length) {
     rail.append(el("p", { class: "label", text: "Routines" }));
     for (const routine of state.routines) {
+      const cadence = routine.cadence === "daily" || routine.cadence === "hourly" ? routine.cadence : "manual";
+      const label = cadence === "daily" ? "Daily" : cadence === "hourly" ? "Hourly" : "Manual";
+      const next = cadence === "manual" ? "daily" : cadence === "daily" ? "hourly" : "manual";
       rail.append(
-        el(
-          "button",
-          {
+        el("div", { class: "routine-row" }, [
+          el(
+            "button",
+            {
+              type: "button",
+              class: "routine",
+              "data-testid": `run-routine-${routine.id}`,
+              onclick: () => post(`/api/routines/${routine.id}/run`, {}),
+            },
+            [el("span", { text: routine.name }), el("span", { class: "quiet", text: "Run" })],
+          ),
+          el("button", {
             type: "button",
-            class: "routine",
-            "data-testid": `run-routine-${routine.id}`,
-            onclick: () => post(`/api/routines/${routine.id}/run`, {}),
-          },
-          [el("span", { text: routine.name }), el("span", { class: "quiet", text: "Run" })],
-        ),
+            class: "cadence",
+            "data-testid": `cadence-${routine.id}`,
+            "aria-label": `${routine.name} wakes ${label}. Change when it wakes.`,
+            title: routine.nextRunAt ? `Next wake ${routine.nextRunAt}` : "Wakes only when you run it",
+            text: label,
+            onclick: () => post(`/api/routines/${routine.id}`, { cadence: next }),
+          }),
+        ]),
       );
     }
   }
@@ -320,8 +354,12 @@ function renderThread() {
 
   const synthesisId = latestSynthesisId();
   for (const message of state.messages) {
-    const article = el("article", { class: `turn ${message.role}`, "data-goal-id": message.goalId || "" });
-    article.append(el("p", { class: "who", text: message.role === "you" ? "You" : "Oriel" }));
+    const woken = message.via === "wake";
+    const article = el("article", {
+      class: `turn ${woken ? "wake" : message.role}`,
+      "data-goal-id": message.goalId || "",
+    });
+    article.append(el("p", { class: "who", text: woken ? "Routine" : message.role === "you" ? "You" : "Oriel" }));
     const body = el("p", {
       class: message.role === "oriel" ? "voice" : "body",
       text: message.text,

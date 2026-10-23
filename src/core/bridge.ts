@@ -51,7 +51,7 @@ export function assertBridgeUrl(input: string): string {
 
 export type BridgePayload = {
   product: "Oriel";
-  action: "convene" | "released";
+  action: "convene" | "released" | "status";
   seat: string;
   task: string;
   intents: string[];

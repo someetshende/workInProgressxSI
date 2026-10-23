@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 1314,
-  "flagship": 18,
+  "count": 1316,
+  "flagship": 20,
   "atlas": 1296,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -329,6 +329,42 @@
       "kind": "flagship",
       "testRef": "tests/orchestrator.test.ts",
       "sourceInsight": "Dots, announced by OpenAI on 29 September 2026, is one always-on owner agent on GPT-6 Astra that keeps working between conversations."
+    },
+    {
+      "id": "ORIEL-F19",
+      "persona": "an operations manager",
+      "role": "operator",
+      "surface": "routines",
+      "capability": "Wake",
+      "title": "A cadence wakes one routine and still holds the risky step",
+      "story": "As an operations manager, I want Oriel to wake a saved routine when its cadence is due, so that the work continues while I am away and a hold still stops the risky part.",
+      "acceptance": [
+        "A manual routine does not run when Oriel wakes the desk.",
+        "When more than one routine is due, only the earliest one runs.",
+        "A send inside the woken routine stays open, and the wake does not approve it."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "Grok Bot, launched in beta on 11 August 2026, is a team of named bots on one shared cloud computer, with skills, routines, and an approval gate."
+    },
+    {
+      "id": "ORIEL-F20",
+      "persona": "an operator",
+      "role": "operator",
+      "surface": "connectors",
+      "capability": "Check a bridge",
+      "title": "A bridge can be checked without doing the work",
+      "story": "As an operator, I want Oriel to check that a bridge I control is reachable before it hands over work, so that a dead endpoint is obvious and nothing is sent while I check.",
+      "acceptance": [
+        "A seat with no bridge URL cannot be checked.",
+        "A reachable bridge is marked live and the reply says nothing was sent or spent.",
+        "The bridge token is absent from the spoken reply and from public state."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "The shared pattern is an agent with its own computer and browser that keeps going after the laptop closes."
     },
     {
       "id": "ORIEL-1001",
