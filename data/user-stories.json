@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3408,
-  "flagship": 42,
+  "count": 3409,
+  "flagship": 43,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -756,6 +756,24 @@
       "acceptance": [
         "Asking whether a deletion does not share words quotes the phrase saved on that deletion. If no other rule uses it, Oriel says that step does not share those words and names no other rule.",
         "If another rule uses those words, Oriel says that step does share them and names only the other actions, in send, pay, delete, and post order. A rule with no phrase is the whole action and is not a comparison.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F43",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask whether one step shares words with another",
+      "title": "A sentence can ask whether one step shares words with another",
+      "story": "As a security admin, I want to ask Oriel whether one step shares words with one other step, so that it quotes that step's phrase and does not delete anything.",
+      "acceptance": [
+        "Asking whether a deletion shares words with a send quotes the phrase saved on that deletion and names only that other step when the phrases match.",
+        "If the other step has no rule, no phrase, or different words, Oriel says the deletion does not share those words with the send and quotes only the deletion.",
         "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
       ],
       "priority": "p0",

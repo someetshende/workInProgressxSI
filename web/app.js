@@ -29,6 +29,9 @@ let selected = null;
 let armedSkill = null;
 let busy = false;
 let openBridge = null;
+let phraseAction = "delete";
+let phraseDraft = "";
+let phraseDirty = false;
 
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -155,7 +158,7 @@ function renderRail() {
   rail.append(
     el("p", {
       class: "rule-note",
-      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me? To ask about one, say: Is a deletion handed to me? To ask whether the words are those, say: Is a deletion that mentions shared project files handed to me? To ask which words a step uses, say: Which words does a deletion hand to me? To ask which step uses certain words, say: Which step mentions shared project files? To ask which steps name no words, say: Which steps name no words? To ask which steps name words, say: Which steps name words? To ask which steps share words, say: Which steps share words? To ask which words are shared, say: Which words are shared? To ask which words are not shared, say: Which words are not shared? To ask which steps do not share words, say: Which steps do not share words? To ask whether one step shares words, say: Does a deletion share words? To ask whether one step does not share words, say: Does a deletion not share words?",
+      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me? To ask about one, say: Is a deletion handed to me? To ask whether the words are those, say: Is a deletion that mentions shared project files handed to me? To ask which words a step uses, say: Which words does a deletion hand to me? To ask which step uses certain words, say: Which step mentions shared project files? To ask which steps name no words, say: Which steps name no words? To ask which steps name words, say: Which steps name words? To ask which steps share words, say: Which steps share words? To ask which words are shared, say: Which words are shared? To ask which words are not shared, say: Which words are not shared? To ask which steps do not share words, say: Which steps do not share words? To ask whether one step shares words, say: Does a deletion share words? To ask whether one step does not share words, say: Does a deletion not share words? To ask whether one step shares words with another, say: Does a deletion share words with a send?",
     }),
   );
   const rules = el("div", { class: "rules", "data-testid": "handoff-rules" });
@@ -201,7 +204,7 @@ function renderRail() {
   ]) {
     actionPick.append(el("option", { value, text: label }));
   }
-  actionPick.value = "delete";
+  actionPick.value = phraseAction;
   const phraseInput = el("input", {
     name: "phrase",
     type: "text",
@@ -211,17 +214,24 @@ function renderRail() {
     "aria-label": "Words that narrow the step",
     autocomplete: "off",
   });
-  const described = state.handoffRules?.find((rule) => rule.action === "delete");
-  if (described?.phrase) phraseInput.value = described.phrase;
+  const savedForAction = state.handoffRules?.find((rule) => rule.action === phraseAction);
+  phraseInput.value = phraseDirty ? phraseDraft : savedForAction?.phrase || "";
   let loadedAction = actionPick.value;
   const showAction = () => {
     if (actionPick.value === loadedAction) return;
     loadedAction = actionPick.value;
+    phraseAction = actionPick.value;
+    phraseDirty = false;
     const rule = state.handoffRules?.find((item) => item.action === actionPick.value);
     phraseInput.value = rule?.phrase || "";
   };
   actionPick.addEventListener("input", showAction);
   actionPick.addEventListener("change", showAction);
+  phraseInput.addEventListener("input", () => {
+    phraseAction = actionPick.value;
+    phraseDraft = phraseInput.value;
+    phraseDirty = true;
+  });
   phraseForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const words = phraseInput.value.trim().replace(/\s+/g, " ");

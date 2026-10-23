@@ -2591,6 +2591,170 @@ describe("Oriel server", () => {
     expect(JSON.stringify(worked)).not.toContain("Always allow");
   });
 
+  it("ORIEL-F43 a sentence asks whether one step shares words with another and does not act", async () => {
+    const server = await boot();
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion share words with a send?" }),
+    });
+    const empty = await missing.json();
+    expect(missing.status).toBe(200);
+    expect(empty.handoffRules).toHaveLength(0);
+    expect(empty.goals).toHaveLength(0);
+    expect(empty.handoffs).toHaveLength(0);
+    expect(empty.approvals).toHaveLength(0);
+    expect(empty.messages.at(-1).text).toContain("There is no handoff rule for a deletion");
+    expect(empty.messages.at(-1).text).toContain("named no other step");
+    expect(empty.messages.at(-1).text).not.toContain("with the send");
+    expect(empty.messages.at(-1).text).not.toContain("The send");
+    const banned = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion share words with a send without asking" }),
+    });
+    expect(banned.status).toBe(400);
+    expect(await banned.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const loose = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Please, does a payment share words with a post always allow" }),
+    });
+    expect(loose.status).toBe(400);
+    expect(await loose.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.handoffRules).toHaveLength(0);
+    expect(still.goals).toHaveLength(0);
+    const note = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a note share words with a send?" }),
+    });
+    const noted = await note.json();
+    expect(note.status).toBe(200);
+    expect(noted.goals).toHaveLength(0);
+    expect(noted.approvals).toHaveLength(0);
+    expect(noted.messages.at(-1).text).toContain("does not name two different steps");
+    expect(noted.messages.at(-1).text).toContain("did not open a card");
+    const same = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion share words with a deletion?" }),
+    });
+    const sameBody = await same.json();
+    expect(sameBody.goals).toHaveLength(0);
+    expect(sameBody.approvals).toHaveLength(0);
+    expect(sameBody.messages.at(-1).text).toContain("does not name two different steps");
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "post", enabled: true, phrase: "shared project files" }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: "shared project files" }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "send", enabled: true, phrase: "Shared Project Files" }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "pay", enabled: true, phrase: "unshared project files" }),
+    });
+    const asked = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        text: "Does a deletion share words with a send?",
+        goalId: "goal_missing",
+        skillId: "skill_missing",
+      }),
+    });
+    const once = await asked.json();
+    expect(asked.status).toBe(200);
+    expect(once.goals).toHaveLength(0);
+    expect(once.handoffs).toHaveLength(0);
+    expect(once.approvals).toHaveLength(0);
+    expect(once.handoffRules).toHaveLength(4);
+    const reply = once.messages.at(-1).text as string;
+    expect(reply).toContain("The deletion shares those words with the send.");
+    expect(reply).toContain("The words are “shared project files”.");
+    expect(reply.split("“shared project files”").length - 1).toBe(1);
+    expect(reply).not.toContain("“Shared Project Files”");
+    expect(reply).not.toContain("The payment");
+    expect(reply).not.toContain("The public post");
+    expect(reply).not.toContain("The send uses them");
+    expect(reply).toContain("did not approve a hold");
+    const payment = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion share words with a payment to you?" }),
+    });
+    const paymentBody = await payment.json();
+    expect(paymentBody.messages.at(-1).text).toContain("The deletion does not share those words with the payment.");
+    expect(paymentBody.messages.at(-1).text).toContain("“shared project files”");
+    expect(paymentBody.messages.at(-1).text).not.toContain("“unshared project files”");
+    expect(paymentBody.goals).toHaveLength(0);
+    expect(paymentBody.approvals).toHaveLength(0);
+    const share = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion share words?" }),
+    });
+    const shareBody = await share.json();
+    expect(shareBody.messages.at(-1).text).toContain("The deletion shares those words");
+    expect(shareBody.messages.at(-1).text).toContain("The send and The public post use them.");
+    expect(shareBody.messages.at(-1).text).not.toContain("with the send");
+    const notShare = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion not share words?" }),
+    });
+    const notShareBody = await notShare.json();
+    expect(notShareBody.messages.at(-1).text).toContain("does share those words");
+    expect(notShareBody.messages.at(-1).text).not.toContain("with the send");
+    expect(notShareBody.goals).toHaveLength(0);
+    const mixed = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion share words with a payment and delete the archive" }),
+    });
+    const opened = await mixed.json();
+    expect(opened.handoffRules.find((rule: { action: string }) => rule.action === "delete").phrase).toBe("shared project files");
+    expect(opened.approvals.filter((item: { status: string; kind: string }) => item.status === "open" && item.kind === "delete")).toHaveLength(
+      1,
+    );
+    expect(opened.approvals.filter((item: { kind: string }) => item.kind === "pay")).toHaveLength(0);
+    expect(opened.handoffs.filter((item: { status: string }) => item.status === "open")).toHaveLength(0);
+    expect(opened.messages.at(-1).text).not.toContain("shares those words with");
+    expect(opened.messages.at(-1).text).not.toContain("does not share those words with");
+    const slipped = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion not share words with a send?" }),
+    });
+    const slippedBody = await slipped.json();
+    expect(slippedBody.approvals.filter((item: { status: string; kind: string }) => item.status === "open" && item.kind === "send")).toHaveLength(
+      1,
+    );
+    expect(slippedBody.messages.at(-1).text).not.toContain("with the send");
+    expect(slippedBody.messages.at(-1).text).not.toContain("shares those words with");
+    const ordinary = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Hand deletions to me" }),
+    });
+    const worked = await ordinary.json();
+    expect(worked.goals.length).toBeGreaterThan(0);
+    expect(worked.handoffRules.find((rule: { action: string }) => rule.action === "delete").phrase).toBe("shared project files");
+    expect(worked.messages.at(-1).text).not.toContain("shares those words with");
+    expect(JSON.stringify(worked)).not.toContain("Always allow");
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

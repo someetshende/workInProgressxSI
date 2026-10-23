@@ -719,6 +719,7 @@ export type SpokenShare = { kind: "ask"; action: HandoffAction } | { kind: "reje
 export function readSpokenShare(text: string): SpokenShare | null {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (/\bnot\s+shar/i.test(normalized)) return null;
+  if (/\bshar(?:e|es|ing)\s+words\s+with\b/i.test(normalized)) return null;
   const match = normalized.match(SPOKEN_SHARE);
   if (!match) return null;
   const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
@@ -765,6 +766,7 @@ export type SpokenNotShare = { kind: "ask"; action: HandoffAction } | { kind: "r
 
 export function readSpokenNotShare(text: string): SpokenNotShare | null {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bshar(?:e|es|ing)\s+words\s+with\b/i.test(normalized)) return null;
   const match = normalized.match(SPOKEN_NOT_SHARE);
   if (!match) return null;
   const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
@@ -797,7 +799,62 @@ export function spokenNotShareCopy(action: HandoffAction, rules: HandoffRule[]):
 
 export function loosensSpokenNotShare(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bshar(?:e|es|ing)\s+words\s+with\b/i.test(normalized)) return false;
   if (!/^(?:please,?\s+)?(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+shar(?:e|es|ing)\s+words\b/i.test(normalized)) {
+    return false;
+  }
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+const SPOKEN_SHARE_WITH =
+  /^(?:please,?\s+)?(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+shar(?:e|es|ing)\s+words\s+with\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+const WITH_LABEL: Record<HandoffAction, string> = {
+  send: "the send",
+  pay: "the payment",
+  delete: "the deletion",
+  post: "the public post",
+};
+
+export type SpokenShareWith =
+  | { kind: "ask"; action: HandoffAction; other: HandoffAction }
+  | { kind: "reject"; reason: "action" };
+
+export function readSpokenShareWith(text: string): SpokenShareWith | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bnot\s+shar/i.test(normalized)) return null;
+  const match = normalized.match(SPOKEN_SHARE_WITH);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  const other = SPOKEN_NOUNS[(match[2] ?? "").toLowerCase()];
+  if (!action || !other || action === other) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action, other };
+}
+
+export function spokenShareWithCopy(action: HandoffAction, other: HandoffAction, rules: HandoffRule[]): string {
+  const rule = rules.find((item) => item.action === action);
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a share with the other step and did not quote that step. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const otherRule = rules.find((item) => item.action === other);
+  const shares = Boolean(otherRule?.phrase && phraseKey(otherRule.phrase) === phraseKey(rule.phrase));
+  const lead = shares
+    ? `${READ_LABEL[action]} shares those words with ${WITH_LABEL[other]}.`
+    : `${READ_LABEL[action]} does not share those words with ${WITH_LABEL[other]}.`;
+  return `${lead} The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenShareWith(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bnot\s+shar/i.test(normalized)) return false;
+  if (
+    !/^(?:please,?\s+)?(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+shar(?:e|es|ing)\s+words\s+with\s+/i.test(
+      normalized,
+    )
+  ) {
     return false;
   }
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
