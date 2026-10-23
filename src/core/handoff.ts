@@ -202,6 +202,9 @@ const SPOKEN_READ =
 const SPOKEN_ASK =
   /^(?:please,?\s+)?(?:is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+handed(?:\s+(?:off|over))?\s+to\s+(?:me|you)$/i;
 
+const SPOKEN_ASK_PHRASE =
+  /^(?:please,?\s+)?(?:is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+(?:that\s+)?mention(?:s|ing)?\s+(.+?)\s+handed(?:\s+(?:off|over))?\s+to\s+(?:me|you)$/i;
+
 const SPOKEN_WOULD: Record<HandoffAction, string> = {
   send: "send",
   pay: "pay",
@@ -373,6 +376,34 @@ export function readSpokenAsk(text: string): SpokenAsk | null {
 export function spokenAskCopy(action: HandoffAction, rule: HandoffRule | undefined): string {
   if (!rule) {
     return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  return `${READ_LABEL[action]} is handed to you. ${handoffRuleLine(rule)} Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export type SpokenAskPhrase =
+  | { kind: "ask"; action: HandoffAction; phrase: string }
+  | { kind: "reject"; reason: "phrase" | "action" };
+
+export function readSpokenAskPhrase(text: string): SpokenAskPhrase | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_ASK_PHRASE);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  const phrase = cleanPhrase(unwrapPhrase(match[2] ?? ""));
+  if (!phrase) return { kind: "reject", reason: "phrase" };
+  return { kind: "ask", action, phrase };
+}
+
+export function spokenAskPhraseCopy(action: HandoffAction, phrase: string, rule: HandoffRule | undefined): string {
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]} that mentions “${phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule has no such words. Oriel did not treat this question as ${READ_WHOLE[action]}, and it did not treat “${phrase}” as the rule. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!spokenPhraseMatches(rule.phrase, phrase)) {
+    return `${READ_LABEL[action]} is handed to you. The saved words are “${rule.phrase}”. Those are not “${phrase}”. Oriel named no other step. ${ASK_TAIL}`;
   }
   return `${READ_LABEL[action]} is handed to you. ${handoffRuleLine(rule)} Oriel named no other step. ${ASK_TAIL}`;
 }

@@ -593,6 +593,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F32",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask whether the words match",
+      title: "A sentence can ask whether the saved words are the ones",
+      story:
+        "As a security admin, I want to ask Oriel whether a deletion that mentions certain words is handed to me, so that it names only that match and does not delete anything.",
+      acceptance: [
+        "Asking whether a deletion mentions those words names only that rule when the phrase matches.",
+        "A rule with no phrase is not those words, and a different saved phrase is named instead of the asked words.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {
