@@ -1220,6 +1220,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F65",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which steps do not mention the same words",
+      title: "A sentence can ask which steps do not mention the same words",
+      story:
+        "As a security admin, I want to ask Oriel which steps do not mention the same words, so that it quotes only a phrase used by one rule and does not delete anything.",
+      acceptance: [
+        "Asking which steps do not mention the same words names only the actions whose phrase is used by exactly one rule, and quotes that phrase on each.",
+        "A phrase used by two or more rules is left out, and a rule with no phrase is not described as the whole action.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

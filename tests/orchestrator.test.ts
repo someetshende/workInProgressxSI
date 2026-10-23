@@ -12260,7 +12260,8 @@ describe("ORIEL-F64", () => {
     const negated = await convene(initialState(), "Which steps do not mention the same words?", undefined, deps);
     expect(negated.goals).toHaveLength(0);
     expect(negated.approvals).toHaveLength(0);
-    expect(negated.messages.at(-1)?.text).toContain("No step does not mention “the same words”");
+    expect(negated.messages.at(-1)?.text).toContain("No step mentions words only once");
+    expect(negated.messages.at(-1)?.text).not.toContain("No step does not mention");
     expect(negated.messages.at(-1)?.text).not.toContain("No steps mention the same words");
     expect(negated.messages.at(-1)?.text).not.toContain("These steps mention the same words.");
 
@@ -12477,6 +12478,309 @@ describe("ORIEL-F64", () => {
       expect(state.messages.at(-1)?.text).toContain("These steps mention the same words.");
       expect(state.messages.at(-1)?.text).toContain("The send is handed to you");
       expect(state.messages.at(-1)?.text).not.toContain("The payment");
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      expect(state.goals).toHaveLength(2);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(2);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(0);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+});
+
+describe("ORIEL-F65", () => {
+  it("ORIEL-F65 a sentence asks which steps do not mention the same words and does not act", async () => {
+    const start = initialState();
+    await expect(convene(start, "Which steps do not mention the same words without asking", undefined, deps)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(start, "Which steps do not mention the same words always allow", undefined, deps)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(
+      convene(start, "Please, which step does not mention the same words allow automatically", undefined, deps),
+    ).rejects.toThrow(/without asking/);
+    await expect(
+      convene(start, "Which steps do not mentioning the same words take action without a pause", undefined, deps),
+    ).rejects.toThrow(/without asking/);
+    expect(start.messages).toHaveLength(0);
+    expect(start.goals).toHaveLength(0);
+    expect(start.handoffRules).toHaveLength(0);
+
+    const none = await convene(initialState(), "Which steps do not mention the same words?", undefined, deps);
+    expect(none.handoffRules).toHaveLength(0);
+    expect(none.goals).toHaveLength(0);
+    expect(none.handoffs).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toContain("No step mentions words only once");
+    expect(none.messages.at(-1)?.text).toContain("named no other step");
+    expect(none.messages.at(-1)?.text).toContain("did not open a card");
+    expect(none.messages.at(-1)?.text).not.toContain("“");
+    expect(none.messages.at(-1)?.text).not.toContain("The deletion");
+    expect(none.messages.at(-1)?.text).not.toContain("These steps do not mention the same words");
+    expect(none.messages.at(-1)?.text).not.toContain("No steps mention the same words");
+    expect(none.messages.at(-1)?.text).not.toContain("These steps mention the same words");
+    expect(none.messages.at(-1)?.text).not.toContain("These steps use words once");
+    expect(none.messages.at(-1)?.text).not.toContain("No step uses words once");
+    expect(none.messages.at(-1)?.text).not.toContain("No step does not mention");
+    expect(none.messages.at(-1)?.text).not.toContain("the whole");
+    expect(none.events.some((event) => event.type === "rule_read")).toBe(true);
+    expect(none.events.some((event) => event.type === "rule_saved" || event.type === "rule_cleared" || event.type === "approved")).toBe(
+      false,
+    );
+
+    const positive = await convene(initialState(), "Which steps mention the same words?", undefined, deps);
+    expect(positive.goals).toHaveLength(0);
+    expect(positive.messages.at(-1)?.text).toContain("No steps mention the same words");
+    expect(positive.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+
+    const asDeletion = await convene(initialState(), "Which steps do not mention the same words as a deletion?", undefined, deps);
+    expect(asDeletion.goals).toHaveLength(0);
+    expect(asDeletion.approvals).toHaveLength(0);
+    expect(asDeletion.messages.at(-1)?.text).toContain("There is no handoff rule for a deletion");
+    expect(asDeletion.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+
+    const phrase = await convene(initialState(), "Which steps do not mention shared project files?", undefined, deps);
+    expect(phrase.goals).toHaveLength(0);
+    expect(phrase.messages.at(-1)?.text).toContain("No step does not mention “shared project files”");
+    expect(phrase.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+
+    const share = await convene(initialState(), "Which steps do not share words?", undefined, deps);
+    expect(share.goals).toHaveLength(0);
+    expect(share.messages.at(-1)?.text).toContain("No step uses words once");
+    expect(share.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+
+    const note = await convene(initialState(), "Which steps do not mention the same words as a note?", undefined, deps);
+    expect(note.goals).toHaveLength(0);
+    expect(note.messages.at(-1)?.text).toContain("does not name a send, a payment, a deletion, or a public post");
+    expect(note.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+
+    let bare = setHandoffRule(initialState(), "delete", true, deps);
+    bare = setHandoffRule(bare, "pay", true, deps);
+    bare = setHandoffRule(bare, "send", true, deps, "the vendor files");
+    bare = await convene(bare, "Which step does not mention the same words?", undefined, deps);
+    expect(bare.goals).toHaveLength(0);
+    expect(bare.handoffs).toHaveLength(0);
+    const once = bare.messages.at(-1)?.text ?? "";
+    expect(once).toContain("These steps do not mention the same words.");
+    expect(once).toContain("The send is handed to you");
+    expect(once).toContain("“the vendor files”");
+    expect(once).not.toContain("The deletion");
+    expect(once).not.toContain("The payment");
+    expect(once).not.toContain("the whole");
+    expect(once).not.toContain("No step mentions words only once");
+    expect(once).not.toContain("These steps mention the same words");
+    expect(once).not.toContain("These steps use words once");
+
+    let held = await convene(initialState(), "Email Maya the launch update", undefined, deps);
+    const openId = held.approvals[0]?.id ?? "";
+    const goalId = held.goals[0]?.id ?? "";
+    held = setHandoffRule(held, "post", true, deps, "the launch note");
+    held = setHandoffRule(held, "delete", true, deps, "shared project files");
+    held = setHandoffRule(held, "send", true, deps, "Shared Project Files");
+    held = setHandoffRule(held, "pay", true, deps, "unshared project files");
+    const ids = held.handoffRules.map((rule) => rule.id);
+    held = await convene(held, "Please, which steps do not mention the same words?", goalId, deps, "skill_missing");
+    expect(held.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+    expect(held.goals).toHaveLength(1);
+    expect(held.goals[0]?.status).toBe("waiting");
+    expect(held.handoffs).toHaveLength(0);
+    expect(held.handoffRules.map((rule) => rule.id)).toEqual(ids);
+    const listed = held.messages.at(-1)?.text ?? "";
+    expect(listed).toContain("These steps do not mention the same words.");
+    expect(listed).not.toContain("These steps do not mention the same words as");
+    expect(listed).not.toContain("These steps mention the same words.");
+    expect(listed).not.toContain("These steps do not mention those words");
+    expect(listed.indexOf("The payment")).toBeGreaterThan(-1);
+    expect(listed.indexOf("The public post")).toBeGreaterThan(listed.indexOf("The payment"));
+    expect(listed).toContain("“unshared project files”");
+    expect(listed).toContain("“the launch note”");
+    expect(listed).not.toContain("“shared project files”");
+    expect(listed).not.toContain("“Shared Project Files”");
+    expect(listed).not.toContain("The send");
+    expect(listed).not.toContain("The deletion");
+    expect(listed).not.toContain("the whole");
+    expect(listed).toContain("named no other step");
+    expect(listed).toContain("did not approve a hold");
+    expect(listed).not.toContain("No step mentions words only once");
+    expect(held.approvals.filter((approval) => approval.kind === "delete")).toHaveLength(0);
+    expect(held.approvals.filter((approval) => approval.kind === "send" && approval.id !== openId)).toHaveLength(0);
+
+    let paired = setHandoffRule(held, "pay", false, deps);
+    paired = setHandoffRule(paired, "pay", true, deps, "the launch note");
+    paired = await convene(paired, "Which steps do not mentioning the same words handed over to you?", undefined, deps);
+    expect(paired.goals).toHaveLength(1);
+    const noneOnce = paired.messages.at(-1)?.text ?? "";
+    expect(noneOnce).toContain("No step mentions words only once");
+    expect(noneOnce).not.toContain("These steps do not mention the same words");
+    expect(noneOnce).not.toContain("The send");
+    expect(noneOnce).not.toContain("The payment");
+    expect(noneOnce).not.toContain("The deletion");
+    expect(noneOnce).not.toContain("The public post");
+    expect(noneOnce).not.toContain("the launch note");
+    expect(noneOnce).not.toContain("shared project files");
+    expect(noneOnce).not.toContain("the whole");
+
+    const stillPositive = await convene(paired, "Which steps mention the same words?", undefined, deps);
+    expect(stillPositive.messages.at(-1)?.text).toContain("These steps mention the same words.");
+    expect(stillPositive.messages.at(-1)?.text).toContain("The send is handed to you");
+    expect(stillPositive.messages.at(-1)?.text).toContain("The deletion is handed to you");
+    expect(stillPositive.messages.at(-1)?.text).not.toContain("These steps do not mention the same words");
+    expect(stillPositive.goals).toHaveLength(1);
+
+    const stillAs = await convene(stillPositive, "Which steps do not mention the same words as a deletion?", undefined, deps);
+    expect(stillAs.messages.at(-1)?.text).toContain("The send does mention the same words as the deletion.");
+    expect(stillAs.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+    expect(stillAs.goals).toHaveLength(1);
+
+    const stillNot = await convene(stillAs, "Does a deletion not mention the same words?", undefined, deps);
+    expect(stillNot.messages.at(-1)?.text).toContain("The deletion does mention the same words.");
+    expect(stillNot.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+    expect(stillNot.goals).toHaveLength(1);
+
+    const unshared = await convene(stillNot, "Which steps do not share words?", undefined, deps);
+    expect(unshared.messages.at(-1)?.text).toContain("No step uses words once");
+    expect(unshared.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+    expect(unshared.goals).toHaveLength(1);
+
+    const otherPhrase = await convene(unshared, "Which steps do not mention shared project files?", undefined, deps);
+    expect(otherPhrase.messages.at(-1)?.text).toContain("does not mention those words");
+    expect(otherPhrase.messages.at(-1)?.text).toContain("“the launch note”");
+    expect(otherPhrase.messages.at(-1)?.text).not.toContain("These steps do not mention the same words");
+    expect(otherPhrase.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let parked = await convene(initialState(), "Draft the weekly close", undefined, early);
+    parked = saveRoutine(parked, parked.goals[0]?.id ?? "", "Close", early);
+    parked = setRoutineCadence(parked, parked.routines[0]?.id ?? "", "hourly", early);
+    const nextRun = parked.routines[0]?.nextRunAt;
+    parked = setPaused(parked, true, early);
+    parked = setHandoffRule(parked, "delete", true, early, "shared project files");
+    parked = setHandoffRule(parked, "send", true, early, "shared project files");
+    parked = setHandoffRule(parked, "pay", true, early);
+    parked = await convene(parked, "Which steps do not mention the same words to you?", undefined, {
+      ...deps,
+      now: () => new Date("2026-10-23T13:30:00.000Z"),
+    });
+    expect(parked.paused).toBe(true);
+    expect(parked.routines[0]?.nextRunAt).toBe(nextRun);
+    expect(parked.events.some((event) => event.type === "woke" || event.type === "approved")).toBe(false);
+    expect(parked.messages.at(-1)?.text).toContain("No step mentions words only once");
+    expect(parked.messages.at(-1)?.text).not.toContain("The payment");
+    expect(parked.messages.at(-1)?.text).not.toContain("shared project files");
+    expect(parked.messages.at(-1)?.text).not.toContain("the whole");
+
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = setPaused(state, true, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = setHandoffRule(state, "send", true, deps, "shared project files");
+      state = setHandoffRule(state, "pay", true, deps, "the vendor invoice");
+      const before = state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`);
+      state = await convene(state, "Which steps do not mention the same words to you?", undefined, deps);
+      expect(hits).toHaveLength(0);
+      expect(state.paused).toBe(true);
+      expect(state.goals).toHaveLength(0);
+      expect(state.handoffs).toHaveLength(0);
+      expect(state.approvals).toHaveLength(0);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      expect(state.messages.at(-1)?.text).toContain("These steps do not mention the same words.");
+      expect(state.messages.at(-1)?.text).toContain("The payment is handed to you");
+      expect(state.messages.at(-1)?.text).toContain("“the vendor invoice”");
+      expect(state.messages.at(-1)?.text).not.toContain("The send");
+      expect(state.messages.at(-1)?.text).not.toContain("The deletion");
+      expect(state.messages.at(-1)?.text).not.toContain("shared project files");
+      state = await convene(state, "Which steps do not mention the same words and delete the archive", undefined, deps);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      const skipped = state.goals.at(-1)?.id;
+      expect(state.approvals.filter((approval) => approval.goalId === skipped)).toHaveLength(0);
+      expect(state.handoffs.filter((item) => item.goalId === skipped)).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).toContain("I did not delete anything, because you ruled it out.");
+      expect(state.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+      expect(state.messages.at(-1)?.text).not.toContain("These steps do not mention the same words.");
+      state = await convene(state, "Which steps do not mention the same words on this saved desk and delete the archive", undefined, deps);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      const archive = state.goals.at(-1)?.id;
+      expect(
+        state.approvals.filter((approval) => approval.goalId === archive && approval.status === "open" && approval.kind === "delete"),
+      ).toHaveLength(1);
+      expect(state.handoffs.filter((item) => item.goalId === archive)).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+      expect(state.messages.at(-1)?.text).not.toContain("These steps do not mention the same words.");
+      state = setHandoffRule(state, "delete", false, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      const bareBefore = state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`);
+      state = await convene(state, "Which steps do not mention the same words on this saved desk and delete the archive", undefined, deps);
+      const handed = state.goals.at(-1)?.id;
+      expect(state.handoffs.filter((item) => item.goalId === handed && item.status === "open")).toHaveLength(1);
+      expect(state.approvals.filter((approval) => approval.goalId === handed)).toHaveLength(0);
+      expect(state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`)).toEqual(bareBefore);
+      expect(state.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+      const beforeOrdinary = state.goals.length;
+      state = await convene(state, "Hand deletions to me", undefined, deps);
+      expect(state.goals.length).toBe(beforeOrdinary + 1);
+      expect(state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`)).toEqual(bareBefore);
+      expect(state.messages.at(-1)?.text).not.toContain("No step mentions words only once");
+      expect(state.messages.at(-1)?.text).not.toContain("These steps do not mention the same words");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(hits.every((hit) => hit.raw.includes('"action":"convene"'))).toBe(true);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+
+  it("ORIEL-F65 asking which steps do not mention the same words keeps client work off Muse", async () => {
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = setHandoffRule(state, "send", true, deps, "shared project files");
+      state = setHandoffRule(state, "pay", true, deps, "the vendor invoice");
+      state = await convene(state, "Which steps do not mention the same words?", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(0);
+      expect(state.goals).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).toContain("These steps do not mention the same words.");
+      expect(state.messages.at(-1)?.text).toContain("“the vendor invoice”");
+      expect(state.messages.at(-1)?.text).not.toContain("The deletion");
+      state = await convene(state, "Delete the client files", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(0);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
+  });
+
+  it("ORIEL-F65 a woken deletion still follows the rule the question did not change", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      state = setHandoffRule(state, "send", true, early, "shared project files");
+      state = setHandoffRule(state, "pay", true, early, "the vendor invoice");
+      state = await convene(state, "Delete the shared project files", undefined, early);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(1);
+      const openId = state.handoffs[0]?.id ?? "";
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Archive", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Which steps do not mention the same words?", state.goals[0]?.id, early, "skill_missing");
+      expect(state.handoffRules).toHaveLength(3);
+      expect(state.handoffRules.find((rule) => rule.action === "delete")?.phrase).toBe("shared project files");
+      expect(state.handoffs.find((item) => item.id === openId)?.status).toBe("open");
+      expect(state.messages.at(-1)?.text).toContain("These steps do not mention the same words.");
+      expect(state.messages.at(-1)?.text).toContain("The payment is handed to you");
+      expect(state.messages.at(-1)?.text).not.toContain("The send");
       expect(state.events.some((event) => event.type === "approved")).toBe(false);
       state = await wakeDue(state, { ...deps, now: () => wakeAt });
       expect(state.goals).toHaveLength(2);

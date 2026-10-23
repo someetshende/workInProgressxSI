@@ -5560,7 +5560,8 @@ describe("Oriel server", () => {
     });
     const negatedBody = await negated.json();
     expect(negatedBody.goals).toHaveLength(0);
-    expect(negatedBody.messages.at(-1).text).toContain("No step does not mention “the same words”");
+    expect(negatedBody.messages.at(-1).text).toContain("No step mentions words only once");
+    expect(negatedBody.messages.at(-1).text).not.toContain("No step does not mention");
     expect(negatedBody.messages.at(-1).text).not.toContain("No steps mention the same words");
     await fetch(`${server.url}/api/handoff-rules`, {
       method: "POST",
@@ -5624,6 +5625,123 @@ describe("Oriel server", () => {
     const opened = await mixed.json();
     expect(opened.approvals.filter((item: { status: string; kind: string }) => item.status === "open" && item.kind === "delete")).toHaveLength(1);
     expect(opened.messages.at(-1).text).not.toContain("These steps mention the same words.");
+    expect(JSON.stringify(opened)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F65 a sentence asks which steps do not mention the same words and does not act", async () => {
+    const server = await boot();
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps do not mention the same words?" }),
+    });
+    const empty = await missing.json();
+    expect(missing.status).toBe(200);
+    expect(empty.handoffRules).toHaveLength(0);
+    expect(empty.goals).toHaveLength(0);
+    expect(empty.handoffs).toHaveLength(0);
+    expect(empty.approvals).toHaveLength(0);
+    expect(empty.messages.at(-1).text).toContain("No step mentions words only once");
+    expect(empty.messages.at(-1).text).toContain("named no other step");
+    expect(empty.messages.at(-1).text).not.toContain("The deletion");
+    expect(empty.messages.at(-1).text).not.toContain("the whole");
+    const banned = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps do not mention the same words without asking" }),
+    });
+    expect(banned.status).toBe(400);
+    expect(await banned.json()).toMatchObject({ error: expect.stringMatching(/without asking/) });
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.handoffRules).toHaveLength(0);
+    expect(still.goals).toHaveLength(0);
+    const asDeletion = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps do not mention the same words as a deletion?" }),
+    });
+    const asBody = await asDeletion.json();
+    expect(asBody.goals).toHaveLength(0);
+    expect(asBody.messages.at(-1).text).toContain("There is no handoff rule for a deletion");
+    expect(asBody.messages.at(-1).text).not.toContain("No step mentions words only once");
+    const positive = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps mention the same words?" }),
+    });
+    const positiveBody = await positive.json();
+    expect(positiveBody.messages.at(-1).text).toContain("No steps mention the same words");
+    expect(positiveBody.messages.at(-1).text).not.toContain("No step mentions words only once");
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true, phrase: "shared project files" }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "send", enabled: true, phrase: "Shared Project Files" }),
+    });
+    await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "pay", enabled: true, phrase: "the vendor invoice" }),
+    });
+    const asked = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        text: "Which steps do not mention the same words?",
+        goalId: "goal_missing",
+        skillId: "skill_missing",
+      }),
+    });
+    const once = await asked.json();
+    expect(asked.status).toBe(200);
+    expect(once.goals).toHaveLength(0);
+    expect(once.handoffs).toHaveLength(0);
+    expect(once.approvals).toHaveLength(0);
+    const reply = once.messages.at(-1).text as string;
+    expect(reply).toContain("These steps do not mention the same words.");
+    expect(reply).toContain("The payment is handed to you");
+    expect(reply).toContain("“the vendor invoice”");
+    expect(reply).not.toContain("The send");
+    expect(reply).not.toContain("The deletion");
+    expect(reply).not.toContain("shared project files");
+    expect(reply).toContain("did not approve a hold");
+    const plain = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps do not mention the same words as a deletion?" }),
+    });
+    const plainBody = await plain.json();
+    expect(plainBody.messages.at(-1).text).toContain("The send does mention the same words as the deletion.");
+    expect(plainBody.messages.at(-1).text).not.toContain("These steps do not mention the same words.");
+    const oneStep = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Does a deletion not mention the same words?" }),
+    });
+    const oneBody = await oneStep.json();
+    expect(oneBody.messages.at(-1).text).toContain("The deletion does mention the same words.");
+    expect(oneBody.messages.at(-1).text).not.toContain("No step mentions words only once");
+    const ruled = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps do not mention the same words and delete the archive" }),
+    });
+    const skipped = await ruled.json();
+    expect(skipped.approvals.filter((item: { status: string; kind: string }) => item.status === "open" && item.kind === "delete")).toHaveLength(0);
+    expect(skipped.messages.at(-1).text).toContain("I did not delete anything, because you ruled it out.");
+    expect(skipped.messages.at(-1).text).not.toContain("These steps do not mention the same words.");
+    const mixed = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Which steps do not mention the same words on this saved desk and delete the archive" }),
+    });
+    const opened = await mixed.json();
+    expect(opened.approvals.filter((item: { status: string; kind: string }) => item.status === "open" && item.kind === "delete")).toHaveLength(1);
+    expect(opened.messages.at(-1).text).not.toContain("These steps do not mention the same words.");
     expect(JSON.stringify(opened)).not.toContain("Always allow");
   });
 
