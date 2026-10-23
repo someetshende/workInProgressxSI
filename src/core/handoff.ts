@@ -521,6 +521,7 @@ function notMentionWouldAct(text: string): boolean {
 
 export function readSpokenNotMention(text: string): SpokenNotMention | null {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bsame words as\b/i.test(normalized)) return null;
   const match = normalized.match(SPOKEN_NOT_MENTION);
   if (!match || notMentionWouldAct(normalized)) return null;
   let raw = unwrapPhrase(match[1] ?? "");
@@ -550,6 +551,7 @@ export function spokenNotMentionCopy(phrase: string, rules: HandoffRule[]): stri
 
 export function loosensSpokenNotMention(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (/\bsame words as\b/i.test(normalized)) return false;
   if (/\b(?:does|do|is|are)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+mention/i.test(normalized)) {
     return false;
   }
@@ -817,6 +819,55 @@ export function loosensSpokenSameMentionSteps(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (/\b(?:do|does)\s+not\s+mention/i.test(normalized)) return false;
   if (!/^(?:please,?\s+)?which steps?\s+mention(?:s|ing)?\s+(?:the\s+)?same\s+words\s+as\s+/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+const SPOKEN_SAME_NOT_MENTION_STEPS =
+  /^(?:please,?\s+)?which steps?\s+(?:do|does)\s+not\s+mention(?:s|ing)?\s+(?:the\s+)?same\s+words\s+as\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export type SpokenSameNotMentionSteps = { kind: "ask"; action: HandoffAction } | { kind: "reject"; reason: "action" };
+
+export function readSpokenSameNotMentionSteps(text: string): SpokenSameNotMentionSteps | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_SAME_NOT_MENTION_STEPS);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action };
+}
+
+export function spokenSameNotMentionStepsCopy(action: HandoffAction, rules: HandoffRule[]): string {
+  const rule = rules.find((item) => item.action === action);
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a comparison with the other steps and did not quote another step. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const key = phraseKey(rule.phrase);
+  const others = READ_ORDER.flatMap((item) => {
+    if (item === action) return [];
+    const other = rules.find((candidate) => candidate.action === item);
+    if (!other?.phrase || phraseKey(other.phrase) !== key) return [];
+    return [other];
+  });
+  const quoted = `The words are “${rule.phrase}”.`;
+  if (others.length === 0) {
+    return `No other step mentions the same words as ${WITH_LABEL[action]}. ${quoted} Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const only = others[0];
+  if (others.length === 1 && only) {
+    return `${READ_LABEL[only.action]} does mention the same words as ${WITH_LABEL[action]}. ${quoted} Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const names = joinLabels(others.map((other) => READ_LABEL[other.action]));
+  return `These steps do mention the same words as ${WITH_LABEL[action]}. ${quoted} ${names} use them. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenSameNotMentionSteps(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which steps?\s+(?:do|does)\s+not\s+mention(?:s|ing)?\s+(?:the\s+)?same\s+words\s+as\s+/i.test(normalized)) {
+    return false;
+  }
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
