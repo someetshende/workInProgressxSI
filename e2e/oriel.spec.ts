@@ -267,6 +267,47 @@ test("ORIEL-F21 pausing wakes leaves the send held", async ({ page }) => {
   await expect(page.getByTestId("thread")).not.toContainText("I sent");
 });
 
+test("ORIEL-F22 a skill applies a do-not-send and does not wake", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-skill").click();
+  const skill = page.locator("[data-testid^='skill-']");
+  await expect(skill).toContainText("Use");
+  await skill.click();
+  await expect(page.getByTestId("composer-context")).toContainText("Using");
+  await expect(page.locator("[data-testid^='goal-goal_']")).toHaveCount(1);
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Email Maya the launch update");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toContainText("Using the skill");
+  await expect(page.getByTestId("synthesis")).toContainText("ruled it out");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveCount(0);
+  const tick = await page.request.post("/api/tick", { data: { force: true } });
+  expect(tick.ok()).toBeTruthy();
+  await page.reload();
+  await expect(page.locator("[data-testid^='goal-goal_']")).toHaveCount(2);
+  await expect(page.getByText("Routine", { exact: true })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-skill.png" });
+});
+
+test("an earlier hold can be released from the return card", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Email Maya the launch update");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Compare the market landscape");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.getByTestId("away-card")).toContainText("Release a send");
+  await page.locator("[data-testid^='away-approve-']").click();
+  await expect(page.getByTestId("thread")).toContainText("Nothing left this computer");
+  await expect(page.locator("[data-testid^='away-approve-']")).toHaveCount(0);
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

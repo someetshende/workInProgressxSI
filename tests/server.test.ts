@@ -196,6 +196,15 @@ describe("Oriel server", () => {
             lastRunAt: null,
           },
         ],
+        skills: [
+          { id: "skill_bad" },
+          {
+            id: "skill_ok",
+            name: "Close",
+            method: "Do not send the close",
+            createdAt: "2026-10-23T12:00:00.000Z",
+          },
+        ],
         events: [],
       }),
     );
@@ -204,6 +213,51 @@ describe("Oriel server", () => {
     const state = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(state.routines[0]).toMatchObject({ cadence: "manual", nextRunAt: null, name: "Old close" });
     expect(state.paused).toBe(false);
+    expect(state.skills).toEqual([
+      {
+        id: "skill_ok",
+        name: "Close",
+        method: "Do not send the close",
+        createdAt: "2026-10-23T12:00:00.000Z",
+      },
+    ]);
+  });
+
+  it("ORIEL-F22 saves a skill and refuses an unknown one", async () => {
+    const server = await boot();
+    const turn = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Draft the weekly close but do not send it" }),
+    });
+    const opened = await turn.json();
+    const goalId = opened.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/skills`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Weekly close" }),
+    });
+    expect(saved.status).toBe(200);
+    const skilled = await saved.json();
+    expect(skilled.skills).toHaveLength(1);
+    expect(skilled.routines).toHaveLength(0);
+    const skillId = skilled.skills[0].id as string;
+    const applied = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the launch update", skillId }),
+    });
+    expect(applied.status).toBe(200);
+    const next = await applied.json();
+    expect(next.approvals.filter((approval: { status: string }) => approval.status === "open")).toHaveLength(0);
+    expect(JSON.stringify(next)).toContain("Using the skill");
+    expect(JSON.stringify(next)).not.toContain("I sent");
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Compare the market landscape", skillId: "skill_missing" }),
+    });
+    expect(missing.status).toBe(404);
   });
 
   it("ORIEL-F21 a pause keeps a forced wake from running", async () => {

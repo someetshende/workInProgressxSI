@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { renderMarkdown } from "../src/core/brief.js";
-import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../src/core/convene.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../src/core/convene.js";
 import { initialState, toPublic } from "../src/core/state.js";
 import { startLocalSeat } from "../src/seats/local.js";
 import type { AppState, Deps } from "../src/core/types.js";
@@ -531,6 +531,96 @@ describe("Oriel convenes", () => {
     } finally {
       await muse.close();
     }
+  });
+
+  it("ORIEL-F22 a skill keeps a prohibition and does not wake or approve", async () => {
+    let state = await convene(initialState(), "Draft the weekly close but do not send it", undefined, deps);
+    const shown = state.goals[0]?.id ?? "";
+    state = saveSkill(state, shown, "Weekly close", deps);
+    state = saveSkill(state, shown, "Weekly close", deps);
+    expect(state.skills).toHaveLength(1);
+    expect(state.routines).toHaveLength(0);
+    const skillId = state.skills[0]?.id ?? "";
+    const slept = await wakeDue(state, deps);
+    expect(slept.goals).toHaveLength(1);
+    expect(slept.events.some((event) => event.type === "woke" || event.type === "routine_ran")).toBe(false);
+
+    state = await convene(state, "Email Maya the launch update", undefined, deps, skillId);
+    expect(state.goals).toHaveLength(2);
+    expect(state.goals[1]?.skillId).toBe(skillId);
+    expect(state.goals[1]?.brief.skill).toBe("Weekly close");
+    expect(voice(state)).toContain("Using the skill “Weekly close”.");
+    expect(voice(state)).toContain("left the send unsent");
+    expect(voice(state)).not.toContain("on a hold");
+    expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
+    expect(state.events.some((event) => event.type === "approved")).toBe(false);
+    expect(state.events.some((event) => event.type === "skill_applied")).toBe(true);
+
+    state = saveRoutine(state, state.goals[1]?.id ?? "", undefined, deps);
+    expect(state.routines[0]?.name).toBe("Weekly close");
+    expect(state.routines[0]?.instruction).toContain("do not send");
+    expect(state.routines[0]?.instruction).toContain("Email Maya");
+    state = await runRoutine(state, state.routines[0]?.id ?? "", deps);
+    expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
+    expect(state.goals.at(-1)?.plan.some((step) => step.kind === "send" && step.status === "skipped")).toBe(true);
+  });
+
+  it("a confidential skill stays off Muse, and a neutral skill still holds a send", async () => {
+    let state = await convene(
+      initialState(),
+      "Summarize the confidential client matter but do not send it",
+      undefined,
+      deps,
+    );
+    state = saveSkill(state, state.goals[0]?.id ?? "", "Client read", deps);
+    const skillId = state.skills[0]?.id ?? "";
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      state = setConnector(state, "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = await convene(state, "Plan a family dinner under $80", undefined, deps, skillId);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.goals.at(-1)?.brief.seatReads.some((note) => note.seat === "muse")).toBe(false);
+      expect(state.messages.at(-1)?.text).toContain("Using the skill “Client read”.");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("tok-grok");
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
+
+    let neutral = await convene(initialState(), "Compare the market landscape", undefined, deps);
+    neutral = saveSkill(neutral, neutral.goals[0]?.id ?? "", "Landscape", deps);
+    neutral = await convene(neutral, "Email Maya the launch update", undefined, deps, neutral.skills[0]?.id);
+    expect(neutral.approvals.some((approval) => approval.kind === "send" && approval.status === "open")).toBe(true);
+    expect(voice(neutral)).toContain("held the send");
+  });
+
+  it("sends the skill method to a bridge without releasing the send", async () => {
+    let state = await convene(initialState(), "Draft the weekly close but do not send it", undefined, deps);
+    state = saveSkill(state, state.goals[0]?.id ?? "", "Weekly close", deps);
+    const skillId = state.skills[0]?.id ?? "";
+    await withBridge(200, { summary: "Read the method.", points: [], stance: "" }, async (url, hits) => {
+      state = setConnector(state, "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await convene(state, "Email Maya the launch update", undefined, deps, skillId);
+      expect(hits).toHaveLength(1);
+      expect(hits[0]?.raw).toContain('"action":"convene"');
+      expect(hits[0]?.raw).toContain("do not send");
+      expect(hits[0]?.raw).toContain("Email Maya");
+      expect(hits[0]?.raw).not.toContain('"action":"released"');
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
+    });
+  });
+
+  it("rejects an unknown skill and ignores one on a memory question", async () => {
+    await expect(convene(initialState(), "Compare the market landscape", undefined, deps, "skill_missing")).rejects.toThrow(
+      /skill/,
+    );
+    const state = await convene(initialState(), "What do you remember?", undefined, deps, "skill_missing");
+    expect(state.goals).toHaveLength(0);
+    expect(state.messages.at(-1)?.text).toContain("Nothing yet");
   });
 });
 

@@ -49,6 +49,7 @@ export function recommend(choice: SeatChoice, policy: Policy): string {
     return "Muse should lead. This is personal logistics, and it should read like a message rather than a project plan.";
   }
   if (choice.lead === "muse") {
+    if (policy.forbadeSend) return "Muse should lead. Keep it as a message.";
     return "Muse should lead. Keep it as a message, and leave anything outbound on a hold.";
   }
   return `${name} should lead. I convened ${choice.picked.map((id) => DISPLAY[id]).join(", ")} for ${phrase(choice.intents)}.`;
@@ -76,20 +77,29 @@ export function composeBrief(input: {
   notes: SeatNote[];
   held: ApprovalKind[];
   skipped: ApprovalKind[];
+  skillName?: string | null;
 }): Brief {
   const recommendation = recommend(input.choice, input.policy);
   const sentence = holdSentence(input.held, input.skipped);
-  const voice = [recommendation, sentence].filter(Boolean).join(" ");
+  const using = input.skillName ? `Using the skill “${input.skillName}”.` : "";
+  const voice = [using, recommendation, sentence].filter(Boolean).join(" ");
+  const why = input.skillName
+    ? [
+        `The skill “${input.skillName}” supplied the method. It does not wake, and it does not approve a hold.`,
+        ...input.choice.reasons,
+      ]
+    : input.choice.reasons;
   const modeLine = input.notes.some((note) => note.mode === "live")
     ? "A live bridge answered for at least one seat. Reference reads cover the rest."
     : "Reference seats stood in for any agent you have not bridged.";
   const synthesis = [
+    using || null,
     recommendation,
     ...input.notes.map((note) => note.summary),
     input.choice.dissent,
     sentence || null,
     modeLine,
-    input.choice.reasons.join(" "),
+    why.join(" "),
   ]
     .filter((line): line is string => Boolean(line))
     .join("\n\n");
@@ -98,13 +108,14 @@ export function composeBrief(input: {
     voice,
     synthesis,
     recommendation,
-    why: input.choice.reasons,
+    why,
     tight: input.policy.preferShort,
     dissent: input.choice.dissent,
     seatReads: input.notes,
     held: input.held,
     skipped: input.skipped,
     referenceOnly: input.notes.every((note) => note.mode === "reference"),
+    skill: input.skillName ?? null,
   };
 }
 
@@ -117,6 +128,13 @@ export function renderMarkdown(goal: Goal, events: LedgerEvent[]): string {
     "## Recommendation",
     goal.brief.recommendation,
     "",
+    ...(goal.brief.skill
+      ? [
+          "## Skill",
+          `Method applied: ${goal.brief.skill}. A skill does not wake, and it does not approve a hold.`,
+          "",
+        ]
+      : []),
     "## Why these seats",
     ...goal.brief.why.map((item) => `- ${item}`),
     "",

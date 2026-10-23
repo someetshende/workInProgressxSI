@@ -148,7 +148,7 @@ aside {
   color: var(--muted);
 }
 
-.agent, .goal, .routine, .all {
+.agent, .goal, .routine, .skill, .all {
   width: 100%;
   text-align: left;
   background: transparent;
@@ -234,9 +234,14 @@ aside {
   color: var(--ink);
   border: 1px solid var(--line);
 }
-.goal, .routine, .all { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.goal[aria-current="true"], .all[aria-pressed="true"] { background: color-mix(in srgb, var(--card) 75%, transparent); }
-.goal span:first-child, .routine span:first-child { overflow-wrap: anywhere; }
+.goal, .routine, .skill, .all { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.goal[aria-current="true"], .all[aria-pressed="true"], .skill[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--card) 75%, transparent);
+}
+.goal span:first-child, .routine span:first-child, .skill span:first-child { overflow-wrap: anywhere; }
+.skill-actions { display: flex; flex-wrap: wrap; gap: 14px; }
+.skill-actions .textish { padding: 8px 0; }
+.away .hold { margin-top: 12px; }
 
 .trust, .atlas-link {
   display: block;

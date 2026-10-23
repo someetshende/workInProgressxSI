@@ -20,6 +20,7 @@ export function initialState(): AppState {
     messages: [],
     approvals: [],
     routines: [],
+    skills: [],
     events: [],
   };
 }
@@ -50,6 +51,7 @@ export function toPublic(state: AppState, atlasCount: number): PublicState {
     messages: state.messages,
     approvals: state.approvals,
     routines: state.routines,
+    skills: state.skills ?? [],
     events: state.events,
     away: awayBrief(state),
     atlas: { count: atlasCount },

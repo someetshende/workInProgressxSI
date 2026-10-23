@@ -35,7 +35,7 @@ npm run check
 5. You get one recommendation. The working brief, the disagreement, and the record stay one click down.
 6. Approving a hold records the decision. Oriel still does not send mail, move money, delete, or publish. There is no always-allow.
 
-Say `Remember that I prefer short briefs.` and the next working brief stays collapsed. `What do you remember?` reads it back. A goal can be continued from the list. `Save as routine` reruns the instruction later, and the holds still apply. A saved routine starts as manual. In the rail, the cadence control cycles Manual, Daily, and Hourly. While `npm run dev` is open, Oriel wakes one due routine about once a minute. Set `ORIEL_TICK=0` to keep wakes on the Run button only. A wake does not approve a hold, send mail, or move money. The thread labels that turn Routine.
+Say `Remember that I prefer short briefs.` and the next working brief stays collapsed. `What do you remember?` reads it back. A goal can be continued from the list. `Save as skill` keeps the method. Arm it in the rail, then send a new request: prohibitions in the method still apply, including a do-not-send, and client work in the method stays off Muse. A skill has no cadence. It does not wake, and it does not approve a hold. `Save as routine` reruns the instruction later, and the holds still apply. If that turn used a skill, the routine keeps the method. A saved routine starts as manual. In the rail, the cadence control cycles Manual, Daily, and Hourly. While `npm run dev` is open, Oriel wakes one due routine about once a minute. Set `ORIEL_TICK=0` to keep wakes on the Run button only. A wake does not approve a hold, send mail, or move money. The thread labels that turn Routine.
 
 **Pause wakes** stops those cadences until you resume. The routines stay, Run still works, and an open hold stays open. Pausing does not send mail or move money. You can also say `Pause wakes` or `Resume wakes`. A sentence that merely contains the word pause, such as a request to pause a draft, is ordinary work.
 
@@ -64,7 +64,7 @@ Reply:
 { "summary": "One short result.", "points": ["Optional."], "stance": "Optional." }
 ```
 
-When you approve a hold, Oriel may POST the same shape with `"action": "released"` and a `kind` of `send`, `pay`, `delete`, `post`, or `credential`. The token is stored outside the public state and is not written back into the thread. Metadata addresses and non-HTTP URLs are rejected. Use HTTPS for any bridge that is not on your own machine.
+When a turn uses a skill, `task` starts with that saved method and then the person's request. A skill never wakes by itself. When you approve a hold, Oriel may POST the same shape with `"action": "released"` and a `kind` of `send`, `pay`, `delete`, `post`, or `credential`. The token is stored outside the public state and is not written back into the thread. Metadata addresses and non-HTTP URLs are rejected. Use HTTPS for any bridge that is not on your own machine.
 
 In the window, open **Bridge** on a seat, paste the URL, and optionally a token. Plain HTTP is only accepted for a bridge on this machine (`localhost`, `127.0.0.1`, or `::1`). Anywhere else, use HTTPS. Oriel does not follow a redirect from a bridge.
 

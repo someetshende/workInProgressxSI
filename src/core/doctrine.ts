@@ -3,7 +3,7 @@ import type { Connector, Intent, SeatChoice, SeatId } from "./types.js";
 export const AS_OF = "2026-10-23";
 
 export const TRUST =
-  "Oriel records every hold. Releasing a hold does not send mail, move money, post in public, or sign in anywhere. A saved routine can wake on a cadence you choose. Pausing wakes stops those cadences until you resume, and neither a pause nor a wake approves the hold. A live bridge is an endpoint you control.";
+  "Oriel records every hold. Releasing a hold does not send mail, move money, post in public, or sign in anywhere. A skill is a method you apply on a turn. It does not wake, and it does not approve a hold. A saved routine can wake on a cadence you choose. Pausing wakes stops those cadences until you resume, and neither a pause nor a wake approves the hold. A live bridge is an endpoint you control.";
 
 export const DISPLAY: Record<SeatId, string> = {
   grok: "Grok Bot",
@@ -22,7 +22,7 @@ const PATTERNS: Record<Exclude<Intent, "direct">, RegExp> = {
   write: /\b(draft|write|memo|document|narrative|outline|script|copy|note)\b/i,
   personal:
     /\b(grocery|dinner|family|kids|household|errand|birthday|gift|health|flight|hotel|travel|trip)\b/i,
-  money: /\b(pay|paid|purchase|buy|checkout|transfer|wire|\$\d)/i,
+  money: /\b(pay|paid|purchase|buy|checkout|transfer|wire)\b|\$\d/i,
   communicate: /\b(email|e-mail|send|slack|message|whatsapp|text|publish|tweet|post)\b/i,
   analyze:
     /\b(analyze|analyse|metric|metrics|funnel|spreadsheet|retention|revenue|risk|risks)\b/i,

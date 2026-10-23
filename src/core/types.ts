@@ -68,6 +68,7 @@ export type Brief = {
   held: ApprovalKind[];
   skipped: ApprovalKind[];
   referenceOnly: boolean;
+  skill: string | null;
 };
 
 export type Goal = {
@@ -79,6 +80,7 @@ export type Goal = {
   createdAt: string;
   updatedAt: string;
   lead: SeatId | null;
+  skillId: string | null;
   plan: PlanStep[];
   brief: Brief;
   openLoops: string[];
@@ -111,6 +113,13 @@ export type Message = {
 
 export type Cadence = "manual" | "daily" | "hourly";
 
+export type Skill = {
+  id: string;
+  name: string;
+  method: string;
+  createdAt: string;
+};
+
 export type Routine = {
   id: string;
   name: string;
@@ -138,6 +147,7 @@ export type AppState = {
   messages: Message[];
   approvals: Approval[];
   routines: Routine[];
+  skills: Skill[];
   events: LedgerEvent[];
 };
 
@@ -153,6 +163,7 @@ export type PublicState = {
   messages: Message[];
   approvals: Approval[];
   routines: Routine[];
+  skills: Skill[];
   events: LedgerEvent[];
   away: Away;
   atlas: { count: number };

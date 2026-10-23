@@ -260,6 +260,14 @@ export const jobs: Job[] = [
     want: "pause scheduled wakes without deleting the routine or releasing a hold",
     proof: "While wakes are paused, a due routine does not run, and an open hold stays open.",
   },
+  {
+    id: "skill",
+    surface: "routines",
+    capability: "Skills",
+    short: "Skill",
+    want: "save a demonstrated path as a skill and apply that method to a new request",
+    proof: "The skill does not wake on its own, and a prohibition in the method still holds when it is applied.",
+  },
 ];
 
 export const constraints: Constraint[] = [

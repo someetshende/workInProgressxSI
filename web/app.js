@@ -26,6 +26,7 @@ const PROMPTS = [
 
 let state = null;
 let selected = null;
+let armedSkill = null;
 let busy = false;
 let openBridge = null;
 
@@ -103,6 +104,7 @@ async function post(path, body) {
   if (path === "/api/turn") send.textContent = "Convening";
   try {
     state = await api(path, { method: "POST", body: JSON.stringify(body) });
+    if (path === "/api/turn") armedSkill = null;
     render();
     reveal();
     return true;
@@ -134,7 +136,11 @@ function reveal() {
 
 function renderContext() {
   const goal = state?.goals?.find((item) => item.id === selected);
-  context.textContent = goal ? `Continuing · ${goal.title}` : "This starts a new goal";
+  const skill = state?.skills?.find((item) => item.id === armedSkill);
+  const parts = [];
+  if (goal) parts.push(`Continuing · ${goal.title}`);
+  if (skill) parts.push(`Using · ${skill.name}`);
+  context.textContent = parts.length ? parts.join(" · ") : "This starts a new goal";
 }
 
 function renderRail() {
@@ -271,6 +277,30 @@ function renderRail() {
     );
   }
 
+  if (state.skills?.length) {
+    rail.append(el("p", { class: "label", text: "Skills" }));
+    for (const skill of state.skills) {
+      const armed = armedSkill === skill.id;
+      rail.append(
+        el(
+          "button",
+          {
+            type: "button",
+            class: "skill",
+            "data-testid": `skill-${skill.id}`,
+            "aria-pressed": armed ? "true" : "false",
+            title: "Apply this method on the next turn. A skill does not wake, and it does not approve a hold.",
+            onclick: () => {
+              armedSkill = armed ? null : skill.id;
+              renderRail();
+            },
+          },
+          [el("span", { text: skill.name }), el("span", { class: "quiet", text: armed ? "Using" : "Use" })],
+        ),
+      );
+    }
+  }
+
   if (state.routines.length) {
     rail.append(el("p", { class: "label", text: "Routines" }));
     for (const routine of state.routines) {
@@ -317,6 +347,14 @@ function latestSynthesisId() {
   return id;
 }
 
+function synthesisGoalId() {
+  let id = "";
+  for (const message of state.messages) {
+    if (message.role === "oriel" && typeof message.tight === "boolean" && message.goalId) id = message.goalId;
+  }
+  return id;
+}
+
 function renderThread() {
   const column = el("div", { class: "column" });
   if (state.away) {
@@ -335,6 +373,37 @@ function renderThread() {
         onclick: () => post("/api/watches", {}),
       }),
     );
+    const current = synthesisGoalId();
+    for (const approval of state.approvals) {
+      if (approval.status !== "open" || approval.goalId === current) continue;
+      const actions = el("div", { class: "actions" });
+      actions.append(
+        el("button", {
+          type: "button",
+          class: "approve",
+          "data-testid": `away-approve-${approval.id}`,
+          text: "Approve",
+          onclick: () => post(`/api/approvals/${approval.id}`, { decision: "approve" }),
+        }),
+      );
+      actions.append(
+        el("button", {
+          type: "button",
+          class: "ghost",
+          "data-testid": `away-deny-${approval.id}`,
+          text: "Not now",
+          onclick: () => post(`/api/approvals/${approval.id}`, { decision: "deny" }),
+        }),
+      );
+      away.append(
+        el("section", { class: "hold", "data-testid": "away-hold" }, [
+          el("h2", { text: "Hold for you" }),
+          el("p", { class: "detail", text: approval.title }),
+          el("p", { class: "detail", text: approval.detail }),
+          actions,
+        ]),
+      );
+    }
     column.append(away);
   }
   if (!state.messages.length) {
@@ -421,13 +490,22 @@ function renderBrief(goal) {
     details.append(list);
   }
   details.append(
-    el("button", {
-      type: "button",
-      class: "textish",
-      "data-testid": "save-routine",
-      text: "Save as routine",
-      onclick: () => post("/api/routines", { goalId: goal.id }),
-    }),
+    el("div", { class: "skill-actions" }, [
+      el("button", {
+        type: "button",
+        class: "textish",
+        "data-testid": "save-routine",
+        text: "Save as routine",
+        onclick: () => post("/api/routines", { goalId: goal.id }),
+      }),
+      el("button", {
+        type: "button",
+        class: "textish",
+        "data-testid": "save-skill",
+        text: "Save as skill",
+        onclick: () => post("/api/skills", { goalId: goal.id }),
+      }),
+    ]),
   );
 
   const wrap = el("div");
@@ -485,7 +563,9 @@ form.addEventListener("submit", async (event) => {
   const text = input.value;
   const trimmed = text.trim();
   if (!trimmed || busy) return;
-  const body = selected ? { text: trimmed, goalId: selected } : { text: trimmed };
+  const body = { text: trimmed };
+  if (selected) body.goalId = selected;
+  if (armedSkill) body.skillId = armedSkill;
   input.value = "";
   grow();
   const ok = await post("/api/turn", body);

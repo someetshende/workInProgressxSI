@@ -5,8 +5,9 @@ import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
-import { kindsFor, readPolicy } from "./policy.js";
+import { kindsFor, readPolicy, withSkillProhibitions } from "./policy.js";
 import { clamp, redactSecrets } from "./redact.js";
+import { skillInstruction } from "./skill.js";
 import { consultSeat, subjectLine } from "./seats.js";
 import { awayBrief, goalStatus, titleFrom } from "./state.js";
 import type {
@@ -61,6 +62,7 @@ export async function convene(
   raw: string,
   goalId: string | undefined,
   deps: Deps,
+  skillId?: string,
 ): Promise<AppState> {
   const original = raw.trim();
   if (!original) throw new OrielError("Say what you want finished.");
@@ -76,10 +78,16 @@ export async function convene(
     return settle(state, open.id, decision, deps);
   }
 
-  const draft = structuredClone(state);
   const stored = redactSecrets(original);
+  const memoryTurn = isMemoryQuery(stored) || isMemoryOnly(stored);
+  const skill = skillId ? (state.skills ?? []).find((item) => item.id === skillId) ?? null : null;
+  if (skillId && !skill && !memoryTurn) throw new OrielError("That skill is not in the record.", 404);
+  const applied = memoryTurn ? null : skill;
+
+  const draft = structuredClone(state);
   draft.memory = remember(draft.memory, stored);
-  const policy = readPolicy(original, draft.memory);
+  let policy = readPolicy(original, draft.memory);
+  if (applied) policy = withSkillProhibitions(policy, applied.method, draft.memory);
 
   let goal: Goal | null = null;
   if (goalId) {
@@ -127,8 +135,17 @@ export async function convene(
       createdAt: now,
       updatedAt: now,
       lead: choice.lead,
+      skillId: applied?.id ?? null,
       plan: [],
-      brief: composeBrief({ title: titleFrom(stored), choice, policy, notes: [], held, skipped }),
+      brief: composeBrief({
+        title: titleFrom(stored),
+        choice,
+        policy,
+        notes: [],
+        held,
+        skipped,
+        skillName: applied?.name ?? null,
+      }),
       openLoops: extractLoops(stored),
       prose: null,
     };
@@ -138,6 +155,7 @@ export async function convene(
     goal.title = titleFrom(stored);
     goal.updatedAt = now;
     goal.lead = choice.lead;
+    if (applied) goal.skillId = applied.id;
     const extracted = extractLoops(stored);
     const stopWatch = /\b(stop watching|drop the watch|never mind the watch)\b/i.test(stored);
     goal.openLoops = stopWatch || extracted.length ? extracted : goal.openLoops;
@@ -149,11 +167,12 @@ export async function convene(
   const plan: PlanStep[] = [
     step(draft, "Frame the outcome", "Oriel states one recommendation and keeps the record.", "oriel", "done"),
   ];
+  const taskForSeats = applied ? skillInstruction(applied.name, applied.method, stored) : stored;
   const consulted = await Promise.all(
     choice.picked.map(async (seat) => {
       const connector = draft.connectors.find((item) => item.id === seat);
       if (!connector) return null;
-      return consultSeat({ connector, subject, task: stored, intents: choice.intents, policy, deps });
+      return consultSeat({ connector, subject, task: taskForSeats, intents: choice.intents, policy, deps });
     }),
   );
   const notes = [];
@@ -202,6 +221,7 @@ export async function convene(
     notes,
     held,
     skipped,
+    skillName: applied?.name ?? null,
   });
   goal.status = goalStatus(goal, draft.approvals);
 
@@ -231,6 +251,15 @@ export async function convene(
     if (note.liveError) {
       pushEvent(draft, goal.id, "fallback", `${DISPLAY[note.seat]} fell back: ${note.liveError}`, deps);
     }
+  }
+  if (applied) {
+    pushEvent(
+      draft,
+      goal.id,
+      "skill_applied",
+      `Applied skill “${applied.name}”. A skill does not wake, and it does not approve a hold.`,
+      deps,
+    );
   }
   return draft;
 }
@@ -328,6 +357,30 @@ export function setConnector(
   return draft;
 }
 
+export function saveSkill(state: AppState, goalId: string, name: string | undefined, deps: Deps): AppState {
+  const goal = state.goals.find((item) => item.id === goalId);
+  if (!goal) throw new OrielError("That goal is not in the record.", 404);
+  const existing = (state.skills ?? []).find((skill) => skill.method === goal.text);
+  if (existing) return state;
+  const draft = structuredClone(state);
+  draft.skills = draft.skills ?? [];
+  const skill = {
+    id: nid(draft, "skill"),
+    name: (name?.trim() || titleFrom(goal.text)).slice(0, 80),
+    method: goal.text,
+    createdAt: at(deps),
+  };
+  draft.skills.push(skill);
+  pushEvent(
+    draft,
+    goal.id,
+    "skill_saved",
+    `Saved skill “${skill.name}”. A skill is the method. It does not wake, and it does not approve a hold.`,
+    deps,
+  );
+  return draft;
+}
+
 export function saveRoutine(
   state: AppState,
   goalId: string,
@@ -337,13 +390,15 @@ export function saveRoutine(
 ): AppState {
   const goal = state.goals.find((item) => item.id === goalId);
   if (!goal) throw new OrielError("That goal is not in the record.", 404);
-  const existing = state.routines.find((routine) => routine.instruction === goal.text);
+  const skill = goal.skillId ? (state.skills ?? []).find((item) => item.id === goal.skillId) : undefined;
+  const instruction = skill ? skillInstruction(skill.name, skill.method, goal.text) : goal.text;
+  const existing = state.routines.find((routine) => routine.instruction === instruction);
   if (existing) return state;
   const draft = structuredClone(state);
   const routine = {
     id: nid(draft, "routine"),
-    name: (name?.trim() || titleFrom(goal.text)).slice(0, 80),
-    instruction: goal.text,
+    name: (name?.trim() || (skill ? skill.name : titleFrom(goal.text))).slice(0, 80),
+    instruction,
     cadence,
     createdAt: at(deps),
     lastRunAt: null,

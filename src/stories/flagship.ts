@@ -149,6 +149,7 @@ export function flagshipStories(): Story[] {
         "An open payment appears as Waiting on you.",
         "A keep-an-eye loop appears on the return card as a watch.",
         "Settling the payment removes that line and leaves the watch.",
+        "After a later goal with no hold, the earlier open hold can still be settled from the return card.",
       ],
       priority: "p1",
       kind: "flagship",
@@ -401,6 +402,25 @@ export function flagshipStories(): Story[] {
       kind: "flagship",
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
+    },
+    {
+      id: "ORIEL-F22",
+      persona: "an operations manager",
+      role: "operator",
+      surface: "routines",
+      capability: "Skills",
+      title: "A skill is the method and does not wake",
+      story:
+        "As an operations manager, I want Oriel to save a demonstrated path as a skill and apply it to a new request, so that the method travels without becoming a schedule.",
+      acceptance: [
+        "Saving the same method twice does not duplicate the skill.",
+        "A skill has no cadence and does not run when Oriel wakes the desk.",
+        "Applying the skill keeps a do-not-send from the method, and applying it does not approve a hold.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
     },
   ];
 

@@ -3,7 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderMarkdown } from "../core/brief.js";
 import { isCadence } from "../core/cadence.js";
-import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../core/convene.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../core/convene.js";
 import type { Deps } from "../core/types.js";
 import { OrielError } from "../core/errors.js";
 import { refineWithGlm } from "../core/glm.js";
@@ -220,8 +220,9 @@ export async function startServer(options: {
         const body = asObject(await readBody(req));
         if (typeof body.text !== "string") throw new OrielError("Say what you want finished.");
         const goalId = typeof body.goalId === "string" ? body.goalId : undefined;
+        const skillId = typeof body.skillId === "string" && body.skillId ? body.skillId : undefined;
         const next = await store.update(async (current) => {
-          const updated = await convene(current, body.text as string, goalId, depsFor());
+          const updated = await convene(current, body.text as string, goalId, depsFor(), skillId);
           await writeDesk(options.dataDir, updated);
           return updated;
         });
@@ -270,6 +271,14 @@ export async function startServer(options: {
         }
         const id = connectorMatch[1] ?? "";
         const next = await store.update((current) => setConnector(current, id, patch, depsFor()));
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      if (method === "POST" && pathname === "/api/skills") {
+        const body = asObject(await readBody(req));
+        if (typeof body.goalId !== "string") throw new OrielError("A goal is required.");
+        const name = typeof body.name === "string" ? body.name : undefined;
+        const next = await store.update((current) => saveSkill(current, body.goalId as string, name, depsFor()));
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }

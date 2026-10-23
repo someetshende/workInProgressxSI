@@ -1,8 +1,9 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { normalizeRoutine } from "../core/cadence.js";
+import { normalizeSkill } from "../core/skill.js";
 import { initialState } from "../core/state.js";
-import type { AppState } from "../core/types.js";
+import type { AppState, Skill } from "../core/types.js";
 
 type SecretFile = Record<string, string>;
 
@@ -27,6 +28,9 @@ export class Store {
       const parsed = JSON.parse(raw) as AppState;
       parsed.paused = parsed.paused === true;
       parsed.routines = (parsed.routines ?? []).map(normalizeRoutine).filter((routine) => routine !== null);
+      parsed.skills = (Array.isArray(parsed.skills) ? parsed.skills : [])
+        .map(normalizeSkill)
+        .filter((skill): skill is Skill => skill !== null);
       this.state = parsed;
     } catch (error) {
       if (!isErrno(error, "ENOENT")) throw error;

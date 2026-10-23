@@ -35,6 +35,19 @@ export function readPolicy(text: string, memory: Memory): Policy {
   };
 }
 
+export function withSkillProhibitions(user: Policy, method: string, memory: Memory): Policy {
+  const skill = readPolicy(method, memory);
+  return {
+    ...user,
+    businessSensitive: user.businessSensitive || skill.businessSensitive,
+    preferShort: user.preferShort || skill.preferShort,
+    forbadeSend: user.forbadeSend || (skill.forbadeSend && user.outbound),
+    forbadePay: user.forbadePay || (skill.forbadePay && user.payment),
+    forbadeDelete: user.forbadeDelete || (skill.forbadeDelete && user.deletion),
+    forbadePost: user.forbadePost || (skill.forbadePost && user.publicPost),
+  };
+}
+
 export function kindsFor(policy: Policy): { held: ApprovalKind[]; skipped: ApprovalKind[] } {
   const held: ApprovalKind[] = [];
   const skipped: ApprovalKind[] = [];

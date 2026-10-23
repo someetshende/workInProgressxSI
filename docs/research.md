@@ -96,7 +96,7 @@ It takes:
 
 - From **Dots**, one voice, and a way to stop unattended work. The person should not manage a roster to get an answer. There is one recommendation. Dots' own pause stops the current main task and leaves schedules running unless they are disabled separately. Oriel's pause is the desk-wide form of Grok Bot's per-routine pause: every cadence sleeps, the routines stay, and Run still works.
 - From **Muse**, the message. Plain language, a goal you can say, and a stop before money or mail. No configuration ritual before the first task.
-- From **Grok Bot**, the seats, the routine, and the record. Other agents stay visible. A repeated workflow can be saved. Every hold is written down.
+- From **Grok Bot**, the seats, the skill, the routine, and the record. A skill is the method. A routine is when it runs. Oriel can save a method from a finished turn and apply it to a later request. The skill carries prohibitions, including a do-not-send, and it keeps client work off Muse. It has no cadence. It does not wake, and it does not approve a hold. A routine can still bake that method in when you save one from the turn. Other agents stay visible. Every hold is written down.
 - From the enterprise gap, the books. Who was convened, what was held, what was released, and whether a live bridge failed.
 
 It refuses:
@@ -117,6 +117,8 @@ Grok Bot's overview still describes named bots on one shared cloud computer, wit
 Dots' help, updated the day before this check, still says you can pause a dot from its profile until you resume it. The controls page is more precise: that pause stops the current main task and does not, by itself, cancel future scheduled runs. Dots can also decide when to pause and wake. That is why Oriel has a cadence, and why pausing wakes is a separate control from approving a hold. Oriel pauses every cadence at once, because there is one window. It does not pretend that matches Dots' pause exactly.
 
 The Associated Press reported Muse as available in the United States at the 8 September launch. Some secondary writeups have also said Canada. Oriel does not depend on the region. Muse stays the consumer seat, including on a reachability check and on a watch check: neither check sends client, patient, or confidential text to Muse. A watch check posts `action: status` only, the same action as Check bridge.
+
+Checked again at 08:45 UTC the same day. Grok Bot's skills page still separates the two building blocks: a skill is a reusable set of instructions, and a routine tells one bot when to run. The page still says to save the method first and automate it only after that, and that a test run performs real work. Dots' controls page still says that pausing a dot stops the current main task and does not, by itself, stop delegated tasks or cancel future scheduled runs. Oriel's skill follows the first distinction. Oriel's pause follows the desk-wide form already recorded above. Neither a skill nor a pause approves a hold.
 
 ## Sources
 
