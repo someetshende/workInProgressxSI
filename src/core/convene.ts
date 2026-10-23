@@ -3,7 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenSharedWords, isSpokenUnnamed, isSpokenUnsharedWords, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenRead, loosensSpokenShared, loosensSpokenSharedWords, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenUnsharedWords, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenRule, readSpokenStep, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenSharedCopy, spokenSharedWordsCopy, spokenStepCopy, spokenUnnamedCopy, spokenUnsharedWordsCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenSharedWords, isSpokenUnnamed, isSpokenUnsharedSteps, isSpokenUnsharedWords, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenRead, loosensSpokenShared, loosensSpokenSharedWords, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenUnsharedSteps, loosensSpokenUnsharedWords, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenRule, readSpokenStep, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenSharedCopy, spokenSharedWordsCopy, spokenStepCopy, spokenUnnamedCopy, spokenUnsharedStepsCopy, spokenUnsharedWordsCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
 import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenRule, SpokenStep, SpokenWords } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
@@ -184,6 +184,7 @@ export async function convene(
   }
   if (isSpokenUnnamed(original)) return applySpokenUnnamed(swept, original, deps);
   if (isSpokenNamed(original)) return applySpokenNamed(swept, original, deps);
+  if (isSpokenUnsharedSteps(original)) return applySpokenUnsharedSteps(swept, original, deps);
   if (isSpokenShared(original)) return applySpokenShared(swept, original, deps);
   if (isSpokenUnsharedWords(original)) return applySpokenUnsharedWords(swept, original, deps);
   if (isSpokenSharedWords(original)) return applySpokenSharedWords(swept, original, deps);
@@ -194,6 +195,7 @@ export async function convene(
     loosensSpokenStep(original) ||
     loosensSpokenUnnamed(original) ||
     loosensSpokenNamed(original) ||
+    loosensSpokenUnsharedSteps(original) ||
     loosensSpokenShared(original) ||
     loosensSpokenUnsharedWords(original) ||
     loosensSpokenSharedWords(original)
@@ -660,6 +662,15 @@ function applySpokenUnnamed(state: AppState, raw: string, deps: Deps): AppState 
 function applySpokenNamed(state: AppState, raw: string, deps: Deps): AppState {
   const draft = structuredClone(state);
   const reply = spokenNamedCopy(draft.handoffRules ?? []);
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, "rule_read", reply, deps);
+  return draft;
+}
+
+function applySpokenUnsharedSteps(state: AppState, raw: string, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  const reply = spokenUnsharedStepsCopy(draft.handoffRules ?? []);
   pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
   pushMessage(draft, { role: "oriel", text: reply }, deps);
   pushEvent(draft, null, "rule_read", reply, deps);
