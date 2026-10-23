@@ -7165,13 +7165,14 @@ describe("hand off to you", () => {
     expect(otherNote.messages.at(-1)?.text).toContain("does not name two different steps");
 
     const notWith = await convene(initialState(), "Which words does a deletion not share with a send?", undefined, deps);
-    expect(notWith.goals).toHaveLength(1);
+    expect(notWith.goals).toHaveLength(0);
     expect(notWith.handoffs).toHaveLength(0);
-    expect(notWith.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
-    expect(notWith.approvals.filter((approval) => approval.kind === "delete")).toHaveLength(0);
+    expect(notWith.approvals).toHaveLength(0);
+    expect(notWith.messages.at(-1)?.text).toContain("There is no handoff rule for a deletion");
+    expect(notWith.messages.at(-1)?.text).toContain("named no other step");
     expect(notWith.messages.at(-1)?.text).not.toContain("shares these words with the send");
+    expect(notWith.messages.at(-1)?.text).not.toContain("does share these words with the send");
     expect(notWith.messages.at(-1)?.text).not.toContain("does not share these words with the send");
-    expect(notWith.messages.at(-1)?.text).not.toContain("named no other step");
 
     let others = setHandoffRule(initialState(), "send", true, deps, "shared project files");
     others = setHandoffRule(others, "post", true, deps, "Shared Project Files");
@@ -7505,6 +7506,427 @@ describe("hand off to you", () => {
       expect(state.handoffs.find((item) => item.id === openId)?.status).toBe("open");
       expect(state.messages.at(-1)?.text).toContain("The deletion shares these words with the send.");
       expect(state.messages.at(-1)?.text).not.toContain("The deletion shares these words.");
+      expect(state.messages.at(-1)?.text).not.toContain("the whole deletion");
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      expect(state.goals).toHaveLength(2);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(2);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(0);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+});
+
+describe("ORIEL-F50", () => {
+  it("ORIEL-F50 a sentence asks which words one step does not share with one other step and does not act", async () => {
+    const start = initialState();
+    await expect(convene(start, "Which words does a deletion not share with a send without asking", undefined, deps)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(start, "Which words does a deletion not share with a send always allow", undefined, deps)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(
+      convene(start, "Please, which word does a payment not share with a post allow automatically", undefined, deps),
+    ).rejects.toThrow(/without asking/);
+    expect(start.messages).toHaveLength(0);
+    expect(start.goals).toHaveLength(0);
+    expect(start.handoffRules).toHaveLength(0);
+
+    const none = await convene(initialState(), "Which words does a deletion not share with a send?", undefined, deps);
+    expect(none.handoffRules).toHaveLength(0);
+    expect(none.goals).toHaveLength(0);
+    expect(none.handoffs).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toContain("The deletion is not handed to you");
+    expect(none.messages.at(-1)?.text).toContain("There is no handoff rule for a deletion");
+    expect(none.messages.at(-1)?.text).toContain("named no other step");
+    expect(none.messages.at(-1)?.text).toContain("did not open a card");
+    expect(none.messages.at(-1)?.text).not.toContain("with the send");
+    expect(none.messages.at(-1)?.text).not.toContain("shares these words");
+    expect(none.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(none.messages.at(-1)?.text).not.toContain("does not share these words");
+    expect(none.messages.at(-1)?.text).not.toContain("“");
+    expect(none.messages.at(-1)?.text).not.toContain("the whole");
+    expect(none.messages.at(-1)?.text).not.toContain("The send");
+    expect(none.events.some((event) => event.type === "rule_read")).toBe(true);
+    expect(none.events.some((event) => event.type === "rule_saved" || event.type === "rule_cleared" || event.type === "approved")).toBe(
+      false,
+    );
+
+    const same = await convene(initialState(), "Which words does a deletion not share with a deletion?", undefined, deps);
+    expect(same.goals).toHaveLength(0);
+    expect(same.approvals).toHaveLength(0);
+    expect(same.handoffs).toHaveLength(0);
+    expect(same.messages.at(-1)?.text).toContain("does not name two different steps");
+    expect(same.messages.at(-1)?.text).toContain("did not open a card");
+    expect(same.events.some((event) => event.type === "rule_ignored")).toBe(true);
+
+    const note = await convene(initialState(), "Which words does a note not share with a send?", undefined, deps);
+    expect(note.goals).toHaveLength(0);
+    expect(note.approvals).toHaveLength(0);
+    expect(note.handoffs).toHaveLength(0);
+    expect(note.messages.at(-1)?.text).toContain("does not name two different steps");
+    expect(note.messages.at(-1)?.text).toContain("did not open a card");
+
+    const otherNote = await convene(initialState(), "Which words does a deletion not share with a note?", undefined, deps);
+    expect(otherNote.goals).toHaveLength(0);
+    expect(otherNote.approvals).toHaveLength(0);
+    expect(otherNote.messages.at(-1)?.text).toContain("does not name two different steps");
+
+    let others = setHandoffRule(initialState(), "send", true, deps, "shared project files");
+    others = setHandoffRule(others, "post", true, deps, "Shared Project Files");
+    const missing = await convene(others, "Which words does a deletion not share with a send?", undefined, deps);
+    expect(missing.goals).toHaveLength(0);
+    expect(missing.approvals).toHaveLength(0);
+    expect(missing.messages.at(-1)?.text).toContain("There is no handoff rule for a deletion");
+    expect(missing.messages.at(-1)?.text).not.toContain("with the send");
+    expect(missing.messages.at(-1)?.text).not.toContain("shares these words");
+    expect(missing.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(missing.messages.at(-1)?.text).not.toContain("does not share these words");
+    expect(missing.messages.at(-1)?.text).not.toContain("“");
+    expect(missing.messages.at(-1)?.text).not.toContain("The send");
+    expect(missing.messages.at(-1)?.text).not.toContain("The public post");
+    expect(missing.messages.at(-1)?.text).not.toContain("shared project files");
+
+    let bare = setHandoffRule(missing, "delete", true, deps);
+    const whole = await convene(bare, "Please, which word does the deletion not share with a send?", undefined, deps);
+    expect(whole.goals).toHaveLength(0);
+    expect(whole.handoffs).toHaveLength(0);
+    expect(whole.approvals).toHaveLength(0);
+    const wholeText = whole.messages.at(-1)?.text ?? "";
+    expect(wholeText).toContain("That rule names no words and is the whole deletion");
+    expect(wholeText).toContain("did not treat this question as a comparison with the other step and did not quote that step");
+    expect(wholeText).not.toContain("“");
+    expect(wholeText).not.toContain("with the send");
+    expect(wholeText).not.toContain("shares these words");
+    expect(wholeText).not.toContain("does share these words");
+    expect(wholeText).not.toContain("does not share these words");
+    expect(wholeText).not.toContain("The send");
+
+    let held = await convene(initialState(), "Email Maya the launch update", undefined, deps);
+    const openId = held.approvals[0]?.id ?? "";
+    const goalId = held.goals[0]?.id ?? "";
+    held = setHandoffRule(held, "post", true, deps, "shared project files");
+    held = setHandoffRule(held, "delete", true, deps, "shared project files");
+    held = setHandoffRule(held, "send", true, deps, "Shared Project Files");
+    held = setHandoffRule(held, "pay", true, deps, "unshared project files");
+    const ids = held.handoffRules.map((rule) => rule.id);
+    held = await convene(held, "Please, which words does a deletion not share with a send?", goalId, deps, "skill_missing");
+    expect(held.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+    expect(held.goals).toHaveLength(1);
+    expect(held.goals[0]?.status).toBe("waiting");
+    expect(held.handoffs).toHaveLength(0);
+    expect(held.handoffRules.map((rule) => rule.id)).toEqual(ids);
+    const listed = held.messages.at(-1)?.text ?? "";
+    expect(listed).toContain("The deletion does share these words with the send.");
+    expect(listed).not.toContain("The deletion does share these words.");
+    expect(listed).not.toContain("The deletion shares these words with the send");
+    expect(listed).not.toContain("The deletion shares these words.");
+    expect(listed).toContain("The words are “shared project files”.");
+    expect(listed.split("“shared project files”").length - 1).toBe(1);
+    expect(listed).not.toContain("does not share these words with the send");
+    expect(listed).not.toContain("These steps share those words");
+    expect(listed).not.toContain("Those words are used once");
+    expect(listed).not.toContain("“Shared Project Files”");
+    expect(listed).not.toContain("The send");
+    expect(listed).not.toContain("The payment");
+    expect(listed).not.toContain("The public post");
+    expect(listed).not.toContain("unshared project files");
+    expect(listed).not.toContain("the whole");
+    expect(listed).toContain("named no other step");
+    expect(listed).toContain("did not approve a hold");
+    expect(listed).toContain("did not open a card");
+    expect(held.approvals.filter((approval) => approval.kind === "delete")).toHaveLength(0);
+    expect(held.approvals.filter((approval) => approval.id !== openId)).toHaveLength(0);
+
+    const payment = await convene(held, "Which words does a deletion not share with a payment?", undefined, deps);
+    const paymentText = payment.messages.at(-1)?.text ?? "";
+    expect(paymentText).toContain("The deletion does not share these words with the payment.");
+    expect(paymentText).not.toContain("The deletion does not share these words.");
+    expect(paymentText).toContain("The words are “shared project files”.");
+    expect(paymentText.split("“shared project files”").length - 1).toBe(1);
+    expect(paymentText).not.toContain("Those words are used once");
+    expect(paymentText).not.toContain("The deletion does share these words with the payment");
+    expect(paymentText).not.toContain("The deletion shares these words with the payment");
+    expect(paymentText).not.toContain("unshared project files");
+    expect(paymentText).not.toContain("The send");
+    expect(paymentText).not.toContain("The payment");
+    expect(payment.approvals.filter((approval) => approval.kind === "pay")).toHaveLength(0);
+    expect(payment.goals).toHaveLength(1);
+
+    const asSend = await convene(payment, "Which words does a send not share with a deletion to you?", undefined, deps);
+    const asSendText = asSend.messages.at(-1)?.text ?? "";
+    expect(asSendText).toContain("The send does share these words with the deletion.");
+    expect(asSendText).not.toContain("The send does share these words.");
+    expect(asSendText).not.toContain("The send shares these words with the deletion");
+    expect(asSendText).toContain("The words are “Shared Project Files”.");
+    expect(asSendText).not.toContain("“shared project files”");
+    expect(asSendText).not.toContain("The payment");
+    expect(asSendText).not.toContain("The public post");
+    expect(asSend.approvals.filter((approval) => approval.kind === "send" && approval.id !== openId)).toHaveLength(0);
+    expect(asSend.goals).toHaveLength(1);
+
+    const alone = await convene(asSend, "Which words does a payment not share with a deletion handed over to you?", undefined, deps);
+    const aloneText = alone.messages.at(-1)?.text ?? "";
+    expect(aloneText).toContain("The payment does not share these words with the deletion.");
+    expect(aloneText).not.toContain("The payment does not share these words.");
+    expect(aloneText).toContain("The words are “unshared project files”.");
+    expect(aloneText).not.toContain("Those words are used once");
+    expect(aloneText).not.toContain("The payment does share these words");
+    expect(aloneText).not.toContain("“shared project files”");
+    expect(aloneText).not.toContain("The send");
+    expect(alone.approvals.filter((approval) => approval.kind === "pay")).toHaveLength(0);
+
+    const positive = await convene(alone, "Which words does a deletion share with a send?", undefined, deps);
+    const positiveText = positive.messages.at(-1)?.text ?? "";
+    expect(positiveText).toContain("The deletion shares these words with the send.");
+    expect(positiveText).not.toContain("The deletion does share these words with the send");
+    expect(positiveText).not.toContain("does share these words with the send");
+    expect(positive.goals).toHaveLength(1);
+    expect(positive.approvals.filter((approval) => approval.id !== openId)).toHaveLength(0);
+
+    const plainShare = await convene(positive, "Which words does a deletion share?", undefined, deps);
+    const plainShareText = plainShare.messages.at(-1)?.text ?? "";
+    expect(plainShareText).toContain("The deletion shares these words.");
+    expect(plainShareText).not.toContain("with the send");
+    expect(plainShareText).not.toContain("does share these words");
+    expect(plainShareText).toContain("The send and The public post use them.");
+    expect(plainShare.goals).toHaveLength(1);
+
+    const plainNot = await convene(plainShare, "Which words does a deletion not share?", undefined, deps);
+    const plainNotText = plainNot.messages.at(-1)?.text ?? "";
+    expect(plainNotText).toContain("The deletion does share these words.");
+    expect(plainNotText).not.toContain("with the send");
+    expect(plainNotText).not.toContain("does share these words with");
+    expect(plainNot.goals).toHaveLength(1);
+
+    const handed = await convene(plainNot, "Which words does a deletion hand to me?", undefined, deps);
+    const handedText = handed.messages.at(-1)?.text ?? "";
+    expect(handedText).toContain("The words are “shared project files”.");
+    expect(handedText).not.toContain("does share these words");
+    expect(handed.goals).toHaveLength(1);
+
+    const sharedWords = await convene(handed, "Which words are shared?", undefined, deps);
+    expect(sharedWords.messages.at(-1)?.text).toContain("These words are shared");
+    expect(sharedWords.messages.at(-1)?.text).not.toContain("does share these words with the send");
+    expect(sharedWords.goals).toHaveLength(1);
+
+    const unsharedWords = await convene(sharedWords, "Which words are not shared?", undefined, deps);
+    expect(unsharedWords.messages.at(-1)?.text).toContain("These words are used once");
+    expect(unsharedWords.messages.at(-1)?.text).toContain("unshared project files");
+    expect(unsharedWords.messages.at(-1)?.text).not.toContain("does not share these words with");
+    expect(unsharedWords.goals).toHaveLength(1);
+
+    const withOne = await convene(unsharedWords, "Which steps share words with a deletion?", undefined, deps);
+    expect(withOne.messages.at(-1)?.text).toContain("These steps share those words with the deletion.");
+    expect(withOne.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(withOne.goals).toHaveLength(1);
+
+    const withoutOne = await convene(withOne, "Which steps do not share words with a deletion?", undefined, deps);
+    expect(withoutOne.messages.at(-1)?.text).toContain("These steps do share those words with the deletion.");
+    expect(withoutOne.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(withoutOne.goals).toHaveLength(1);
+
+    const plain = await convene(withoutOne, "Does a deletion share words?", undefined, deps);
+    expect(plain.messages.at(-1)?.text).toContain("The deletion shares those words");
+    expect(plain.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(plain.goals).toHaveLength(1);
+
+    const plainNotShare = await convene(plain, "Does a deletion not share words?", undefined, deps);
+    expect(plainNotShare.messages.at(-1)?.text).toContain("does share those words");
+    expect(plainNotShare.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(plainNotShare.messages.at(-1)?.text).not.toContain("with the send");
+    expect(plainNotShare.goals).toHaveLength(1);
+
+    const pair = await convene(plainNotShare, "Does a deletion share words with a send?", undefined, deps);
+    expect(pair.messages.at(-1)?.text).toContain("The deletion shares those words with the send.");
+    expect(pair.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(pair.goals).toHaveLength(1);
+
+    const pairNot = await convene(pair, "Does a deletion not share words with a send?", undefined, deps);
+    expect(pairNot.messages.at(-1)?.text).toContain("does share those words with the send");
+    expect(pairNot.messages.at(-1)?.text).not.toContain("does share these words");
+    expect(pairNot.goals).toHaveLength(1);
+
+    const email = await convene(pairNot, "Which words does an email not share with the public post?", undefined, deps);
+    const emailText = email.messages.at(-1)?.text ?? "";
+    expect(emailText).toContain("The send does share these words with the public post.");
+    expect(emailText).toContain("The words are “Shared Project Files”.");
+    expect(emailText).not.toContain("“shared project files”");
+    expect(emailText).not.toContain("The payment");
+    expect(email.goals).toHaveLength(1);
+    expect(email.approvals.filter((approval) => approval.id !== openId)).toHaveLength(0);
+
+    const post = await convene(email, "Which words does the public post not share with a send to me?", undefined, deps);
+    const postText = post.messages.at(-1)?.text ?? "";
+    expect(postText).toContain("The public post does share these words with the send.");
+    expect(postText).not.toContain("The public post does share these words.");
+    expect(postText).toContain("The words are “shared project files”.");
+    expect(postText).not.toContain("“Shared Project Files”");
+    expect(postText).not.toContain("The deletion");
+    expect(postText).not.toContain("The payment");
+    expect(post.approvals.filter((approval) => approval.kind === "send" && approval.id !== openId)).toHaveLength(0);
+    expect(post.goals).toHaveLength(1);
+
+    let noOther = setHandoffRule(initialState(), "delete", true, deps, "shared project files");
+    noOther = setHandoffRule(noOther, "pay", true, deps, "the vendor invoice");
+    const missingOther = await convene(noOther, "Which words does a deletion not share with a send?", undefined, deps);
+    const missingOtherText = missingOther.messages.at(-1)?.text ?? "";
+    expect(missingOtherText).toContain("The deletion does not share these words with the send.");
+    expect(missingOtherText).not.toContain("The deletion does not share these words.");
+    expect(missingOtherText).toContain("The words are “shared project files”.");
+    expect(missingOtherText).not.toContain("Those words are used once");
+    expect(missingOtherText).not.toContain("The deletion does share these words with the send");
+    expect(missingOtherText).not.toContain("the vendor invoice");
+    expect(missingOtherText).not.toContain("The payment");
+    expect(missingOtherText).not.toContain("There is no handoff rule for a send");
+    expect(missingOther.approvals).toHaveLength(0);
+    expect(missingOther.goals).toHaveLength(0);
+
+    let bareOther = setHandoffRule(missingOther, "send", true, deps);
+    const bareSend = await convene(bareOther, "Which words does a deletion not share with a send?", undefined, deps);
+    const bareSendText = bareSend.messages.at(-1)?.text ?? "";
+    expect(bareSendText).toContain("The deletion does not share these words with the send.");
+    expect(bareSendText).toContain("The words are “shared project files”.");
+    expect(bareSendText).not.toContain("the whole send");
+    expect(bareSendText).not.toContain("The send");
+    expect(bareSend.approvals).toHaveLength(0);
+
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let parked = await convene(initialState(), "Draft the weekly close", undefined, early);
+    parked = saveRoutine(parked, parked.goals[0]?.id ?? "", "Close", early);
+    parked = setRoutineCadence(parked, parked.routines[0]?.id ?? "", "hourly", early);
+    const nextRun = parked.routines[0]?.nextRunAt;
+    parked = setPaused(parked, true, early);
+    parked = setHandoffRule(parked, "delete", true, early, "shared project files");
+    parked = setHandoffRule(parked, "send", true, early, "shared project files");
+    parked = setHandoffRule(parked, "pay", true, early, "the vendor invoice");
+    parked = await convene(parked, "Which words does a deletion not share with a send to you?", undefined, {
+      ...deps,
+      now: () => new Date("2026-10-23T13:30:00.000Z"),
+    });
+    expect(parked.paused).toBe(true);
+    expect(parked.routines[0]?.nextRunAt).toBe(nextRun);
+    expect(parked.events.some((event) => event.type === "woke" || event.type === "approved")).toBe(false);
+    expect(parked.messages.at(-1)?.text).toContain("The deletion does share these words with the send.");
+    expect(parked.messages.at(-1)?.text).toContain("The words are “shared project files”.");
+    expect(parked.messages.at(-1)?.text).not.toContain("The payment");
+    expect(parked.approvals).toHaveLength(0);
+
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = setPaused(state, true, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = setHandoffRule(state, "send", true, deps, "Shared Project Files");
+      state = setHandoffRule(state, "pay", true, deps, "the vendor invoice");
+      state = setHandoffRule(state, "post", true, deps, "shared project files");
+      const before = state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`);
+      state = await convene(state, "Which words does a deletion not share with a send to you?", undefined, deps);
+      expect(hits).toHaveLength(0);
+      expect(state.paused).toBe(true);
+      expect(state.goals).toHaveLength(0);
+      expect(state.handoffs).toHaveLength(0);
+      expect(state.approvals).toHaveLength(0);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      expect(state.messages.at(-1)?.text).toContain("The deletion does share these words with the send.");
+      expect(state.messages.at(-1)?.text).toContain("The words are “shared project files”.");
+      expect(state.messages.at(-1)?.text).not.toContain("“Shared Project Files”");
+      expect(state.messages.at(-1)?.text).not.toContain("The payment");
+      expect(state.messages.at(-1)?.text).not.toContain("The public post");
+      expect(state.messages.at(-1)?.text).not.toContain("The deletion does share these words.");
+      expect(state.messages.at(-1)?.text).not.toContain("The deletion shares these words with the send");
+      state = await convene(state, "Which words does a deletion not share with a send and delete the archive", undefined, deps);
+      expect(state.handoffRules.map((rule) => `${rule.id}:${rule.phrase ?? ""}`)).toEqual(before);
+      const archive = state.goals.at(-1)?.id;
+      expect(
+        state.approvals.filter((approval) => approval.goalId === archive && approval.status === "open" && approval.kind === "delete"),
+      ).toHaveLength(1);
+      expect(
+        state.approvals.filter((approval) => approval.goalId === archive && approval.status === "open" && approval.kind === "send"),
+      ).toHaveLength(1);
+      expect(state.handoffs.filter((item) => item.goalId === archive)).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).not.toContain("does share these words with the send");
+      expect(state.messages.at(-1)?.text).not.toContain("does not share these words with the send");
+      expect(state.messages.at(-1)?.text).not.toContain("named no other step");
+      state = setHandoffRule(state, "delete", false, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      const bareBefore = state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`);
+      state = await convene(state, "Which words does a deletion not share with a send and delete the archive", undefined, deps);
+      const handedGoal = state.goals.at(-1)?.id;
+      expect(state.handoffs.filter((item) => item.goalId === handedGoal && item.status === "open")).toHaveLength(1);
+      expect(state.approvals.filter((approval) => approval.goalId === handedGoal && approval.kind === "delete")).toHaveLength(0);
+      expect(state.approvals.filter((approval) => approval.goalId === handedGoal && approval.kind === "send")).toHaveLength(1);
+      expect(state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`)).toEqual(bareBefore);
+      expect(state.messages.at(-1)?.text).not.toContain("does share these words with");
+      const beforeOrdinary = state.goals.length;
+      state = await convene(state, "Hand deletions to me", undefined, deps);
+      expect(state.goals.length).toBe(beforeOrdinary + 1);
+      expect(state.handoffRules.map((rule) => `${rule.action}:${rule.phrase ?? ""}`)).toEqual(bareBefore);
+      expect(state.messages.at(-1)?.text).not.toContain("does share these words with the send");
+      state = await convene(state, "Which words does a deletion not share with a send?", undefined, deps);
+      expect(state.messages.at(-1)?.text).toContain("names no words and is the whole deletion");
+      expect(state.messages.at(-1)?.text).toContain("did not treat this question as a comparison with the other step");
+      expect(state.messages.at(-1)?.text).not.toContain("with the send");
+      expect(state.messages.at(-1)?.text).not.toContain("does share these words");
+      expect(state.messages.at(-1)?.text).not.toContain("does not share these words");
+      expect(state.messages.at(-1)?.text).not.toContain("The send");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(hits.every((hit) => hit.raw.includes('"action":"convene"'))).toBe(true);
+      expect(state.messages.some((message) => message.text.includes("I deleted"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+
+  it("ORIEL-F50 asking which words one step does not share with one other step keeps client work off Muse", async () => {
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = setHandoffRule(state, "delete", true, deps, "shared project files");
+      state = setHandoffRule(state, "send", true, deps, "shared project files");
+      state = setHandoffRule(state, "pay", true, deps, "the vendor invoice");
+      state = await convene(state, "Which words does a deletion not share with a send?", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(0);
+      expect(state.goals).toHaveLength(0);
+      expect(state.messages.at(-1)?.text).toContain("The deletion does share these words with the send.");
+      state = await convene(state, "Delete the client files", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(0);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
+  });
+
+  it("ORIEL-F50 a woken deletion still follows the rule the question did not change", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      state = setHandoffRule(state, "send", true, early, "shared project files");
+      state = setHandoffRule(state, "pay", true, early, "the vendor invoice");
+      state = await convene(state, "Delete the shared project files", undefined, early);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(1);
+      const openId = state.handoffs[0]?.id ?? "";
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Archive", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Which words does a deletion not share with a send?", state.goals[0]?.id, early, "skill_missing");
+      expect(state.handoffRules).toHaveLength(3);
+      expect(state.handoffRules.find((rule) => rule.action === "delete")?.phrase).toBe("shared project files");
+      expect(state.handoffs.find((item) => item.id === openId)?.status).toBe("open");
+      expect(state.messages.at(-1)?.text).toContain("The deletion does share these words with the send.");
+      expect(state.messages.at(-1)?.text).not.toContain("The deletion does share these words.");
       expect(state.messages.at(-1)?.text).not.toContain("the whole deletion");
       expect(state.events.some((event) => event.type === "approved")).toBe(false);
       state = await wakeDue(state, { ...deps, now: () => wakeAt });
