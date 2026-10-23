@@ -408,6 +408,30 @@ export function spokenAskPhraseCopy(action: HandoffAction, phrase: string, rule:
   return `${READ_LABEL[action]} is handed to you. ${handoffRuleLine(rule)} Oriel named no other step. ${ASK_TAIL}`;
 }
 
+const SPOKEN_WORDS =
+  /^(?:please,?\s+)?which words (?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+hand(?:ed)?(?:\s+(?:off|over))?\s+to\s+(?:me|you)$/i;
+
+export type SpokenWords = { kind: "ask"; action: HandoffAction } | { kind: "reject"; reason: "action" };
+
+export function readSpokenWords(text: string): SpokenWords | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_WORDS);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action };
+}
+
+export function spokenWordsCopy(action: HandoffAction, rule: HandoffRule | undefined): string {
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  return `${READ_LABEL[action]} is handed to you. The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+}
+
 export function loosensSpokenRead(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please,?\s+)?(?:what(?:'s| is)|which)\b/i.test(normalized)) return false;
@@ -419,6 +443,13 @@ export function loosensSpokenAsk(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please,?\s+)?(?:is|are)\b/i.test(normalized)) return false;
   if (!/\bhanded(?:\s+(?:off|over))?\s+to\s+(?:me|you)\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
+export function loosensSpokenWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which words\b/i.test(normalized)) return false;
+  if (!/\bhand(?:ed|ing)?(?:\s+(?:off|over))?\s+to\s+(?:me|you)\b/i.test(normalized)) return false;
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 

@@ -59,6 +59,8 @@ You can take that rule back in the same voice. `Stop handing deletions that ment
 
 `Is a deletion that mentions shared project files handed to me?` asks whether those words are the saved ones. It names that rule only when the words match. A deletion rule with no words of its own is not those words, and Oriel does not treat the question as the whole deletion. If the saved words are different, Oriel names the saved words. If that step has no rule, Oriel says so and does not name the others. Asking does not create a goal, open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money. `Is a deletion handed to me?` still names the rule without requiring the words.
 
+`Which words does a deletion hand to me?` asks which words that one step uses. It names only that rule's phrase. A deletion rule with no words of its own says the rule names no words and is the whole deletion. If that step has no rule, Oriel says so and does not name the others. Asking does not create a goal, open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money. `Is a deletion that mentions shared project files handed to me?` still answers whether those words are the saved ones.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:

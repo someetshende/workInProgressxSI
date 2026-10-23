@@ -612,6 +612,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F33",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which words",
+      title: "A sentence can ask which words a step uses",
+      story:
+        "As a security admin, I want to ask Oriel which words a deletion hands to me, so that it names only that phrase and does not delete anything.",
+      acceptance: [
+        "Asking which words a deletion hands to me names only that rule's phrase, and a rule with no phrase says it names no words.",
+        "If that action has no rule, Oriel says so and does not mention the other rules.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

@@ -3,8 +3,8 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenRead, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenRead, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenRule, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, taskSuffix } from "./handoff.js";
-import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenRule } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenRead, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenRead, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenRule, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
+import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenRule, SpokenWords } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
@@ -173,7 +173,9 @@ export async function convene(
   if (spokenAskPhrase) return applySpokenAskPhrase(swept, original, spokenAskPhrase, deps);
   const spokenAsk = readSpokenAsk(original);
   if (spokenAsk) return applySpokenAsk(swept, original, spokenAsk, deps);
-  if (loosensSpokenRead(original) || loosensSpokenAsk(original)) {
+  const spokenWords = readSpokenWords(original);
+  if (spokenWords) return applySpokenWords(swept, original, spokenWords, deps);
+  if (loosensSpokenRead(original) || loosensSpokenAsk(original) || loosensSpokenWords(original)) {
     throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
   }
 
@@ -607,6 +609,21 @@ function applySpokenAskPhrase(state: AppState, raw: string, spoken: SpokenAskPhr
       : spokenAskPhraseCopy(
           spoken.action,
           spoken.phrase,
+          (draft.handoffRules ?? []).find((rule) => rule.action === spoken.action),
+        );
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, spoken.kind === "reject" ? "rule_ignored" : "rule_read", reply, deps);
+  return draft;
+}
+
+function applySpokenWords(state: AppState, raw: string, spoken: SpokenWords, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  const reply =
+    spoken.kind === "reject"
+      ? "That sentence does not name a send, a payment, a deletion, or a public post. Oriel did not open a card. Nothing was sent or spent."
+      : spokenWordsCopy(
+          spoken.action,
           (draft.handoffRules ?? []).find((rule) => rule.action === spoken.action),
         );
   pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
