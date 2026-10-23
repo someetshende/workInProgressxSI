@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3418,
-  "flagship": 52,
+  "count": 3419,
+  "flagship": 53,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -936,6 +936,24 @@
       "acceptance": [
         "Asking whether a deletion does not mention those words says the deletion does mention those words when the saved phrase is those words, and quotes that phrase.",
         "When the saved phrase is different, Oriel says the deletion does not mention those words and quotes only the saved phrase.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F53",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask whether one step mentions certain words",
+      "title": "A sentence can ask whether one step mentions certain words",
+      "story": "As a security admin, I want to ask Oriel whether one step mentions certain words, so that it quotes only that step and does not delete anything.",
+      "acceptance": [
+        "Asking whether a deletion mentions those words says the deletion mentions those words when the saved phrase is those words, and quotes that phrase.",
+        "When the saved phrase is different, Oriel says the deletion mentions other words and quotes only the saved phrase.",
         "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
       ],
       "priority": "p0",
