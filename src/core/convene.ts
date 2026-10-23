@@ -1,5 +1,5 @@
 import { assertBridgeUrl, bridgeFailure, callBridge, describeBridge } from "./bridge.js";
-import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, stayedSentence, whoAskedSlackCopy } from "./brief.js";
+import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, stayedSentence, taskCoverLine, taskReleaseCopy, whoAskedSlackCopy } from "./brief.js";
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
@@ -72,6 +72,18 @@ function wakeStop(kinds: ApprovalKind[]): string {
     return "Do not use a credential.";
   });
   return `\n\nThe person said not now. ${lines.join(" ")} This wake must not try that step.`;
+}
+
+function taskCoverStop(kinds: ApprovalKind[]): string {
+  if (!kinds.length) return "";
+  const lines = kinds.map((kind) => {
+    if (kind === "send") return "Do not send mail.";
+    if (kind === "pay") return "Do not move money.";
+    if (kind === "delete") return "Do not delete anything.";
+    if (kind === "post") return "Do not publish anything.";
+    return "Do not use a credential.";
+  });
+  return `\n\nAlready allowed for this goal only. ${lines.join(" ")} Do not do that step. A later goal still asks.`;
 }
 
 export function expireHolds(state: AppState, deps: Deps): AppState {
@@ -151,10 +163,17 @@ export async function convene(
       if (decision === "approve" && handed) {
         throw new OrielError("That step is yours. Say you did it, or leave it. Approve does not do it.");
       }
+      if (decision === "task" && handed) {
+        throw new OrielError("That step is yours. Say you did it, or leave it. Allow for this task does not do it.");
+      }
       if (swept !== state) return swept;
       throw new OrielError("Nothing is waiting on you.");
     }
     return settle(swept, open.id, decision, deps);
+  }
+
+  if (/^(?:please\s+)?(?:always[-\s]?allow|allow automatically|allow for this site)\b/i.test(original)) {
+    throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
   }
 
   const handDecision = isHandoffDecision(original);
@@ -419,7 +438,21 @@ export async function convene(
   const wakeId = presence === "away" && deps.wakeFrom ? deps.wakeFrom : undefined;
   const blocked = new Set((wakeId ? draft.routines.find((item) => item.id === wakeId)?.heldBack : undefined) ?? []);
   const stayed = considered.held.filter((kind) => blocked.has(kind));
-  const held = considered.held.filter((kind) => !blocked.has(kind));
+  const pending = considered.held.filter((kind) => !blocked.has(kind));
+  const existingGoal = goal;
+  const covered: ApprovalKind[] =
+    existingGoal === null
+      ? []
+      : pending.filter((kind) =>
+          draft.approvals.some(
+            (approval) =>
+              approval.goalId === existingGoal.id &&
+              approval.status === "approved" &&
+              approval.scope === "task" &&
+              approval.kind === kind,
+          ),
+        );
+  const held = pending.filter((kind) => !covered.includes(kind));
   const skipped = considered.skipped;
   const subject = subjectLine(stored);
   const now = at(deps);
@@ -444,6 +477,7 @@ export async function convene(
         held,
         skipped,
         stayed,
+        covered,
         skillName: applied?.name ?? null,
         handed: policy.handoff,
         rules: fired,
@@ -476,7 +510,7 @@ export async function convene(
   const taskForSeats = `${applied ? skillInstruction(applied.name, applied.method, stored) : stored}${taskSuffix(
     policy,
     applied ? skillGuardsSeat(applied.method) : false,
-  )}${wakeStop(stayed)}${draftStop}${forwardStop}`;
+  )}${wakeStop(stayed)}${taskCoverStop(covered)}${draftStop}${forwardStop}`;
   const consulted = await Promise.all(
     choice.picked.map(async (seat) => {
       const connector = draft.connectors.find((item) => item.id === seat);
@@ -528,6 +562,10 @@ export async function convene(
       deps,
     );
   }
+  for (const kind of covered) {
+    plan.push(step(draft, "Covered for this goal", taskCoverLine(kind), "oriel", "done", kind));
+    pushEvent(draft, goal.id, "task_cover", taskCoverLine(kind), deps);
+  }
   for (const kind of held) {
     const planned = step(draft, APPROVAL_TITLE[kind], approvalDetail(kind, stored), "oriel", "waiting", kind);
     plan.push(planned);
@@ -544,6 +582,7 @@ export async function convene(
       expiresAt: expiresAtFor(presence, now, deps),
       settledAt: null,
       routineId: wakeId ?? null,
+      scope: "once" as const,
     };
     draft.approvals.push(approval);
     approvalIds.push(approval.id);
@@ -581,6 +620,7 @@ export async function convene(
     held,
     skipped,
     stayed,
+    covered,
     handed: policy.handoff,
     skillName: applied?.name ?? null,
     rules: fired,
@@ -599,6 +639,10 @@ export async function convene(
   }
   if (presence === "away" && held.length && !spoken.includes("while you were away")) {
     spoken = `${spoken} ${AWAY_HOLD_COPY}`;
+  }
+  for (const kind of covered) {
+    const line = taskCoverLine(kind);
+    if (!spoken.includes(line)) spoken = `${spoken} ${line}`;
   }
 
   pushMessage(
@@ -634,7 +678,7 @@ export async function convene(
 export async function settle(
   state: AppState,
   approvalId: string,
-  decision: "approve" | "deny",
+  decision: "approve" | "deny" | "task",
   deps: Deps,
 ): Promise<AppState> {
   const swept = expireHolds(state, deps);
@@ -668,6 +712,7 @@ export async function settle(
     pushEvent(draft, goal.id, "denied", `${approval.title} was held back.`, deps);
   } else {
     approval.status = "approved";
+    approval.scope = decision === "task" ? "task" : "once";
     if (planned) planned.status = "done";
     let liveSummary: string | null = null;
     const lead = goal.lead ? draft.connectors.find((connector) => connector.id === goal.lead) : undefined;
@@ -697,7 +742,8 @@ export async function settle(
         pushEvent(draft, goal.id, "fallback", `${DISPLAY[lead.id]} could not take the release: ${message}`, deps);
       }
     }
-    approval.resolution = releaseCopy(approval.kind, liveSummary);
+    approval.resolution =
+      decision === "task" ? taskReleaseCopy(approval.kind, liveSummary) : releaseCopy(approval.kind, liveSummary);
     pushEvent(draft, goal.id, "approved", approval.resolution, deps);
   }
 

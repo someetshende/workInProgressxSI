@@ -60,6 +60,22 @@ export function whoAskedSlackCopy(kind: SlackAskKind | null): string {
   return "No Slack note in this record was asked for. Nothing was sent.";
 }
 
+const TASK_COVER: Record<ApprovalKind, string> = {
+  send: "The send stays allowed for the rest of this goal. Nothing was sent. A later goal still asks.",
+  pay: "The payment stays allowed for the rest of this goal. Oriel did not move money. No charge was made. A later goal still asks.",
+  delete: "The deletion stays allowed for the rest of this goal. Nothing was deleted. A later goal still asks.",
+  post: "The public post stays allowed for the rest of this goal. Nothing was published. A later goal still asks.",
+  credential: "The credential use stays allowed for the rest of this goal. Oriel did not reveal or reuse a secret. A later goal still asks.",
+};
+
+export function taskCoverLine(kind: ApprovalKind): string {
+  return TASK_COVER[kind];
+}
+
+export function taskCoverSentence(kinds: ApprovalKind[]): string {
+  return kinds.map((kind) => TASK_COVER[kind]).join(" ");
+}
+
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
   const names = kinds.map((kind) => KIND_STAY[kind]);
@@ -121,6 +137,7 @@ export function composeBrief(input: {
   held: ApprovalKind[];
   skipped: ApprovalKind[];
   stayed?: ApprovalKind[];
+  covered?: ApprovalKind[];
   handed?: boolean;
   skillName?: string | null;
   rules?: HandoffAction[];
@@ -130,6 +147,7 @@ export function composeBrief(input: {
   const recommendation = recommend(input.choice, input.policy);
   const sentence = holdSentence(input.held, input.skipped);
   const stayedLine = stayedSentence(input.stayed ?? []);
+  const coveredLine = taskCoverSentence(input.covered ?? []);
   const using = input.skillName ? `Using the skill “${input.skillName}”.` : "";
   const rules = input.rules ?? [];
   const rulePhrases = input.rulePhrases ?? {};
@@ -140,7 +158,7 @@ export function composeBrief(input: {
   const forwardLine = input.policy.forward ? FORWARD_COPY : "";
   const forwardDraftLine =
     !input.policy.forward && input.policy.draftOnly && input.policy.forwardAsked ? FORWARD_DRAFT_NOTE : "";
-  const voice = [using, recommendation, draftLine, forwardDraftLine, forwardLine, sentence, stayedLine, ruleLine, handedLine, awayLine]
+  const voice = [using, recommendation, draftLine, forwardDraftLine, forwardLine, sentence, coveredLine, stayedLine, ruleLine, handedLine, awayLine]
     .filter(Boolean)
     .join(" ");
   const why = input.skillName
@@ -161,6 +179,7 @@ export function composeBrief(input: {
     forwardDraftLine || null,
     forwardLine || null,
     sentence || null,
+    coveredLine || null,
     stayedLine || null,
     ruleLine || null,
     handedLine || null,
@@ -182,6 +201,7 @@ export function composeBrief(input: {
     held: input.held,
     skipped: input.skipped,
     stayed: input.stayed ?? [],
+    covered: input.covered ?? [],
     handed: Boolean(input.handed),
     referenceOnly: input.notes.every((note) => note.mode === "reference"),
     skill: input.skillName ?? null,
@@ -234,6 +254,10 @@ export function renderMarkdown(goal: Goal, events: LedgerEvent[]): string {
   for (const event of record) lines.push(`- ${event.at} ${event.type}: ${event.detail}`);
   lines.push("", TRUST, "");
   return lines.join("\n");
+}
+
+export function taskReleaseCopy(kind: ApprovalKind, liveSummary: string | null): string {
+  return `${releaseCopy(kind, liveSummary)} ${taskCoverLine(kind)}`;
 }
 
 export function releaseCopy(kind: ApprovalKind, liveSummary: string | null): string {

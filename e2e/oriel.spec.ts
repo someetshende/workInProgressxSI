@@ -6573,6 +6573,43 @@ test("ORIEL-F73 a forward stays held and the Slack record says who asked", async
   await page.screenshot({ path: "test-results/oriel-forward.png" });
 });
 
+test("ORIEL-F74 allow for this task covers this goal and a new goal still asks", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Email Maya the launch update");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await expect(page.getByTestId("allow-task")).toBeVisible();
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.getByTestId("allow-task").click();
+  await expect(page.getByTestId("thread")).toContainText("The send stays allowed for the rest of this goal. Nothing was sent. A later goal still asks.");
+  await expect(page.getByTestId("thread")).toContainText("Nothing left this computer");
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  const goal = page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])");
+  await goal.click();
+  await expect(page.getByTestId("composer-context")).toContainText("Continuing");
+  await page.getByTestId("composer").fill("Email Maya the follow-up");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toContainText("The send stays allowed for the rest of this goal.");
+  await expect(page.getByTestId("synthesis")).not.toContainText("I held the send for your approval.");
+  await expect(page.getByTestId("task-cover-send")).toContainText("Covered for this goal");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.getByTestId("goal-all").click();
+  await expect(page.getByTestId("composer-context")).toHaveText("This starts a new goal");
+  await page.getByTestId("composer").fill("Email Maya from a new goal");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await expect(page.getByTestId("allow-task")).toBeVisible();
+  await expect(page.getByTestId("synthesis")).toContainText("I held the send for your approval.");
+  await expect(page.getByTestId("synthesis")).not.toContainText("stays allowed");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "allow-task");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-task-allow.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

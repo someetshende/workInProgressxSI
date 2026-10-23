@@ -1391,6 +1391,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F74",
+      persona: "a parent",
+      role: "individual",
+      surface: "approvals",
+      capability: "Allow one kind for this goal",
+      title: "Allow for this task covers one kind on this goal only",
+      story:
+        "As a parent, I want Oriel to let one approval cover that same kind for the rest of this goal only, so that a later goal still asks and nothing is sent or spent.",
+      acceptance: [
+        "Allow for this task on an open hold covers that same kind when the same goal continues, and it does not open another hold for that kind.",
+        "A later goal still asks, Approve once does not cover the next hold, and a different kind on this goal still waits.",
+        "The allowance does not send mail or move money, does not cover a wake's new goal, and does not become a standing grant.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 2,
+    },
   ];
 
   return stories.map((story) => {

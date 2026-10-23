@@ -6468,6 +6468,52 @@ describe("Oriel server", () => {
     expect(JSON.stringify(done)).not.toContain("Always allow");
   });
 
+  it("ORIEL-F74 allow for this task covers the same goal only", async () => {
+    const server = await boot();
+    const opened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the launch update" }),
+    });
+    const openedBody = await opened.json();
+    const hold = openedBody.approvals.find((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send");
+    const goalId = openedBody.goals[0].id as string;
+    const decision = await fetch(`${server.url}/api/approvals/${hold.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "task" }),
+    });
+    const allowed = await decision.json();
+    expect(decision.status).toBe(200);
+    expect(allowed.messages.at(-1).text).toContain("The send stays allowed for the rest of this goal. Nothing was sent. A later goal still asks.");
+    expect(allowed.messages.at(-1).text).not.toContain("I sent");
+    expect(JSON.stringify(allowed)).not.toContain("Always allow");
+    const same = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the follow-up", goalId }),
+    });
+    const sameBody = await same.json();
+    expect(sameBody.approvals.filter((approval: { status: string; kind: string; goalId: string }) => approval.goalId === goalId && approval.status === "open" && approval.kind === "send")).toHaveLength(0);
+    expect(sameBody.messages.at(-1).text).toContain("The send stays allowed for the rest of this goal.");
+    expect(sameBody.messages.at(-1).text).not.toContain("I held the send for your approval.");
+    const next = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya from a new goal" }),
+    });
+    const nextBody = await next.json();
+    expect(nextBody.approvals.filter((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+    expect(nextBody.messages.at(-1).text).toContain("I held the send for your approval.");
+    expect(nextBody.messages.at(-1).text).not.toContain("stays allowed");
+    const bad = await fetch(`${server.url}/api/approvals/${hold.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "always" }),
+    });
+    expect(bad.status).toBe(400);
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

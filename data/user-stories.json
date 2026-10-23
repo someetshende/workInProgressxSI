@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3745,
-  "flagship": 73,
+  "count": 3746,
+  "flagship": 74,
   "atlas": 3672,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -1320,6 +1320,24 @@
       "kind": "flagship",
       "testRef": "tests/orchestrator.test.ts",
       "sourceInsight": "Grok Bot, launched in beta on 11 August 2026, is a team of named bots on one shared cloud computer, with skills, routines, and an approval gate."
+    },
+    {
+      "id": "ORIEL-F74",
+      "persona": "a parent",
+      "role": "individual",
+      "surface": "approvals",
+      "capability": "Allow one kind for this goal",
+      "title": "Allow for this task covers one kind on this goal only",
+      "story": "As a parent, I want Oriel to let one approval cover that same kind for the rest of this goal only, so that a later goal still asks and nothing is sent or spent.",
+      "acceptance": [
+        "Allow for this task on an open hold covers that same kind when the same goal continues, and it does not open another hold for that kind.",
+        "A later goal still asks, Approve once does not cover the next hold, and a different kind on this goal still waits.",
+        "The allowance does not send mail or move money, does not cover a wake's new goal, and does not become a standing grant."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "Muse, launched by Meta on 8 September 2026, is a personal agent in its own VM, reached like a message, with a Sentinel check before sensitive actions."
     },
     {
       "id": "ORIEL-1001",

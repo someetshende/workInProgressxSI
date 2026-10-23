@@ -535,6 +535,15 @@ function renderHold(approval, ids) {
     actions.append(
       el("button", {
         type: "button",
+        class: "ghost task",
+        "data-testid": ids.task,
+        text: "Allow for this task",
+        onclick: () => post(`/api/approvals/${approval.id}`, { decision: "task" }),
+      }),
+    );
+    actions.append(
+      el("button", {
+        type: "button",
         class: "ghost",
         "data-testid": ids.deny,
         text: "Not now",
@@ -641,6 +650,7 @@ function renderThread() {
         renderHold(approval, {
           card: "away-hold",
           approve: `away-approve-${approval.id}`,
+          task: `away-task-${approval.id}`,
           deny: `away-deny-${approval.id}`,
         }),
       );
@@ -721,6 +731,7 @@ function renderBrief(goal) {
     const attrs = { text: `${step.title} — ${step.status}` };
     if (step.title === "Keep the note as a draft") attrs["data-testid"] = "draft-note";
     if (step.title === "Note the forward") attrs["data-testid"] = "forward-note";
+    if (step.title === "Covered for this goal" && step.kind) attrs["data-testid"] = `task-cover-${step.kind}`;
     plan.append(el("li", attrs));
   }
   details.append(plan);
@@ -765,7 +776,7 @@ function renderBrief(goal) {
   const wrap = el("div");
   const approvals = state.approvals.filter((approval) => approval.goalId === goal.id);
   for (const approval of approvals) {
-    wrap.append(renderHold(approval, { card: "approval", approve: "approve", deny: "deny" }));
+    wrap.append(renderHold(approval, { card: "approval", approve: "approve", task: "allow-task", deny: "deny" }));
   }
   for (const handoff of (state.handoffs || []).filter((item) => item.goalId === goal.id)) {
     wrap.append(renderHandoff(handoff, { card: "handoff", done: "did-this", leave: "leave-step" }));

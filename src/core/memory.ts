@@ -114,8 +114,9 @@ export function extractLoops(text: string): string[] {
   return loops;
 }
 
-export function isBareDecision(text: string): "approve" | "deny" | null {
+export function isBareDecision(text: string): "approve" | "deny" | "task" | null {
   const value = text.trim();
+  if (/^(please\s+)?allow(?:\s+this)?\s+for\s+this\s+task\??$/i.test(value)) return "task";
   if (/^(approve|approved|yes release)$/i.test(value)) return "approve";
   if (/^(deny|denied|not now)$/i.test(value)) return "deny";
   return null;

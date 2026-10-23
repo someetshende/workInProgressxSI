@@ -14745,6 +14745,126 @@ describe("ORIEL-F73", () => {
   });
 });
 
+describe("ORIEL-F74", () => {
+  it("ORIEL-F74 allows one kind for the rest of this goal and still asks later", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      }
+      state = await convene(state, "Email Maya the launch update", undefined, deps);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      expect(open?.scope).toBe("once");
+      const beforeRelease = hits.filter((hit) => hit.raw.includes('"action":"released"')).length;
+      state = await settle(state, open?.id ?? "", "task", deps);
+      expect(state.approvals.find((approval) => approval.id === open?.id)?.status).toBe("approved");
+      expect(state.approvals.find((approval) => approval.id === open?.id)?.scope).toBe("task");
+      expect(state.messages.at(-1)?.text).toContain("Oriel itself still did not send mail");
+      expect(state.messages.at(-1)?.text).toContain("The send stays allowed for the rest of this goal. Nothing was sent. A later goal still asks.");
+      expect(state.messages.at(-1)?.text).not.toContain("I sent");
+      expect(hits.filter((hit) => hit.raw.includes('"action":"released"')).length).toBe(beforeRelease + 1);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const releasedCount = hits.filter((hit) => hit.raw.includes('"action":"released"')).length;
+      state = await convene(state, "Email Maya the follow-up", goalId, deps);
+      expect(state.goals).toHaveLength(1);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(0);
+      expect(voice(state)).toContain("The send stays allowed for the rest of this goal. Nothing was sent. A later goal still asks.");
+      expect(voice(state)).not.toContain("I held the send for your approval.");
+      expect(state.goals[0]?.plan.some((step) => step.title === "Covered for this goal" && step.kind === "send" && step.status === "done")).toBe(true);
+      expect(state.events.some((event) => event.type === "task_cover")).toBe(true);
+      const follow = hits.filter((hit) => hit.raw.includes("Email Maya the follow-up"));
+      expect(follow.length).toBeGreaterThan(0);
+      expect(follow.every((hit) => hit.raw.includes('"action":"convene"'))).toBe(true);
+      expect(follow.every((hit) => hit.raw.includes("Already allowed for this goal only."))).toBe(true);
+      expect(follow.every((hit) => hit.raw.includes("Do not send mail."))).toBe(true);
+      expect(hits.filter((hit) => hit.raw.includes('"action":"released"')).length).toBe(releasedCount);
+
+      state = await convene(state, "Email Maya and pay $20 for the gift", goalId, deps);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(0);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "pay")).toHaveLength(1);
+      expect(voice(state)).toContain("The send stays allowed for the rest of this goal.");
+      expect(voice(state)).toContain("I held the payment for your approval.");
+      expect(voice(state)).toContain("Oriel never moves money.");
+
+      const ruled = await convene(state, "Do not send it.", goalId, deps);
+      expect(voice(ruled)).toContain("I left the send unsent, because you ruled it out.");
+      expect(voice(ruled)).not.toContain("stays allowed");
+      expect(ruled.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
+
+      state = await convene(ruled, "Email Maya after all", goalId, deps);
+      expect(state.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(0);
+      expect(voice(state)).toContain("The send stays allowed for the rest of this goal.");
+
+      const fresh = await convene(state, "Email Maya from a new goal", undefined, deps);
+      expect(fresh.goals).toHaveLength(2);
+      expect(fresh.approvals.filter((approval) => approval.goalId === fresh.goals.at(-1)?.id && approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+      expect(voice(fresh)).toContain("I held the send for your approval.");
+      expect(voice(fresh)).not.toContain("stays allowed");
+
+      const handed = setHandoffRule(state, "send", true, deps);
+      const owned = await convene(handed, "Email Maya the vendor note", goalId, deps);
+      expect(owned.handoffs?.some((item) => item.goalId === goalId && item.status === "open")).toBe(true);
+      expect(owned.approvals.filter((approval) => approval.goalId === goalId && approval.status === "open" && approval.kind === "send")).toHaveLength(0);
+      expect(voice(owned)).not.toContain("stays allowed");
+
+      const quiet = await convene(initialState(), "Change the password on the vendor account", undefined, deps);
+      await expect(convene(quiet, "Allow for this task", undefined, deps)).rejects.toThrow(/Allow for this task does not do it/);
+      expect(quiet.handoffs?.some((item) => item.status === "open")).toBe(true);
+    });
+  });
+
+  it("ORIEL-F74 keeps Approve once, a wake, and a payment on a new goal asking again", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    let once = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const onceGoal = once.goals[0]?.id ?? "";
+    once = await settle(once, once.approvals[0]?.id ?? "", "approve", early);
+    expect(once.approvals[0]?.scope).toBe("once");
+    once = await convene(once, "Email Maya the other note", onceGoal, early);
+    expect(once.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+    expect(voice(once)).toContain("I held the send for your approval.");
+    expect(voice(once)).not.toContain("stays allowed");
+
+    let spoken = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    spoken = await convene(spoken, "Please allow for this task?", undefined, early);
+    expect(spoken.approvals[0]?.scope).toBe("task");
+    expect(spoken.messages.at(-1)?.text).toContain("A later goal still asks.");
+    const aside = await convene(spoken, "Allow for this task and delete the archive", undefined, early);
+    expect(aside.approvals.filter((approval) => approval.kind === "delete" && approval.status === "open")).toHaveLength(1);
+    expect(aside.approvals.find((approval) => approval.kind === "send")?.scope).toBe("task");
+
+    let waking = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    waking = await settle(waking, waking.approvals[0]?.id ?? "", "task", early);
+    waking = saveRoutine(waking, waking.goals[0]?.id ?? "", "Launch note", early);
+    waking = setRoutineCadence(waking, waking.routines[0]?.id ?? "", "hourly", early);
+    waking = await wakeDue(waking, { ...deps, now: () => wakeAt });
+    expect(waking.goals).toHaveLength(2);
+    expect(waking.approvals.filter((approval) => approval.status === "open" && approval.kind === "send")).toHaveLength(1);
+    expect(voice(waking)).toContain("I held the send for your approval.");
+    expect(voice(waking)).not.toContain("stays allowed");
+    expect(waking.approvals.some((approval) => approval.scope === "task" && approval.goalId === waking.goals.at(-1)?.id)).toBe(false);
+
+    let paying = await convene(initialState(), "Buy a $20 gift for the dinner", undefined, early);
+    paying = await settle(paying, paying.approvals[0]?.id ?? "", "task", early);
+    expect(paying.messages.at(-1)?.text).toContain("No charge was made.");
+    expect(paying.messages.at(-1)?.text).toContain("The payment stays allowed for the rest of this goal. Oriel did not move money. No charge was made. A later goal still asks.");
+    const payGoal = paying.goals[0]?.id ?? "";
+    paying = await convene(paying, "Buy a $15 gift for the same dinner", payGoal, early);
+    expect(paying.approvals.filter((approval) => approval.status === "open" && approval.kind === "pay")).toHaveLength(0);
+    expect(voice(paying)).toContain("The payment stays allowed for the rest of this goal.");
+    expect(voice(paying)).toContain("No charge was made.");
+    const laterPay = await convene(paying, "Buy a $15 gift for the trip", undefined, early);
+    expect(laterPay.approvals.filter((approval) => approval.status === "open" && approval.kind === "pay")).toHaveLength(1);
+    expect(voice(laterPay)).toContain("I held the payment for your approval.");
+    expect(voice(laterPay)).not.toContain("stays allowed");
+    expect(JSON.stringify(toPublic(laterPay, 0))).not.toContain("Always allow");
+    await expect(convene(initialState(), "Always allow the send", undefined, deps)).rejects.toThrow(/without asking/);
+  });
+});
+
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [

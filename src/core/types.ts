@@ -73,6 +73,8 @@ export type Brief = {
   skipped: ApprovalKind[];
   /** Kinds a wake left alone because the person already said not now. */
   stayed: ApprovalKind[];
+  /** Kinds already allowed for the rest of this goal. A later goal still asks. */
+  covered: ApprovalKind[];
   handed: boolean;
   referenceOnly: boolean;
   skill: string | null;
@@ -111,6 +113,8 @@ export type Approval = {
   settledAt: string | null;
   /** Set when a wake raised this hold, so saying not now keeps the next wake from raising the same kind. */
   routineId?: string | null;
+  /** once asks again on the next step. task covers this kind for the rest of this goal only. */
+  scope: "once" | "task";
 };
 
 export type HandoffStatus = "open" | "done" | "left";

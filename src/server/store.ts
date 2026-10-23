@@ -31,6 +31,7 @@ export class Store {
       parsed.approvals = (parsed.approvals ?? []).map((approval) => ({
         ...approval,
         expiresAt: typeof approval.expiresAt === "string" ? approval.expiresAt : null,
+        scope: approval.scope === "task" ? "task" : "once",
       }));
       parsed.routines = (parsed.routines ?? []).map(normalizeRoutine).filter((routine) => routine !== null);
       parsed.skills = (Array.isArray(parsed.skills) ? parsed.skills : [])

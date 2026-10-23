@@ -258,12 +258,12 @@ export async function startServer(options: {
       const approvalMatch = method === "POST" ? pathname.match(/^\/api\/approvals\/([A-Za-z0-9_]+)$/) : null;
       if (approvalMatch) {
         const body = asObject(await readBody(req));
-        if (body.decision !== "approve" && body.decision !== "deny") {
-          throw new OrielError("Decision must be approve or deny.");
+        if (body.decision !== "approve" && body.decision !== "deny" && body.decision !== "task") {
+          throw new OrielError("Decision must be approve, deny, or task.");
         }
         const id = approvalMatch[1] ?? "";
         const next = await store.update(async (current) => {
-          const updated = await settle(current, id, body.decision as "approve" | "deny", depsFor());
+          const updated = await settle(current, id, body.decision as "approve" | "deny" | "task", depsFor());
           await writeDesk(options.dataDir, updated);
           return updated;
         });
