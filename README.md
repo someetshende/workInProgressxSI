@@ -43,6 +43,8 @@ A hold from a turn you send waits until you answer. A hold raised by a wake expi
 
 A password change, a sign-in, or a one-time code is handed to you. The card says **Hand off to you**. **I did this** records that you did the step. It does not call the bridge, send mail, or move money, and it does not approve a hold that is still open. **Leave it** records that you did not do the step. Do not paste a password into Oriel. A saved skill can hand a named action to you only when the new request would have done that action. A skill that only mentions the rule does not invent the step.
 
+In the rail, **Hand off to you** can save a rule for Send, Pay, Delete, or Post. A later request that would do that action is yours. A draft that would not do it does not open a card. Saving the same action twice does not duplicate the rule. Clearing it does not approve a hold, send mail, or move money. The rule does not wake. There is no control that takes the action without asking.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:

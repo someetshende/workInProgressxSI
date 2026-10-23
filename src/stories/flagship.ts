@@ -460,6 +460,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F25",
+      persona: "a security admin",
+      role: "security",
+      surface: "approvals",
+      capability: "Handoff rule",
+      title: "A handoff rule names the step that stays yours",
+      story:
+        "As a security admin, I want Oriel to save a handoff rule for a named action from the rail, so that a later request which would do that action is mine and a seat never runs it.",
+      acceptance: [
+        "Saving the same named action twice does not duplicate the rule, and the rule does not wake or approve a hold.",
+        "A later deletion is handed to you, and a draft that would not delete does not open a handoff.",
+        "Marking the step done does not call the bridge or send mail, and there is still no always-allow.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

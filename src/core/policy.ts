@@ -1,5 +1,5 @@
 import { handoffFacts } from "./handoff.js";
-import type { ApprovalKind, Memory, Policy } from "./types.js";
+import { HANDOFF_ACTIONS, type ApprovalKind, type HandoffAction, type HandoffRule, type Memory, type Policy } from "./types.js";
 
 function forbade(text: string, verbs: string): boolean {
   return new RegExp(
@@ -78,6 +78,32 @@ export function withSkillProhibitions(user: Policy, method: string, memory: Memo
     replaces,
     handoff: user.handoff || replaces.length > user.replaces.length,
     credentials: replaces.includes("credential") ? false : user.credentials,
+  };
+}
+
+function actionActive(policy: Policy, action: HandoffAction): boolean {
+  if (action === "send") return policy.outbound && !policy.forbadeSend;
+  if (action === "pay") return policy.payment && !policy.forbadePay;
+  if (action === "delete") return policy.deletion && !policy.forbadeDelete;
+  return policy.publicPost && !policy.forbadePost;
+}
+
+export function applyHandoffRules(policy: Policy, rules: HandoffRule[]): { policy: Policy; fired: HandoffAction[] } {
+  const replaces = [...policy.replaces];
+  const fired: HandoffAction[] = [];
+  for (const action of HANDOFF_ACTIONS) {
+    if (!rules.some((rule) => rule.action === action)) continue;
+    if (!actionActive(policy, action)) continue;
+    if (!replaces.includes(action)) replaces.push(action);
+    fired.push(action);
+  }
+  return {
+    fired,
+    policy: {
+      ...policy,
+      replaces,
+      handoff: policy.handoff || fired.length > 0,
+    },
   };
 }
 

@@ -220,6 +220,26 @@ aside {
   font-size: 12px;
   padding: 4px 8px;
 }
+.rule-note {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.rules { display: flex; flex-wrap: wrap; gap: 6px; }
+.rule {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.rule[aria-pressed="true"] {
+  color: var(--ink);
+  border-color: var(--signal);
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+}
 .bridge-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .bridge-actions button {
   background: var(--button);

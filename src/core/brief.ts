@@ -1,9 +1,9 @@
-import { HANDOFF_VOICE } from "./handoff.js";
+import { HANDOFF_VOICE, ruleSentence } from "./handoff.js";
 import { AWAY_HOLD_COPY } from "./hold.js";
 import { DISPLAY, phrase } from "./doctrine.js";
 import { TRUST } from "./doctrine.js";
 import { peopleIn } from "./memory.js";
-import type { ApprovalKind, Brief, Goal, LedgerEvent, Policy, SeatChoice, SeatNote } from "./types.js";
+import type { ApprovalKind, Brief, Goal, HandoffAction, LedgerEvent, Policy, SeatChoice, SeatNote } from "./types.js";
 
 const KIND_HELD: Record<ApprovalKind, string> = {
   send: "I held the send for your approval.",
@@ -81,14 +81,17 @@ export function composeBrief(input: {
   skipped: ApprovalKind[];
   handed?: boolean;
   skillName?: string | null;
+  rules?: HandoffAction[];
   away?: boolean;
 }): Brief {
   const recommendation = recommend(input.choice, input.policy);
   const sentence = holdSentence(input.held, input.skipped);
   const using = input.skillName ? `Using the skill “${input.skillName}”.` : "";
+  const rules = input.rules ?? [];
+  const ruleLine = ruleSentence(rules);
   const handedLine = input.handed ? HANDOFF_VOICE : "";
   const awayLine = input.away && input.held.length ? AWAY_HOLD_COPY : "";
-  const voice = [using, recommendation, sentence, handedLine, awayLine].filter(Boolean).join(" ");
+  const voice = [using, recommendation, sentence, ruleLine, handedLine, awayLine].filter(Boolean).join(" ");
   const why = input.skillName
     ? [
         `The skill “${input.skillName}” supplied the method. It does not wake, and it does not approve a hold.`,
@@ -104,6 +107,7 @@ export function composeBrief(input: {
     ...input.notes.map((note) => note.summary),
     input.choice.dissent,
     sentence || null,
+    ruleLine || null,
     handedLine || null,
     awayLine || null,
     modeLine,
@@ -125,6 +129,7 @@ export function composeBrief(input: {
     handed: Boolean(input.handed),
     referenceOnly: input.notes.every((note) => note.mode === "reference"),
     skill: input.skillName ?? null,
+    rules,
   };
 }
 
@@ -155,6 +160,9 @@ export function renderMarkdown(goal: Goal, events: LedgerEvent[]): string {
   }
   if (goal.brief.dissent) {
     lines.push("", "## Disagreement", goal.brief.dissent);
+  }
+  if (goal.brief.rules?.length) {
+    lines.push("", "## Handoff rule", ruleSentence(goal.brief.rules));
   }
   if (goal.brief.handed) {
     lines.push(

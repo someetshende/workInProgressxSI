@@ -151,6 +151,36 @@ function renderRail() {
   ]);
   rail.append(brand);
   rail.append(el("p", { class: "tag", text: "One window for the agents you already run." }));
+  rail.append(el("p", { class: "label", text: "Hand off to you" }));
+  rail.append(
+    el("p", {
+      class: "rule-note",
+      text: "When a request would do one of these, that step is yours.",
+    }),
+  );
+  const rules = el("div", { class: "rules", "data-testid": "handoff-rules" });
+  for (const [action, label] of [
+    ["send", "Send"],
+    ["pay", "Pay"],
+    ["delete", "Delete"],
+    ["post", "Post"],
+  ]) {
+    const saved = Boolean(state.handoffRules?.some((rule) => rule.action === action));
+    rules.append(
+      el("button", {
+        type: "button",
+        class: "rule",
+        "data-testid": `rule-${action}`,
+        "aria-pressed": saved ? "true" : "false",
+        title: saved
+          ? `A request that would ${action} is yours. Clearing this does not run it or approve a hold.`
+          : `Save a handoff rule for ${action}. A later request that would do it is yours. This does not run the step.`,
+        text: label,
+        onclick: () => post("/api/handoff-rules", { action, enabled: !saved }),
+      }),
+    );
+  }
+  rail.append(rules);
   rail.append(
     el("button", {
       type: "button",

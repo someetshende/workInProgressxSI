@@ -284,6 +284,14 @@ export const jobs: Job[] = [
     want: "be handed a step only I can do, such as a password change or a sign-in, instead of a seat doing it",
     proof: "The step is handed to the person. Marking it done does not call a bridge, send mail, or move money.",
   },
+  {
+    id: "rule",
+    surface: "approvals",
+    capability: "Handoff rule",
+    short: "Handoff rule",
+    want: "save a handoff rule for a named action so a later request that would do it is mine",
+    proof: "The rule does not wake, does not approve a hold, and does not run the action. A request that would not do that action does not open a handoff.",
+  },
 ];
 
 export const constraints: Constraint[] = [

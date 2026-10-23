@@ -1,10 +1,10 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { normalizeRoutine } from "../core/cadence.js";
-import { normalizeHandoff } from "../core/handoff.js";
+import { normalizeHandoff, normalizeHandoffRule } from "../core/handoff.js";
 import { normalizeSkill } from "../core/skill.js";
 import { initialState } from "../core/state.js";
-import type { AppState, Handoff, Skill } from "../core/types.js";
+import type { AppState, Handoff, HandoffRule, Skill } from "../core/types.js";
 
 type SecretFile = Record<string, string>;
 
@@ -39,6 +39,14 @@ export class Store {
       parsed.handoffs = (Array.isArray(parsed.handoffs) ? parsed.handoffs : [])
         .map(normalizeHandoff)
         .filter((handoff): handoff is Handoff => handoff !== null);
+      const seenRules = new Set<string>();
+      parsed.handoffRules = (Array.isArray(parsed.handoffRules) ? parsed.handoffRules : [])
+        .map(normalizeHandoffRule)
+        .filter((rule): rule is HandoffRule => {
+          if (!rule || seenRules.has(rule.action)) return false;
+          seenRules.add(rule.action);
+          return true;
+        });
       this.state = parsed;
     } catch (error) {
       if (!isErrno(error, "ENOENT")) throw error;

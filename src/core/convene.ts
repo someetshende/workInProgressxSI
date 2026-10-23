@@ -3,11 +3,11 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, handoffDetail, handoffTitle, isHandoffDecision, skillGuardsSeat, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, handoffDetail, handoffTitle, isHandoffAction, isHandoffDecision, skillGuardsSeat, taskSuffix } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
-import { kindsFor, readPolicy, withSkillProhibitions } from "./policy.js";
+import { applyHandoffRules, kindsFor, readPolicy, withSkillProhibitions } from "./policy.js";
 import { clamp, redactSecrets } from "./redact.js";
 import { skillInstruction } from "./skill.js";
 import { consultSeat, subjectLine } from "./seats.js";
@@ -154,9 +154,13 @@ export async function convene(
 
   const draft = structuredClone(swept);
   draft.handoffs = draft.handoffs ?? [];
+  draft.handoffRules = draft.handoffRules ?? [];
   draft.memory = remember(draft.memory, stored);
   let policy = readPolicy(original, draft.memory);
   if (applied) policy = withSkillProhibitions(policy, applied.method, draft.memory);
+  const ruled = applyHandoffRules(policy, draft.handoffRules);
+  policy = ruled.policy;
+  const fired = ruled.fired;
 
   let goal: Goal | null = null;
   if (goalId) {
@@ -223,6 +227,7 @@ export async function convene(
         skipped,
         skillName: applied?.name ?? null,
         handed: policy.handoff,
+        rules: fired,
         away: presence === "away",
       }),
       openLoops: extractLoops(stored),
@@ -329,6 +334,7 @@ export async function convene(
     skipped,
     handed: policy.handoff,
     skillName: applied?.name ?? null,
+    rules: fired,
     away: presence === "away",
   });
   goal.status = goalStatus(goal, draft.approvals, draft.handoffs);
@@ -510,6 +516,40 @@ export function setConnector(
   if (typeof patch.enabled === "boolean") {
     pushEvent(draft, null, "seat", `${DISPLAY[id]} is ${connector.enabled ? "on" : "off"}.`, deps);
   }
+  return draft;
+}
+
+export function setHandoffRule(state: AppState, action: string, enabled: boolean, deps: Deps): AppState {
+  if (!isHandoffAction(action)) throw new OrielError("A handoff rule names send, pay, delete, or post.");
+  const rules = state.handoffRules ?? [];
+  const existing = rules.find((rule) => rule.action === action);
+  if (enabled && existing) return state;
+  if (!enabled && !existing) return state;
+  const draft = structuredClone(state);
+  draft.handoffRules = [...(draft.handoffRules ?? [])];
+  if (!enabled) {
+    draft.handoffRules = draft.handoffRules.filter((rule) => rule.action !== action);
+    pushEvent(
+      draft,
+      null,
+      "rule_cleared",
+      `Cleared the handoff rule for ${action}. Nothing was sent or spent, and no hold was approved.`,
+      deps,
+    );
+    return draft;
+  }
+  draft.handoffRules.push({
+    id: nid(draft, "rule"),
+    action,
+    createdAt: at(deps),
+  });
+  pushEvent(
+    draft,
+    null,
+    "rule_saved",
+    `Saved a handoff rule for ${action}. When a request would do that, the step is yours. The rule does not run it, wake, or approve a hold.`,
+    deps,
+  );
   return draft;
 }
 

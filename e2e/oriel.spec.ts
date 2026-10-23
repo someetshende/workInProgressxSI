@@ -360,6 +360,44 @@ test("ORIEL-F24 a password change is handed over and a send stays held", async (
   await page.screenshot({ path: "test-results/oriel-handoff.png" });
 });
 
+test("ORIEL-F25 a rail rule hands a deletion to you and leaves a draft alone", async ({ page }) => {
+  await page.goto("/");
+  const rule = page.getByTestId("rule-delete");
+  await expect(rule).toHaveAttribute("aria-pressed", "false");
+  await rule.click();
+  await expect(rule).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /without asking/i })).toHaveCount(0);
+  await page.getByTestId("composer").fill("Draft the weekly close");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("synthesis")).toBeVisible();
+  await expect(page.getByTestId("thread")).toContainText("Draft the weekly close");
+  await expect(page.getByTestId("handoff")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Delete the shared project files");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("handoff")).toContainText("Delete that yourself");
+  await expect(page.getByTestId("synthesis")).toContainText("Your rule hands the deletion to you");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.getByTestId("did-this").click();
+  await expect(page.getByTestId("thread")).toContainText("did not type a password");
+  await expect(page.getByTestId("thread")).not.toContainText("I deleted");
+  const tick = await page.request.post("/api/tick", { data: { force: true } });
+  expect(tick.ok()).toBeTruthy();
+  await page.reload();
+  await expect(page.locator("[data-testid^='goal-goal_']")).toHaveCount(2);
+  await expect(page.getByText("Routine", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("rule-delete")).toHaveAttribute("aria-pressed", "true");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("rule-delete")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-rule.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

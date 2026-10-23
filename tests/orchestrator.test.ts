@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { renderMarkdown } from "../src/core/brief.js";
-import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../src/core/convene.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../src/core/convene.js";
 import { HOLD_WINDOW_MS } from "../src/core/hold.js";
 import { initialState, toPublic } from "../src/core/state.js";
 import { startLocalSeat } from "../src/seats/local.js";
@@ -846,6 +846,107 @@ describe("hand off to you", () => {
     expect(state.handoffs).toHaveLength(0);
     expect(voice(state)).not.toContain("I handed that step");
     expect(state.approvals).toHaveLength(0);
+  });
+
+  it("ORIEL-F25 a handoff rule covers only the named action and does not wake", async () => {
+    expect(() => setHandoffRule(initialState(), "allow", true, deps)).toThrow(/send, pay, delete, or post/);
+    let held = await convene(initialState(), "Email Maya the launch update", undefined, deps);
+    const openId = held.approvals[0]?.id ?? "";
+    held = setHandoffRule(held, "send", true, deps);
+    held = setHandoffRule(held, "send", false, deps);
+    expect(held.handoffRules).toHaveLength(0);
+    expect(held.approvals.find((approval) => approval.id === openId)?.status).toBe("open");
+    expect(held.events.some((event) => event.type === "approved")).toBe(false);
+
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      expect(state.handoffRules).toHaveLength(1);
+      expect(state.events.filter((event) => event.type === "rule_saved")).toHaveLength(1);
+      state = await convene(state, "Draft the weekly close", undefined, deps);
+      expect(state.goals.at(-1)?.brief.handed).toBe(false);
+      expect(state.goals.at(-1)?.brief.rules).toEqual([]);
+      expect(state.handoffs).toHaveLength(0);
+      state = await convene(state, "Delete the shared project files", undefined, deps);
+      const latest = state.goals.at(-1)?.id;
+      expect(state.goals.at(-1)?.brief.rules).toEqual(["delete"]);
+      expect(voice(state)).toContain("Your rule hands the deletion to you");
+      expect(state.approvals.filter((approval) => approval.goalId === latest)).toHaveLength(0);
+      expect(state.handoffs.filter((item) => item.goalId === latest && item.status === "open")).toHaveLength(1);
+      expect(hits.at(-1)?.raw).toContain("Do not delete anything");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      const convened = hits.length;
+      state = await settleHandoff(state, state.handoffs.at(-1)?.id ?? "", "done", deps);
+      expect(hits).toHaveLength(convened);
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(state.messages.at(-1)?.text).toContain("did not type a password");
+      expect(renderMarkdown(state.goals.at(-1)!, state.events)).toContain("## Handoff rule");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+
+    let ruled = setHandoffRule(initialState(), "send", true, deps);
+    ruled = await convene(ruled, "Email Maya the launch update but do not send it", undefined, deps);
+    expect(ruled.handoffs).toHaveLength(0);
+    expect(voice(ruled)).toContain("ruled it out");
+    ruled = await convene(ruled, "Delete the shared files and email Maya the note", undefined, deps);
+    expect(ruled.goals.at(-1)?.brief.rules).toEqual(["send"]);
+    expect(ruled.approvals.filter((approval) => approval.status === "open" && approval.kind === "delete")).toHaveLength(1);
+    expect(ruled.handoffs.at(-1)?.title).toBe("Send that yourself");
+
+    let quiet = setHandoffRule(initialState(), "delete", true, deps);
+    quiet = await convene(quiet, "Change the vendor password", undefined, deps);
+    expect(quiet.handoffs).toHaveLength(1);
+    expect(quiet.handoffs[0]?.title).toBe("Change the password yourself");
+    expect(quiet.goals[0]?.brief.rules).toEqual([]);
+
+    const asleep = await wakeDue(setHandoffRule(initialState(), "pay", true, deps), {
+      ...deps,
+      now: () => new Date("2026-10-24T12:00:00.000Z"),
+    });
+    expect(asleep.goals).toHaveLength(0);
+    expect(asleep.handoffRules).toHaveLength(1);
+    expect(asleep.routines).toHaveLength(0);
+  });
+
+  it("ORIEL-F25 a woken send stays with you when the rule says so", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = setHandoffRule(state, "send", true, early);
+      state = await convene(state, "Email Maya the launch update", undefined, early);
+      expect(state.approvals).toHaveLength(0);
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
+      expect(state.handoffs.filter((item) => item.status === "open")).toHaveLength(2);
+      expect(state.goals).toHaveLength(2);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(state.messages.some((message) => message.text.includes("I sent"))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+
+  it("a delete rule keeps client work off Muse", async () => {
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = setHandoffRule(state, "delete", true, deps);
+      state = await convene(state, "Delete the client files for the matter", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.handoffs).toHaveLength(1);
+      expect(state.goals[0]?.brief.seatReads.some((note) => note.seat === "muse")).toBe(false);
+      expect(state.goals[0]?.lead).toBe("grok");
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
   });
 });
 

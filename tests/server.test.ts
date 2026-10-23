@@ -205,6 +205,12 @@ describe("Oriel server", () => {
             createdAt: "2026-10-23T12:00:00.000Z",
           },
         ],
+        handoffRules: [
+          { id: "rule_bad" },
+          { id: "rule_allow", action: "allow", createdAt: "2026-10-23T12:00:00.000Z" },
+          { id: "rule_ok", action: "delete", createdAt: "2026-10-23T12:00:00.000Z" },
+          { id: "rule_dup", action: "delete", createdAt: "2026-10-23T13:00:00.000Z" },
+        ],
         events: [],
       }),
     );
@@ -220,6 +226,9 @@ describe("Oriel server", () => {
         method: "Do not send the close",
         createdAt: "2026-10-23T12:00:00.000Z",
       },
+    ]);
+    expect(state.handoffRules).toEqual([
+      { id: "rule_ok", action: "delete", createdAt: "2026-10-23T12:00:00.000Z" },
     ]);
   });
 
@@ -408,6 +417,72 @@ describe("Oriel server", () => {
     expect(after.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
     const disk = await readFile(path.join(server.dir, "state.json"), "utf8");
     expect(disk).not.toContain(secret);
+  });
+
+  it("ORIEL-F25 saves one handoff rule per named action and does not run it", async () => {
+    const server = await boot();
+    const bad = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "allow", enabled: true }),
+    });
+    expect(bad.status).toBe(400);
+    const saved = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true }),
+    });
+    expect(saved.status).toBe(200);
+    const again = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: true }),
+    });
+    const ruled = await again.json();
+    expect(ruled.handoffRules).toHaveLength(1);
+    expect(ruled.events.filter((event: { type: string }) => event.type === "rule_saved")).toHaveLength(1);
+    const draft = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Draft the weekly close" }),
+    });
+    const drafted = await draft.json();
+    expect(drafted.handoffs).toHaveLength(0);
+    const turn = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Delete the shared project files" }),
+    });
+    const opened = await turn.json();
+    expect(opened.handoffs).toHaveLength(1);
+    expect(opened.approvals.filter((approval: { status: string }) => approval.status === "open")).toHaveLength(0);
+    expect(JSON.stringify(opened)).toContain("Your rule hands the deletion to you");
+    expect(JSON.stringify(opened)).not.toContain("Always allow");
+    const done = await fetch(`${server.url}/api/handoffs/${opened.handoffs[0].id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "done" }),
+    });
+    const after = await done.json();
+    expect(after.handoffs[0].status).toBe("done");
+    expect(after.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    expect(after.messages.at(-1).text).toContain("did not type a password");
+    const cleared = await fetch(`${server.url}/api/handoff-rules`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", enabled: false }),
+    });
+    const empty = await cleared.json();
+    expect(empty.handoffRules).toHaveLength(0);
+    expect(empty.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const tick = await fetch(`${server.url}/api/tick`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    });
+    const slept = await tick.json();
+    expect(slept.goals).toHaveLength(opened.goals.length);
+    expect(slept.routines).toHaveLength(0);
   });
 
   it("rejects an empty turn", async () => {

@@ -3,7 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderMarkdown } from "../core/brief.js";
 import { isCadence } from "../core/cadence.js";
-import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../core/convene.js";
+import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../core/convene.js";
 import type { Deps } from "../core/types.js";
 import { OrielError } from "../core/errors.js";
 import { refineWithGlm } from "../core/glm.js";
@@ -312,6 +312,14 @@ export async function startServer(options: {
         }
         const id = connectorMatch[1] ?? "";
         const next = await store.update((current) => setConnector(current, id, patch, depsFor()));
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      if (method === "POST" && pathname === "/api/handoff-rules") {
+        const body = asObject(await readBody(req));
+        if (typeof body.action !== "string") throw new OrielError("A handoff rule names send, pay, delete, or post.");
+        if (typeof body.enabled !== "boolean") throw new OrielError("Enabled must be true or false.");
+        const next = await store.update((current) => setHandoffRule(current, body.action as string, body.enabled === true, depsFor()));
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }

@@ -1,4 +1,4 @@
-import type { ApprovalKind, Handoff, Policy } from "./types.js";
+import { HANDOFF_ACTIONS, type ApprovalKind, type Handoff, type HandoffAction, type HandoffRule, type Policy } from "./types.js";
 
 export const HANDOFF_TASK =
   "This step belongs to the person. Do not change a password, sign in, type a code, or solve a captcha. Do not ask them to paste a secret.";
@@ -127,6 +127,33 @@ export function isHandoffDecision(text: string): "done" | "leave" | null {
   if (/^(i did this|i did it|i changed it)$/i.test(value)) return "done";
   if (/^(leave it|leave that step)$/i.test(value)) return "leave";
   return null;
+}
+
+const RULE_NOUN: Record<HandoffAction, string> = {
+  send: "the send",
+  pay: "the payment",
+  delete: "the deletion",
+  post: "the public post",
+};
+
+export function isHandoffAction(value: string): value is HandoffAction {
+  return (HANDOFF_ACTIONS as readonly string[]).includes(value);
+}
+
+export function ruleSentence(actions: HandoffAction[]): string {
+  if (!actions.length) return "";
+  const names = actions.map((action) => RULE_NOUN[action]);
+  const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  return `Your rule hands ${list} to you. It does not run the step, and it does not approve a hold.`;
+}
+
+export function normalizeHandoffRule(value: unknown): HandoffRule | null {
+  if (!value || typeof value !== "object") return null;
+  const rule = value as Partial<HandoffRule>;
+  if (typeof rule.id !== "string" || !rule.id.trim()) return null;
+  if (typeof rule.action !== "string" || !isHandoffAction(rule.action)) return null;
+  if (typeof rule.createdAt !== "string" || !rule.createdAt) return null;
+  return { id: rule.id, action: rule.action, createdAt: rule.createdAt };
 }
 
 export function normalizeHandoff(value: unknown): Handoff | null {

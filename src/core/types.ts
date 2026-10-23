@@ -15,6 +15,10 @@ export type Intent =
 
 export type ApprovalKind = "send" | "pay" | "delete" | "post" | "credential";
 
+export const HANDOFF_ACTIONS = ["send", "pay", "delete", "post"] as const;
+
+export type HandoffAction = (typeof HANDOFF_ACTIONS)[number];
+
 export type ApprovalStatus = "open" | "approved" | "denied" | "expired";
 
 export type StepStatus = "done" | "waiting" | "skipped" | "denied" | "expired";
@@ -70,6 +74,7 @@ export type Brief = {
   handed: boolean;
   referenceOnly: boolean;
   skill: string | null;
+  rules: HandoffAction[];
 };
 
 export type Goal = {
@@ -115,6 +120,12 @@ export type Handoff = {
   resolution: string | null;
   createdAt: string;
   settledAt: string | null;
+};
+
+export type HandoffRule = {
+  id: string;
+  action: HandoffAction;
+  createdAt: string;
 };
 
 export type Message = {
@@ -164,6 +175,7 @@ export type AppState = {
   messages: Message[];
   approvals: Approval[];
   handoffs: Handoff[];
+  handoffRules: HandoffRule[];
   routines: Routine[];
   skills: Skill[];
   events: LedgerEvent[];
@@ -181,6 +193,7 @@ export type PublicState = {
   messages: Message[];
   approvals: Approval[];
   handoffs: Handoff[];
+  handoffRules: HandoffRule[];
   routines: Routine[];
   skills: Skill[];
   events: LedgerEvent[];
