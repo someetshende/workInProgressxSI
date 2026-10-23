@@ -67,6 +67,7 @@ export type Brief = {
   seatReads: SeatNote[];
   held: ApprovalKind[];
   skipped: ApprovalKind[];
+  handed: boolean;
   referenceOnly: boolean;
   skill: string | null;
 };
@@ -99,6 +100,20 @@ export type Approval = {
   createdAt: string;
   /** When a routine raised this hold. Null while the person is in the conversation: that hold waits. */
   expiresAt: string | null;
+  settledAt: string | null;
+};
+
+export type HandoffStatus = "open" | "done" | "left";
+
+export type Handoff = {
+  id: string;
+  goalId: string;
+  stepId: string;
+  title: string;
+  detail: string;
+  status: HandoffStatus;
+  resolution: string | null;
+  createdAt: string;
   settledAt: string | null;
 };
 
@@ -148,6 +163,7 @@ export type AppState = {
   goals: Goal[];
   messages: Message[];
   approvals: Approval[];
+  handoffs: Handoff[];
   routines: Routine[];
   skills: Skill[];
   events: LedgerEvent[];
@@ -164,6 +180,7 @@ export type PublicState = {
   goals: Goal[];
   messages: Message[];
   approvals: Approval[];
+  handoffs: Handoff[];
   routines: Routine[];
   skills: Skill[];
   events: LedgerEvent[];
@@ -201,4 +218,9 @@ export type Policy = {
   forbadeDelete: boolean;
   forbadePost: boolean;
   preferShort: boolean;
+  handoff: boolean;
+  replaces: ApprovalKind[];
+  personPassword: boolean;
+  personSignin: boolean;
+  personCode: boolean;
 };

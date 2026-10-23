@@ -1,5 +1,7 @@
 const SECRET = /\bsk-[A-Za-z0-9_-]{8,}\b/g;
 const ASSIGNED = /\b(?:api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi;
+const PASSWORD_VALUE = /\b(password|passcode)\s+(?:is|to|be)\s+\S+/gi;
+const CODE_VALUE = /\b(one-time code|verification code|otp)\s+(?:is|to)\s+\S+/gi;
 const BEARER = /\bBearer\s+[A-Za-z0-9._~+/-]{6,}/gi;
 const SSN = /\b\d{3}-\d{2}-\d{4}\b/g;
 const CARD = /\b(?:\d[ -]*?){13,16}\b/g;
@@ -8,6 +10,8 @@ export function redactSecrets(text: string): string {
   return text
     .replace(BEARER, "Bearer [redacted secret]")
     .replace(ASSIGNED, "[redacted secret]")
+    .replace(PASSWORD_VALUE, "$1 [redacted secret]")
+    .replace(CODE_VALUE, "$1 [redacted secret]")
     .replace(SECRET, "[redacted secret]")
     .replace(SSN, "[redacted id]")
     .replace(CARD, "[redacted id]");

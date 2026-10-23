@@ -326,6 +326,40 @@ test("ORIEL-F23 a woken hold expires and asking again still waits", async ({ pag
   await page.screenshot({ path: "test-results/oriel-expired.png" });
 });
 
+test("ORIEL-F24 a password change is handed over and a send stays held", async ({ page }) => {
+  await page.goto("/");
+  const secret = "hunter2-window";
+  await page.getByTestId("composer").fill(`Change my password to ${secret}`);
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Hand off to you");
+  await expect(page.getByTestId("handoff")).toContainText("Change the password yourself");
+  await expect(page.getByTestId("handoff")).toContainText("Do not paste a password");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(secret);
+  await page.getByTestId("did-this").click();
+  await expect(page.getByTestId("thread")).toContainText("did not type a password");
+  await expect(page.getByTestId("did-this")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Sign in to the shop and email Maya the receipt");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("handoff")).toContainText("Sign in yourself");
+  await expect(page.getByTestId("approval")).toContainText("Release a send");
+  await page.getByTestId("did-this").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await page.getByTestId("deny").click();
+  await expect(page.getByTestId("thread")).toContainText("Nothing was released.");
+  await expect(page.locator("body")).not.toContainText(secret);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByTestId("handoff")).toBeVisible();
+  await page.screenshot({ path: "test-results/oriel-handoff.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

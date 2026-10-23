@@ -276,6 +276,14 @@ export const jobs: Job[] = [
     want: "let a hold raised while I am away expire without running the action",
     proof: "An unattended hold expires, the action does not run, and there is no always-allow.",
   },
+  {
+    id: "handoff",
+    surface: "approvals",
+    capability: "Hand off to you",
+    short: "Hand off",
+    want: "be handed a step only I can do, such as a password change or a sign-in, instead of a seat doing it",
+    proof: "The step is handed to the person. Marking it done does not call a bridge, send mail, or move money.",
+  },
 ];
 
 export const constraints: Constraint[] = [

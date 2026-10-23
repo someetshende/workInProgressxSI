@@ -3,6 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, handoffDetail, handoffTitle, isHandoffDecision, skillGuardsSeat, taskSuffix } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
@@ -19,6 +20,7 @@ import type {
   Cadence,
   Deps,
   Goal,
+  Handoff,
   LedgerEvent,
   Message,
   PlanStep,
@@ -79,7 +81,7 @@ export function expireHolds(state: AppState, deps: Deps): AppState {
   for (const goal of draft.goals) {
     if (!goals.has(goal.id)) continue;
     goal.updatedAt = now;
-    goal.status = goalStatus(goal, draft.approvals);
+    goal.status = goalStatus(goal, draft.approvals, draft.handoffs ?? []);
   }
   pushMessage(
     draft,
@@ -123,10 +125,25 @@ export async function convene(
   if (decision) {
     const open = [...swept.approvals].reverse().find((approval) => approval.status === "open");
     if (!open) {
+      const handed = [...(swept.handoffs ?? [])].reverse().find((item) => item.status === "open");
+      if (decision === "deny" && handed) return settleHandoff(swept, handed.id, "leave", deps);
+      if (decision === "approve" && handed) {
+        throw new OrielError("That step is yours. Say you did it, or leave it. Approve does not do it.");
+      }
       if (swept !== state) return swept;
       throw new OrielError("Nothing is waiting on you.");
     }
     return settle(swept, open.id, decision, deps);
+  }
+
+  const handDecision = isHandoffDecision(original);
+  if (handDecision) {
+    const open = [...(swept.handoffs ?? [])].reverse().find((item) => item.status === "open");
+    if (!open) {
+      if (swept !== state) return swept;
+      throw new OrielError("Nothing is waiting on you.");
+    }
+    return settleHandoff(swept, open.id, handDecision, deps);
   }
 
   const stored = redactSecrets(original);
@@ -136,6 +153,7 @@ export async function convene(
   const applied = memoryTurn ? null : skill;
 
   const draft = structuredClone(swept);
+  draft.handoffs = draft.handoffs ?? [];
   draft.memory = remember(draft.memory, stored);
   let policy = readPolicy(original, draft.memory);
   if (applied) policy = withSkillProhibitions(policy, applied.method, draft.memory);
@@ -153,6 +171,14 @@ export async function convene(
         const old = goal.plan.find((item) => item.id === approval.stepId);
         if (old && old.status === "waiting") old.status = "denied";
       }
+    }
+    for (const handoff of draft.handoffs) {
+      if (handoff.goalId !== goal.id || handoff.status !== "open") continue;
+      handoff.status = "left";
+      handoff.resolution = "Superseded by a newer request on this goal.";
+      handoff.settledAt = at(deps);
+      const old = goal.plan.find((item) => item.id === handoff.stepId);
+      if (old && old.status === "waiting") old.status = "skipped";
     }
   }
 
@@ -196,6 +222,7 @@ export async function convene(
         held,
         skipped,
         skillName: applied?.name ?? null,
+        handed: policy.handoff,
         away: presence === "away",
       }),
       openLoops: extractLoops(stored),
@@ -219,7 +246,10 @@ export async function convene(
   const plan: PlanStep[] = [
     step(draft, "Frame the outcome", "Oriel states one recommendation and keeps the record.", "oriel", "done"),
   ];
-  const taskForSeats = applied ? skillInstruction(applied.name, applied.method, stored) : stored;
+  const taskForSeats = `${applied ? skillInstruction(applied.name, applied.method, stored) : stored}${taskSuffix(
+    policy,
+    applied ? skillGuardsSeat(applied.method) : false,
+  )}`;
   const consulted = await Promise.all(
     choice.picked.map(async (seat) => {
       const connector = draft.connectors.find((item) => item.id === seat);
@@ -265,6 +295,29 @@ export async function convene(
     draft.approvals.push(approval);
     approvalIds.push(approval.id);
   }
+  if (policy.handoff) {
+    const detail = handoffDetail(policy);
+    const planned = step(draft, "Hand off to you", detail, "oriel", "waiting");
+    plan.push(planned);
+    draft.handoffs.push({
+      id: nid(draft, "handoff"),
+      goalId: goal.id,
+      stepId: planned.id,
+      title: handoffTitle(policy),
+      detail,
+      status: "open",
+      resolution: null,
+      createdAt: now,
+      settledAt: null,
+    });
+    pushEvent(
+      draft,
+      goal.id,
+      "handed",
+      "Handed a step to you. Oriel will not type a password, sign in, send mail, or move money.",
+      deps,
+    );
+  }
 
   goal.plan = plan;
   goal.brief = composeBrief({
@@ -274,10 +327,11 @@ export async function convene(
     notes,
     held,
     skipped,
+    handed: policy.handoff,
     skillName: applied?.name ?? null,
     away: presence === "away",
   });
-  goal.status = goalStatus(goal, draft.approvals);
+  goal.status = goalStatus(goal, draft.approvals, draft.handoffs);
 
   let spoken = goal.brief.voice;
   if (!goal.brief.tight && deps.refine) {
@@ -363,7 +417,7 @@ export async function settle(
             product: "Oriel",
             action: "released",
             seat: lead.id,
-            task: goal.text,
+            task: releaseTask(goal, draft.handoffs ?? []),
             intents: [],
             businessSensitive: /client|patient|confidential/i.test(goal.text),
             kind: approval.kind,
@@ -384,8 +438,46 @@ export async function settle(
   }
 
   goal.updatedAt = at(deps);
-  goal.status = goalStatus(goal, draft.approvals);
+  goal.status = goalStatus(goal, draft.approvals, draft.handoffs ?? []);
   pushMessage(draft, { role: "oriel", text: approval.resolution ?? DENIAL_COPY, goalId: goal.id }, deps);
+  return draft;
+}
+
+function releaseTask(goal: Goal, handoffs: Handoff[]): string {
+  return handoffs.some((item) => item.goalId === goal.id)
+    ? `${goal.text}\n\n${HANDOFF_TASK} Do not perform the step that was handed to the person.`
+    : goal.text;
+}
+
+export async function settleHandoff(
+  state: AppState,
+  handoffId: string,
+  decision: "done" | "leave",
+  deps: Deps,
+): Promise<AppState> {
+  const swept = expireHolds(state, deps);
+  const current = (swept.handoffs ?? []).find((item) => item.id === handoffId);
+  if (!current) throw new OrielError("That handoff is not in the record.", 404);
+  if (current.status !== "open") {
+    if (swept !== state) return swept;
+    throw new OrielError("That handoff is already settled.", 409);
+  }
+  const draft = structuredClone(swept);
+  draft.handoffs = draft.handoffs ?? [];
+  const handoff = draft.handoffs.find((item) => item.id === handoffId);
+  if (!handoff) throw new OrielError("That handoff is not in the record.", 404);
+  if (handoff.status !== "open") throw new OrielError("That handoff is already settled.", 409);
+  const goal = draft.goals.find((item) => item.id === handoff.goalId);
+  if (!goal) throw new OrielError("That goal is not in the record.", 404);
+  const planned = goal.plan.find((item) => item.id === handoff.stepId);
+  handoff.settledAt = at(deps);
+  handoff.status = decision === "done" ? "done" : "left";
+  handoff.resolution = decision === "done" ? HANDOFF_DONE : HANDOFF_LEFT;
+  if (planned && planned.status === "waiting") planned.status = decision === "done" ? "done" : "skipped";
+  goal.updatedAt = at(deps);
+  goal.status = goalStatus(goal, draft.approvals, draft.handoffs);
+  pushEvent(draft, goal.id, decision === "done" ? "handoff_done" : "handoff_left", handoff.resolution, deps);
+  pushMessage(draft, { role: "oriel", text: handoff.resolution, goalId: goal.id }, deps);
   return draft;
 }
 

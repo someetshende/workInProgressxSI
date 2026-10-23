@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { renderMarkdown } from "../src/core/brief.js";
-import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../src/core/convene.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../src/core/convene.js";
 import { HOLD_WINDOW_MS } from "../src/core/hold.js";
 import { initialState, toPublic } from "../src/core/state.js";
 import { startLocalSeat } from "../src/seats/local.js";
@@ -714,6 +714,138 @@ describe("Oriel convenes", () => {
     const state = await convene(initialState(), "What do you remember?", undefined, deps, "skill_missing");
     expect(state.goals).toHaveLength(0);
     expect(state.messages.at(-1)?.text).toContain("Nothing yet");
+  });
+});
+
+describe("hand off to you", () => {
+  it("ORIEL-F24 hands a password change to you and does not release it to a bridge", async () => {
+    const secret = "hunter2-window";
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "grok", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await convene(state, `Change my password to ${secret}`, undefined, deps);
+      const packed = JSON.stringify(toPublic(state, 0));
+      expect(packed).not.toContain(secret);
+      expect(packed).toContain("[redacted secret]");
+      expect(state.approvals).toHaveLength(0);
+      expect(state.handoffs).toHaveLength(1);
+      expect(state.handoffs[0]?.title).toBe("Change the password yourself");
+      expect(state.goals[0]?.status).toBe("waiting");
+      expect(voice(state)).toContain("I handed that step to you");
+      expect(voice(state)).toContain("Do not paste a password");
+      expect(packed).toContain("Handed to you: Change the password yourself");
+      expect(renderMarkdown(state.goals[0]!, state.events)).toContain("## Hand off");
+      expect(hits).toHaveLength(1);
+      expect(hits[0]?.raw).toContain('"action":"convene"');
+      expect(hits[0]?.raw).toContain("Do not change a password");
+      expect(hits[0]?.raw).not.toContain(secret);
+      expect(hits[0]?.raw).not.toContain('"action":"released"');
+      await expect(convene(state, "approve", undefined, deps)).rejects.toThrow(/That step is yours/);
+      expect(state.handoffs[0]?.status).toBe("open");
+      const before = hits.length;
+      state = await settleHandoff(state, state.handoffs[0]?.id ?? "", "done", deps);
+      expect(hits).toHaveLength(before);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(state.handoffs[0]?.status).toBe("done");
+      expect(state.goals[0]?.status).toBe("done");
+      expect(state.messages.at(-1)?.text).toContain("did not type a password");
+      expect(state.events.some((event) => event.type === "approved")).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain(secret);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+    });
+  });
+
+  it("ORIEL-F24 keeps a sign-in with you while the send stays held", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await convene(state, "Sign in to the shop and email Maya the receipt", undefined, deps);
+      expect(state.handoffs).toHaveLength(1);
+      expect(state.handoffs[0]?.title).toBe("Sign in yourself");
+      expect(state.approvals.filter((approval) => approval.kind === "send" && approval.status === "open")).toHaveLength(1);
+      const convened = hits.length;
+      expect(convened).toBeGreaterThan(0);
+      expect(hits.every((hit) => hit.raw.includes('"action":"convene"'))).toBe(true);
+      state = await convene(state, "I did this", undefined, deps);
+      expect(hits).toHaveLength(convened);
+      expect(state.handoffs[0]?.status).toBe("done");
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(1);
+      state = await settle(state, state.approvals.find((approval) => approval.status === "open")?.id ?? "", "approve", deps);
+      expect(hits.length).toBe(convened + 1);
+      expect(hits.at(-1)?.raw).toContain('"action":"released"');
+      expect(hits.at(-1)?.raw).toContain("Do not change a password");
+      expect(hits.at(-1)?.raw).toContain("Do not perform the step that was handed to the person.");
+      expect(state.messages.at(-1)?.text).toContain("did not send mail, move money");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+    });
+  });
+
+  it("hands a deletion to you, and a skill does not invent one on a draft", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await convene(state, "Delete the shared files and hand that to me", undefined, deps);
+      expect(state.approvals).toHaveLength(0);
+      expect(state.handoffs[0]?.title).toBe("Delete that yourself");
+      expect(hits[0]?.raw).toContain("Do not delete anything");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      state = await convene(state, "Leave it", undefined, deps);
+      expect(state.handoffs[0]?.status).toBe("left");
+      expect(state.messages.at(-1)?.text).toContain("You left that step");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+    });
+
+    let skill = await convene(initialState(), "Hand deletions to me", undefined, deps);
+    skill = saveSkill(skill, skill.goals[0]?.id ?? "", "No deletes", deps);
+    const skillId = skill.skills[0]?.id ?? "";
+    skill = await convene(skill, "Draft the weekly close", undefined, deps, skillId);
+    expect(skill.goals.at(-1)?.brief.handed).toBe(false);
+    expect(skill.handoffs.filter((item) => item.goalId === skill.goals.at(-1)?.id)).toHaveLength(0);
+    skill = await convene(skill, "Delete the shared project files", undefined, deps, skillId);
+    const latest = skill.goals.at(-1)?.id;
+    expect(skill.goals.at(-1)?.brief.handed).toBe(true);
+    expect(skill.approvals.filter((approval) => approval.goalId === latest && approval.status === "open")).toHaveLength(0);
+    expect(skill.handoffs.filter((item) => item.goalId === latest && item.status === "open")).toHaveLength(1);
+    expect(skill.events.some((event) => event.type === "approved")).toBe(false);
+  });
+
+  it("a password method guards the bridge and does not invent a handoff", async () => {
+    let state = await convene(initialState(), "Change the store password and hand that step to me", undefined, deps);
+    state = saveSkill(state, state.goals[0]?.id ?? "", "Password step", deps);
+    const skillId = state.skills[0]?.id ?? "";
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      state = setConnector(state, "dots", { bridgeUrl: url, token: "bridge-secret-xyz" }, deps);
+      state = await convene(state, "Draft the weekly close", undefined, deps, skillId);
+      expect(state.goals.at(-1)?.brief.handed).toBe(false);
+      expect(hits.at(-1)?.raw).toContain("Do not change a password");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      state = await convene(state, "Change the vendor password", undefined, deps, skillId);
+      expect(state.goals.at(-1)?.brief.handed).toBe(true);
+      expect(state.approvals.filter((approval) => approval.goalId === state.goals.at(-1)?.id)).toHaveLength(0);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+    });
+  });
+
+  it("keeps a client password change off Muse", async () => {
+    const muse = await startLocalSeat({ seat: "muse", token: "tok-muse" });
+    const grok = await startLocalSeat({ seat: "grok", token: "tok-grok" });
+    try {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: muse.url, token: "tok-muse" }, deps);
+      state = setConnector(state, "grok", { bridgeUrl: grok.url, token: "tok-grok" }, deps);
+      state = await convene(state, "Change the client password for the matter", undefined, deps);
+      expect(muse.hits()).toBe(0);
+      expect(grok.hits()).toBe(1);
+      expect(state.handoffs).toHaveLength(1);
+      expect(state.goals[0]?.brief.seatReads.some((note) => note.seat === "muse")).toBe(false);
+      expect(state.goals[0]?.lead).toBe("grok");
+    } finally {
+      await muse.close();
+      await grok.close();
+    }
+  });
+
+  it("does not hand off a comparison that rules sign-in out", async () => {
+    const state = await convene(initialState(), "Do not sign in, just compare the market landscape", undefined, deps);
+    expect(state.handoffs).toHaveLength(0);
+    expect(voice(state)).not.toContain("I handed that step");
+    expect(state.approvals).toHaveLength(0);
   });
 });
 

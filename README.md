@@ -41,6 +41,8 @@ Say `Remember that I prefer short briefs.` and the next working brief stays coll
 
 A hold from a turn you send waits until you answer. A hold raised by a wake expires after ten minutes if you are away. The card then says expired, and the action does not run. Asking again opens a new hold that still waits. There is no always-allow. Approving inside the ten minutes records the decision and still does not send mail or move money.
 
+A password change, a sign-in, or a one-time code is handed to you. The card says **Hand off to you**. **I did this** records that you did the step. It does not call the bridge, send mail, or move money, and it does not approve a hold that is still open. **Leave it** records that you did not do the step. Do not paste a password into Oriel. A saved skill can hand a named action to you only when the new request would have done that action. A skill that only mentions the rule does not invent the step.
+
 ## Bridge a seat you already run
 
 There is no public API that lets a third party drive Grok Bot, a Dot, or Muse. Oriel will not ask for their passwords. If you run a bridge in front of an agent you control, point a seat at it:
@@ -66,7 +68,7 @@ Reply:
 { "summary": "One short result.", "points": ["Optional."], "stance": "Optional." }
 ```
 
-When a turn uses a skill, `task` starts with that saved method and then the person's request. A skill never wakes by itself. When you approve a hold, Oriel may POST the same shape with `"action": "released"` and a `kind` of `send`, `pay`, `delete`, `post`, or `credential`. The token is stored outside the public state and is not written back into the thread. Metadata addresses and non-HTTP URLs are rejected. Use HTTPS for any bridge that is not on your own machine.
+When a turn uses a skill, `task` starts with that saved method and then the person's request. A skill never wakes by itself. If the turn hands a step to you, the task tells the bridge not to type a password, sign in, or perform that step. Settling the handoff does not POST `"action": "released"`. When you approve a hold, Oriel may POST the same shape with `"action": "released"` and a `kind` of `send`, `pay`, `delete`, `post`, or `credential`. The token is stored outside the public state and is not written back into the thread. Metadata addresses and non-HTTP URLs are rejected. Use HTTPS for any bridge that is not on your own machine.
 
 In the window, open **Bridge** on a seat, paste the URL, and optionally a token. Plain HTTP is only accepted for a bridge on this machine (`localhost`, `127.0.0.1`, or `::1`). Anywhere else, use HTTPS. Oriel does not follow a redirect from a bridge.
 

@@ -1,3 +1,4 @@
+import { HANDOFF_VOICE } from "./handoff.js";
 import { AWAY_HOLD_COPY } from "./hold.js";
 import { DISPLAY, phrase } from "./doctrine.js";
 import { TRUST } from "./doctrine.js";
@@ -78,14 +79,16 @@ export function composeBrief(input: {
   notes: SeatNote[];
   held: ApprovalKind[];
   skipped: ApprovalKind[];
+  handed?: boolean;
   skillName?: string | null;
   away?: boolean;
 }): Brief {
   const recommendation = recommend(input.choice, input.policy);
   const sentence = holdSentence(input.held, input.skipped);
   const using = input.skillName ? `Using the skill “${input.skillName}”.` : "";
+  const handedLine = input.handed ? HANDOFF_VOICE : "";
   const awayLine = input.away && input.held.length ? AWAY_HOLD_COPY : "";
-  const voice = [using, recommendation, sentence, awayLine].filter(Boolean).join(" ");
+  const voice = [using, recommendation, sentence, handedLine, awayLine].filter(Boolean).join(" ");
   const why = input.skillName
     ? [
         `The skill “${input.skillName}” supplied the method. It does not wake, and it does not approve a hold.`,
@@ -101,6 +104,7 @@ export function composeBrief(input: {
     ...input.notes.map((note) => note.summary),
     input.choice.dissent,
     sentence || null,
+    handedLine || null,
     awayLine || null,
     modeLine,
     why.join(" "),
@@ -118,6 +122,7 @@ export function composeBrief(input: {
     seatReads: input.notes,
     held: input.held,
     skipped: input.skipped,
+    handed: Boolean(input.handed),
     referenceOnly: input.notes.every((note) => note.mode === "reference"),
     skill: input.skillName ?? null,
   };
@@ -150,6 +155,13 @@ export function renderMarkdown(goal: Goal, events: LedgerEvent[]): string {
   }
   if (goal.brief.dissent) {
     lines.push("", "## Disagreement", goal.brief.dissent);
+  }
+  if (goal.brief.handed) {
+    lines.push(
+      "",
+      "## Hand off",
+      "This step is yours. Oriel will not type a password, sign in, send mail, or move money.",
+    );
   }
   lines.push("", "## Record");
   const record = events.filter((event) => event.goalId === goal.id);

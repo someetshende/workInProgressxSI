@@ -377,6 +377,39 @@ describe("Oriel server", () => {
     expect(JSON.stringify(released)).not.toContain("Always allow");
   });
 
+  it("ORIEL-F24 records a handoff without storing the password or releasing a hold", async () => {
+    const server = await boot();
+    const secret = "server-password-value";
+    const turn = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: `Sign in to the shop and email Maya the receipt. Change my password to ${secret}` }),
+    });
+    expect(turn.status).toBe(200);
+    const opened = await turn.json();
+    expect(JSON.stringify(opened)).not.toContain(secret);
+    expect(opened.handoffs[0].status).toBe("open");
+    expect(opened.approvals.some((approval: { status: string; kind: string }) => approval.kind === "send" && approval.status === "open")).toBe(
+      true,
+    );
+    const done = await fetch(`${server.url}/api/handoffs/${opened.handoffs[0].id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "done", password: secret }),
+    });
+    expect(done.status).toBe(200);
+    const after = await done.json();
+    expect(after.handoffs[0].status).toBe("done");
+    expect(after.approvals.some((approval: { status: string; kind: string }) => approval.kind === "send" && approval.status === "open")).toBe(
+      true,
+    );
+    expect(after.messages.at(-1).text).toContain("did not type a password");
+    expect(JSON.stringify(after)).not.toContain(secret);
+    expect(after.events.some((event: { type: string }) => event.type === "approved")).toBe(false);
+    const disk = await readFile(path.join(server.dir, "state.json"), "utf8");
+    expect(disk).not.toContain(secret);
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

@@ -441,6 +441,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F24",
+      persona: "a person who already has a password",
+      role: "individual",
+      surface: "approvals",
+      capability: "Hand off to you",
+      title: "A password change is handed to you",
+      story:
+        "As a person who already has a password, I want Oriel to hand a password change or a sign-in to me, so that a seat never types the secret.",
+      acceptance: [
+        "Changing a password opens a handoff and does not open a credential approval a seat could run.",
+        "Marking the step done does not call the bridge, send mail, or move money.",
+        "A pasted password is redacted, and approving the handoff is not how the step gets done.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

@@ -19,6 +19,7 @@ export function initialState(): AppState {
     goals: [],
     messages: [],
     approvals: [],
+    handoffs: [],
     routines: [],
     skills: [],
     events: [],
@@ -29,6 +30,9 @@ export function awayBrief(state: AppState): Away {
   const lines: string[] = [];
   for (const approval of state.approvals) {
     if (approval.status === "open") lines.push(`Waiting on you: ${approval.title}`);
+  }
+  for (const handoff of state.handoffs ?? []) {
+    if (handoff.status === "open") lines.push(`Handed to you: ${handoff.title}`);
   }
   for (const goal of state.goals) {
     for (const loop of goal.openLoops) lines.push(loop);
@@ -50,6 +54,7 @@ export function toPublic(state: AppState, atlasCount: number): PublicState {
     goals: state.goals,
     messages: state.messages,
     approvals: state.approvals,
+    handoffs: state.handoffs ?? [],
     routines: state.routines,
     skills: state.skills ?? [],
     events: state.events,
@@ -59,8 +64,9 @@ export function toPublic(state: AppState, atlasCount: number): PublicState {
   };
 }
 
-export function goalStatus(goal: Goal, approvals: Approval[]): Goal["status"] {
+export function goalStatus(goal: Goal, approvals: Approval[], handoffs: AppState["handoffs"] = []): Goal["status"] {
   if (approvals.some((approval) => approval.goalId === goal.id && approval.status === "open")) return "waiting";
+  if (handoffs.some((handoff) => handoff.goalId === goal.id && handoff.status === "open")) return "waiting";
   if (goal.openLoops.length) return "active";
   return "done";
 }

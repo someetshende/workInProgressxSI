@@ -119,7 +119,7 @@ async function post(path, body) {
 }
 
 function reveal() {
-  const approve = thread.querySelector("[data-testid='approve']");
+  const approve = thread.querySelector("[data-testid='approve'], [data-testid='did-this']");
   if (approve instanceof HTMLElement) {
     approve.scrollIntoView({ block: "center" });
     return;
@@ -412,6 +412,40 @@ function renderHold(approval, ids) {
   return card;
 }
 
+function renderHandoff(handoff, ids) {
+  const heading = handoff.status === "done" ? "You did this" : handoff.status === "left" ? "Left with you" : "Hand off to you";
+  const card = el("section", { class: "handoff", "data-testid": ids.card }, [
+    el("h2", { text: heading }),
+    el("p", { class: "detail", text: handoff.title }),
+    el("p", { class: "detail", text: handoff.detail }),
+  ]);
+  if (handoff.status === "open") {
+    const actions = el("div", { class: "actions" });
+    actions.append(
+      el("button", {
+        type: "button",
+        class: "approve",
+        "data-testid": ids.done,
+        text: "I did this",
+        onclick: () => post(`/api/handoffs/${handoff.id}`, { decision: "done" }),
+      }),
+    );
+    actions.append(
+      el("button", {
+        type: "button",
+        class: "ghost",
+        "data-testid": ids.leave,
+        text: "Leave it",
+        onclick: () => post(`/api/handoffs/${handoff.id}`, { decision: "leave" }),
+      }),
+    );
+    card.append(actions);
+  } else if (handoff.resolution) {
+    card.append(el("p", { class: "detail", text: handoff.resolution }));
+  }
+  return card;
+}
+
 function latestSynthesisId() {
   let id = null;
   for (const message of state.messages) {
@@ -456,6 +490,16 @@ function renderThread() {
           card: "away-hold",
           approve: `away-approve-${approval.id}`,
           deny: `away-deny-${approval.id}`,
+        }),
+      );
+    }
+    for (const handoff of state.handoffs || []) {
+      if (handoff.goalId === current || handoff.status !== "open") continue;
+      away.append(
+        renderHandoff(handoff, {
+          card: "away-handoff",
+          done: `away-did-${handoff.id}`,
+          leave: `away-leave-${handoff.id}`,
         }),
       );
     }
@@ -568,6 +612,9 @@ function renderBrief(goal) {
   const approvals = state.approvals.filter((approval) => approval.goalId === goal.id);
   for (const approval of approvals) {
     wrap.append(renderHold(approval, { card: "approval", approve: "approve", deny: "deny" }));
+  }
+  for (const handoff of (state.handoffs || []).filter((item) => item.goalId === goal.id)) {
+    wrap.append(renderHandoff(handoff, { card: "handoff", done: "did-this", leave: "leave-step" }));
   }
   return wrap;
 }

@@ -3,7 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderMarkdown } from "../core/brief.js";
 import { isCadence } from "../core/cadence.js";
-import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../core/convene.js";
+import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../core/convene.js";
 import type { Deps } from "../core/types.js";
 import { OrielError } from "../core/errors.js";
 import { refineWithGlm } from "../core/glm.js";
@@ -264,6 +264,21 @@ export async function startServer(options: {
         const id = approvalMatch[1] ?? "";
         const next = await store.update(async (current) => {
           const updated = await settle(current, id, body.decision as "approve" | "deny", depsFor());
+          await writeDesk(options.dataDir, updated);
+          return updated;
+        });
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      const handoffMatch = method === "POST" ? pathname.match(/^\/api\/handoffs\/([A-Za-z0-9_]+)$/) : null;
+      if (handoffMatch) {
+        const body = asObject(await readBody(req));
+        if (body.decision !== "done" && body.decision !== "leave") {
+          throw new OrielError("Decision must be done or leave.");
+        }
+        const id = handoffMatch[1] ?? "";
+        const next = await store.update(async (current) => {
+          const updated = await settleHandoff(current, id, body.decision as "done" | "leave", depsFor());
           await writeDesk(options.dataDir, updated);
           return updated;
         });

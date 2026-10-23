@@ -23,6 +23,7 @@ export function referenceNote(seat: SeatId, _subject: string, policy: Policy): S
     policy.payment ? "Any purchase stays held." : "No payment was asked of this read.",
     policy.forbadeSend ? "You already ruled out sending." : "Outbound work stays with Oriel's hold.",
   ];
+  if (policy.handoff) points.push("The password, sign-in, or code stays with the person. Do not type it.");
   return { seat, mode: "reference", summary, points, stance: STANCE[seat] };
 }
 
