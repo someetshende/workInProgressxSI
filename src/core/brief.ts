@@ -1,3 +1,4 @@
+import { AWAY_HOLD_COPY } from "./hold.js";
 import { DISPLAY, phrase } from "./doctrine.js";
 import { TRUST } from "./doctrine.js";
 import { peopleIn } from "./memory.js";
@@ -78,11 +79,13 @@ export function composeBrief(input: {
   held: ApprovalKind[];
   skipped: ApprovalKind[];
   skillName?: string | null;
+  away?: boolean;
 }): Brief {
   const recommendation = recommend(input.choice, input.policy);
   const sentence = holdSentence(input.held, input.skipped);
   const using = input.skillName ? `Using the skill “${input.skillName}”.` : "";
-  const voice = [using, recommendation, sentence].filter(Boolean).join(" ");
+  const awayLine = input.away && input.held.length ? AWAY_HOLD_COPY : "";
+  const voice = [using, recommendation, sentence, awayLine].filter(Boolean).join(" ");
   const why = input.skillName
     ? [
         `The skill “${input.skillName}” supplied the method. It does not wake, and it does not approve a hold.`,
@@ -98,6 +101,7 @@ export function composeBrief(input: {
     ...input.notes.map((note) => note.summary),
     input.choice.dissent,
     sentence || null,
+    awayLine || null,
     modeLine,
     why.join(" "),
   ]

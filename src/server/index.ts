@@ -3,7 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderMarkdown } from "../core/brief.js";
 import { isCadence } from "../core/cadence.js";
-import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../core/convene.js";
+import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../core/convene.js";
 import type { Deps } from "../core/types.js";
 import { OrielError } from "../core/errors.js";
 import { refineWithGlm } from "../core/glm.js";
@@ -147,7 +147,12 @@ export async function startServer(options: {
         return;
       }
       if (method === "GET" && pathname === "/api/state") {
-        sendJson(res, 200, toPublic(store.get(), getCatalog().length));
+        const next = await store.update(async (current) => {
+          const updated = expireHolds(current, depsFor());
+          if (updated !== current) await writeDesk(options.dataDir, updated);
+          return updated;
+        });
+        sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }
       if (method === "GET" && pathname === "/api/stories") {
@@ -190,6 +195,27 @@ export async function startServer(options: {
         const body = asObject(await readBody(req));
         if (typeof body.paused !== "boolean") throw new OrielError("Paused must be true or false.");
         const next = await store.update((current) => setPaused(current, body.paused === true, depsFor()));
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      if (method === "POST" && pathname === "/api/holds/expire") {
+        if (!testMode) {
+          sendJson(res, 404, { error: "Not found." });
+          return;
+        }
+        await readBody(req);
+        const next = await store.update(async (current) => {
+          const latest = current.approvals
+            .map((approval) => approval.expiresAt)
+            .filter((value): value is string => typeof value === "string")
+            .sort()
+            .at(-1);
+          if (!latest) return current;
+          const when = new Date(new Date(latest).getTime() + 1);
+          const updated = expireHolds(current, { ...depsFor(), now: () => when });
+          if (updated !== current) await writeDesk(options.dataDir, updated);
+          return updated;
+        });
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }

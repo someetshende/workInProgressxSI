@@ -3,7 +3,7 @@ import type { Connector, Intent, SeatChoice, SeatId } from "./types.js";
 export const AS_OF = "2026-10-23";
 
 export const TRUST =
-  "Oriel records every hold. Releasing a hold does not send mail, move money, post in public, or sign in anywhere. A skill is a method you apply on a turn. It does not wake, and it does not approve a hold. A saved routine can wake on a cadence you choose. Pausing wakes stops those cadences until you resume, and neither a pause nor a wake approves the hold. A live bridge is an endpoint you control.";
+  "Oriel records every hold. Releasing a hold does not send mail, move money, post in public, or sign in anywhere. A skill is a method you apply on a turn. It does not wake, and it does not approve a hold. A saved routine can wake on a cadence you choose. Pausing wakes stops those cadences until you resume, and neither a pause nor a wake approves the hold. A hold raised by a wake expires if you are away, and the action does not run. There is no always-allow. A live bridge is an endpoint you control.";
 
 export const DISPLAY: Record<SeatId, string> = {
   grok: "Grok Bot",

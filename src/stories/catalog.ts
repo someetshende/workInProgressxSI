@@ -268,6 +268,14 @@ export const jobs: Job[] = [
     want: "save a demonstrated path as a skill and apply that method to a new request",
     proof: "The skill does not wake on its own, and a prohibition in the method still holds when it is applied.",
   },
+  {
+    id: "expire",
+    surface: "approvals",
+    capability: "Expire an unattended hold",
+    short: "Expire",
+    want: "let a hold raised while I am away expire without running the action",
+    proof: "An unattended hold expires, the action does not run, and there is no always-allow.",
+  },
 ];
 
 export const constraints: Constraint[] = [

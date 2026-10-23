@@ -299,6 +299,84 @@ describe("Oriel server", () => {
     expect(JSON.parse(disk).paused).toBe(true);
   });
 
+  it("ORIEL-F23 expires an unattended hold only in the test desk", async () => {
+    const closed = await startServer({
+      port: 0,
+      host: "127.0.0.1",
+      dataDir: await mkdtemp(path.join(tmpdir(), "oriel-closed-")),
+      testMode: false,
+    });
+    running.push({ close: closed.close, dir: closed.dir });
+    const hidden = await fetch(`${closed.url}/api/holds/expire`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "approve" }),
+    });
+    expect(hidden.status).toBe(404);
+
+    const server = await boot();
+    const turn = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the launch update" }),
+    });
+    const opened = await turn.json();
+    const goalId = opened.goals[0].id as string;
+    const presentId = opened.approvals[0].id as string;
+    expect(opened.approvals[0].expiresAt).toBeNull();
+    await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId }),
+    });
+    const routineId = (await (await fetch(`${server.url}/api/state`)).json()).routines[0].id as string;
+    await fetch(`${server.url}/api/routines/${routineId}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ cadence: "daily" }),
+    });
+    const woke = await fetch(`${server.url}/api/tick`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    });
+    const woken = await woke.json();
+    const away = woken.approvals.find((approval: { id: string; expiresAt: string | null }) => approval.expiresAt);
+    expect(away.status).toBe("open");
+    expect(woken.approvals.find((approval: { id: string }) => approval.id === presentId).status).toBe("open");
+
+    const expired = await fetch(`${server.url}/api/holds/expire`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "approve" }),
+    });
+    expect(expired.status).toBe(200);
+    const body = await expired.json();
+    expect(body.approvals.find((approval: { id: string }) => approval.id === away.id).status).toBe("expired");
+    expect(body.approvals.find((approval: { id: string }) => approval.id === presentId).status).toBe("open");
+    expect(JSON.stringify(body)).not.toContain("Always allow");
+    expect(JSON.stringify(body)).toContain("did not run");
+
+    const late = await fetch(`${server.url}/api/approvals/${away.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "approve" }),
+    });
+    expect(late.status).toBe(409);
+    const kept = await fetch(`${server.url}/api/approvals/${presentId}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision: "approve" }),
+    });
+    const released = await kept.json();
+    expect(kept.status).toBe(200);
+    expect(released.approvals.find((approval: { id: string }) => approval.id === presentId).status).toBe("approved");
+    expect(released.approvals.find((approval: { id: string }) => approval.id === away.id).status).toBe("expired");
+    expect(released.messages.at(-1).text).toContain("Nothing left this computer");
+    expect(JSON.stringify(released)).not.toContain("I sent");
+    expect(JSON.stringify(released)).not.toContain("Always allow");
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

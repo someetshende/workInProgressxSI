@@ -312,6 +312,8 @@ main {
   border-radius: 999px;
 }
 .hold { border-left: 2px solid var(--hold); margin-top: 12px; }
+.hold.expired { border-left-color: var(--muted); }
+.hold.expired h2 { color: var(--muted); }
 
 .who {
   margin: 0 0 4px;

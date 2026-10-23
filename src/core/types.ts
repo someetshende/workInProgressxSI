@@ -15,9 +15,9 @@ export type Intent =
 
 export type ApprovalKind = "send" | "pay" | "delete" | "post" | "credential";
 
-export type ApprovalStatus = "open" | "approved" | "denied";
+export type ApprovalStatus = "open" | "approved" | "denied" | "expired";
 
-export type StepStatus = "done" | "waiting" | "skipped" | "denied";
+export type StepStatus = "done" | "waiting" | "skipped" | "denied" | "expired";
 
 export type ConnectorResult = "idle" | "live" | "fallback";
 
@@ -97,6 +97,8 @@ export type Approval = {
   status: ApprovalStatus;
   resolution: string | null;
   createdAt: string;
+  /** When a routine raised this hold. Null while the person is in the conversation: that hold waits. */
+  expiresAt: string | null;
   settledAt: string | null;
 };
 
@@ -174,6 +176,8 @@ export type Deps = {
   now: () => Date;
   fetchImpl: typeof fetch;
   refine: ((synthesis: string) => Promise<string | null>) | null;
+  /** Test clocks only. Production uses the ten-minute unattended window. */
+  holdWindowMs?: number;
 };
 
 export type SeatChoice = {

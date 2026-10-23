@@ -159,8 +159,8 @@ function renderRail() {
       "aria-pressed": state.paused ? "true" : "false",
       text: state.paused ? "Wakes paused" : "Pause wakes",
       title: state.paused
-        ? "Scheduled wakes are off. Run still works. Holds stay open."
-        : "Stop scheduled wakes. Holds stay open, and nothing is sent or spent.",
+        ? "Scheduled wakes are off. Run still works. Pausing does not release a hold."
+        : "Stop scheduled wakes. Pausing does not release a hold, and nothing is sent or spent.",
       onclick: () => post("/api/pause", { paused: !state.paused }),
     }),
   );
@@ -339,6 +339,79 @@ function renderRail() {
   renderContext();
 }
 
+const EXPIRED_COPY =
+  "This hold expired. The action did not run. Ask Oriel to try again. The next hold still asks.";
+
+function shownStatus(approval) {
+  if (approval.status === "open" && approval.expiresAt && Date.parse(approval.expiresAt) <= Date.now()) return "expired";
+  return approval.status;
+}
+
+function renderHold(approval, ids) {
+  const status = shownStatus(approval);
+  const heading =
+    status === "approved" ? "Released" : status === "denied" ? "Held back" : status === "expired" ? "Expired" : "Hold for you";
+  const card = el(
+    "section",
+    { class: status === "expired" ? "hold expired" : "hold", "data-testid": ids.card },
+    [
+      el("h2", { text: heading }),
+      el("p", { class: "detail", text: approval.title }),
+      el("p", { class: "detail", text: approval.detail }),
+    ],
+  );
+  if (status === "open") {
+    if (approval.expiresAt) {
+      card.append(
+        el("p", {
+          class: "detail",
+          "data-testid": "hold-expiry",
+          text: "Raised while you were away. If it expires, the action does not run. The next hold still asks.",
+        }),
+      );
+    }
+    const actions = el("div", { class: "actions" });
+    actions.append(
+      el("button", {
+        type: "button",
+        class: "approve",
+        "data-testid": ids.approve,
+        text: "Approve",
+        onclick: () => post(`/api/approvals/${approval.id}`, { decision: "approve" }),
+      }),
+    );
+    actions.append(
+      el("button", {
+        type: "button",
+        class: "ghost",
+        "data-testid": ids.deny,
+        text: "Not now",
+        onclick: () => post(`/api/approvals/${approval.id}`, { decision: "deny" }),
+      }),
+    );
+    card.append(actions);
+  } else if (status === "expired") {
+    card.append(el("p", { class: "detail", "data-testid": "expired", text: approval.resolution || EXPIRED_COPY }));
+    const goal = state.goals.find((item) => item.id === approval.goalId);
+    if (goal) {
+      card.append(
+        el("div", { class: "actions" }, [
+          el("button", {
+            type: "button",
+            class: "ghost",
+            "data-testid": "try-again",
+            text: "Ask again",
+            onclick: () => post("/api/turn", { text: goal.text, goalId: goal.id }),
+          }),
+        ]),
+      );
+    }
+  } else if (approval.resolution) {
+    card.append(el("p", { class: "detail", text: approval.resolution }));
+  }
+  return card;
+}
+
 function latestSynthesisId() {
   let id = null;
   for (const message of state.messages) {
@@ -375,33 +448,15 @@ function renderThread() {
     );
     const current = synthesisGoalId();
     for (const approval of state.approvals) {
-      if (approval.status !== "open" || approval.goalId === current) continue;
-      const actions = el("div", { class: "actions" });
-      actions.append(
-        el("button", {
-          type: "button",
-          class: "approve",
-          "data-testid": `away-approve-${approval.id}`,
-          text: "Approve",
-          onclick: () => post(`/api/approvals/${approval.id}`, { decision: "approve" }),
-        }),
-      );
-      actions.append(
-        el("button", {
-          type: "button",
-          class: "ghost",
-          "data-testid": `away-deny-${approval.id}`,
-          text: "Not now",
-          onclick: () => post(`/api/approvals/${approval.id}`, { decision: "deny" }),
-        }),
-      );
+      if (approval.goalId === current) continue;
+      const status = shownStatus(approval);
+      if (status !== "open" && status !== "expired") continue;
       away.append(
-        el("section", { class: "hold", "data-testid": "away-hold" }, [
-          el("h2", { text: "Hold for you" }),
-          el("p", { class: "detail", text: approval.title }),
-          el("p", { class: "detail", text: approval.detail }),
-          actions,
-        ]),
+        renderHold(approval, {
+          card: "away-hold",
+          approve: `away-approve-${approval.id}`,
+          deny: `away-deny-${approval.id}`,
+        }),
       );
     }
     column.append(away);
@@ -512,37 +567,7 @@ function renderBrief(goal) {
   wrap.append(details);
   const approvals = state.approvals.filter((approval) => approval.goalId === goal.id);
   for (const approval of approvals) {
-    const heading = approval.status === "approved" ? "Released" : approval.status === "denied" ? "Held back" : "Hold for you";
-    const card = el("section", { class: "hold", "data-testid": "approval" }, [
-      el("h2", { text: heading }),
-      el("p", { class: "detail", text: approval.title }),
-      el("p", { class: "detail", text: approval.detail }),
-    ]);
-    if (approval.status === "open") {
-      const actions = el("div", { class: "actions" });
-      actions.append(
-        el("button", {
-          type: "button",
-          class: "approve",
-          "data-testid": "approve",
-          text: "Approve",
-          onclick: () => post(`/api/approvals/${approval.id}`, { decision: "approve" }),
-        }),
-      );
-      actions.append(
-        el("button", {
-          type: "button",
-          class: "ghost",
-          "data-testid": "deny",
-          text: "Not now",
-          onclick: () => post(`/api/approvals/${approval.id}`, { decision: "deny" }),
-        }),
-      );
-      card.append(actions);
-    } else if (approval.resolution) {
-      card.append(el("p", { class: "detail", text: approval.resolution }));
-    }
-    wrap.append(card);
+    wrap.append(renderHold(approval, { card: "approval", approve: "approve", deny: "deny" }));
   }
   return wrap;
 }
@@ -604,3 +629,9 @@ api("/api/state")
     render();
   })
   .catch(fail);
+
+setInterval(() => {
+  if (!state) return;
+  const due = state.approvals.some((approval) => approval.status === "open" && shownStatus(approval) === "expired");
+  if (due) render();
+}, 15000);

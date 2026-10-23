@@ -3,6 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
+import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
 import { kindsFor, readPolicy, withSkillProhibitions } from "./policy.js";
@@ -13,6 +14,7 @@ import { awayBrief, goalStatus, titleFrom } from "./state.js";
 import type {
   ActorId,
   AppState,
+  Approval,
   ApprovalKind,
   Cadence,
   Deps,
@@ -46,6 +48,50 @@ function pushMessage(draft: AppState, message: Omit<Message, "id" | "at">, deps:
   return full;
 }
 
+function holdIsDue(approval: Approval, deps: Deps): boolean {
+  return approval.status === "open" && typeof approval.expiresAt === "string" && approval.expiresAt <= at(deps);
+}
+
+export function expireHolds(state: AppState, deps: Deps): AppState {
+  const due = state.approvals.filter((approval) => holdIsDue(approval, deps));
+  if (!due.length) return state;
+  const draft = structuredClone(state);
+  const now = at(deps);
+  const ids = new Set(due.map((approval) => approval.id));
+  const goals = new Set<string>();
+  for (const approval of draft.approvals) {
+    if (!ids.has(approval.id)) continue;
+    approval.status = "expired";
+    approval.resolution = EXPIRED_COPY;
+    approval.settledAt = now;
+    const goal = draft.goals.find((item) => item.id === approval.goalId);
+    const planned = goal?.plan.find((item) => item.id === approval.stepId);
+    if (planned && planned.status === "waiting") planned.status = "expired";
+    goals.add(approval.goalId);
+    pushEvent(
+      draft,
+      approval.goalId,
+      "expired",
+      `${approval.title} expired before you answered. The action did not run. Nothing was sent or spent.`,
+      deps,
+    );
+  }
+  for (const goal of draft.goals) {
+    if (!goals.has(goal.id)) continue;
+    goal.updatedAt = now;
+    goal.status = goalStatus(goal, draft.approvals);
+  }
+  pushMessage(
+    draft,
+    {
+      role: "oriel",
+      text: due.length === 1 ? EXPIRED_COPY : "These holds expired. The actions did not run. Ask Oriel to try again. There is no always-allow.",
+    },
+    deps,
+  );
+  return draft;
+}
+
 function step(
   draft: AppState,
   title: string,
@@ -63,28 +109,33 @@ export async function convene(
   goalId: string | undefined,
   deps: Deps,
   skillId?: string,
+  presence: "present" | "away" = "present",
 ): Promise<AppState> {
   const original = raw.trim();
   if (!original) throw new OrielError("Say what you want finished.");
   if (original.length > 8000) throw new OrielError("That is too long to convene in one turn.");
 
+  const swept = expireHolds(state, deps);
   const desk = readDeskCommand(original);
-  if (desk) return setPaused(state, desk === "pause", deps);
+  if (desk) return setPaused(swept, desk === "pause", deps);
 
   const decision = isBareDecision(original);
   if (decision) {
-    const open = [...state.approvals].reverse().find((approval) => approval.status === "open");
-    if (!open) throw new OrielError("Nothing is waiting on you.");
-    return settle(state, open.id, decision, deps);
+    const open = [...swept.approvals].reverse().find((approval) => approval.status === "open");
+    if (!open) {
+      if (swept !== state) return swept;
+      throw new OrielError("Nothing is waiting on you.");
+    }
+    return settle(swept, open.id, decision, deps);
   }
 
   const stored = redactSecrets(original);
   const memoryTurn = isMemoryQuery(stored) || isMemoryOnly(stored);
-  const skill = skillId ? (state.skills ?? []).find((item) => item.id === skillId) ?? null : null;
+  const skill = skillId ? (swept.skills ?? []).find((item) => item.id === skillId) ?? null : null;
   if (skillId && !skill && !memoryTurn) throw new OrielError("That skill is not in the record.", 404);
   const applied = memoryTurn ? null : skill;
 
-  const draft = structuredClone(state);
+  const draft = structuredClone(swept);
   draft.memory = remember(draft.memory, stored);
   let policy = readPolicy(original, draft.memory);
   if (applied) policy = withSkillProhibitions(policy, applied.method, draft.memory);
@@ -145,6 +196,7 @@ export async function convene(
         held,
         skipped,
         skillName: applied?.name ?? null,
+        away: presence === "away",
       }),
       openLoops: extractLoops(stored),
       prose: null,
@@ -207,6 +259,7 @@ export async function convene(
       status: "open" as const,
       resolution: null,
       createdAt: now,
+      expiresAt: expiresAtFor(presence, now, deps),
       settledAt: null,
     };
     draft.approvals.push(approval);
@@ -222,6 +275,7 @@ export async function convene(
     held,
     skipped,
     skillName: applied?.name ?? null,
+    away: presence === "away",
   });
   goal.status = goalStatus(goal, draft.approvals);
 
@@ -232,6 +286,9 @@ export async function convene(
       goal.prose = prose;
       spoken = prose;
     }
+  }
+  if (presence === "away" && held.length && !spoken.includes("while you were away")) {
+    spoken = `${spoken} ${AWAY_HOLD_COPY}`;
   }
 
   pushMessage(
@@ -270,7 +327,14 @@ export async function settle(
   decision: "approve" | "deny",
   deps: Deps,
 ): Promise<AppState> {
-  const draft = structuredClone(state);
+  const swept = expireHolds(state, deps);
+  const current = swept.approvals.find((item) => item.id === approvalId);
+  if (!current) throw new OrielError("That hold is not in the record.", 404);
+  if (current.status !== "open") {
+    if (swept !== state) return swept;
+    throw new OrielError("That hold is already settled.", 409);
+  }
+  const draft = structuredClone(swept);
   const approval = draft.approvals.find((item) => item.id === approvalId);
   if (!approval) throw new OrielError("That hold is not in the record.", 404);
   if (approval.status !== "open") throw new OrielError("That hold is already settled.", 409);
@@ -429,7 +493,7 @@ export async function runRoutine(
 ): Promise<AppState> {
   const routine = state.routines.find((item) => item.id === routineId);
   if (!routine) throw new OrielError("That routine is not in the record.", 404);
-  const next = await convene(state, routine.instruction, undefined, deps);
+  const next = await convene(state, routine.instruction, undefined, deps, undefined, via === "wake" ? "away" : "present");
   const saved = next.routines.find((item) => item.id === routineId);
   if (saved) {
     saved.lastRunAt = at(deps);
@@ -456,7 +520,7 @@ export function setPaused(state: AppState, paused: boolean, deps: Deps): AppStat
       null,
       paused ? "paused" : "resumed",
       paused
-        ? "Wakes are paused. Routines stay saved. Open holds stay open. Nothing was sent or spent."
+        ? "Wakes are paused. Routines stay saved. Pausing does not release a hold. Nothing was sent or spent."
         : "Wakes are on again. A wake does not approve a hold, send mail, or move money.",
       deps,
     );
@@ -465,15 +529,16 @@ export function setPaused(state: AppState, paused: boolean, deps: Deps): AppStat
 }
 
 export async function wakeDue(state: AppState, deps: Deps): Promise<AppState> {
-  if (state.paused === true) return state;
+  const swept = expireHolds(state, deps);
+  if (swept.paused === true) return swept;
   const now = at(deps);
-  const due = state.routines
+  const due = swept.routines
     .filter((routine) => routine.cadence !== "manual" && routine.nextRunAt !== null && routine.nextRunAt <= now)
     .sort((a, b) => (a.nextRunAt ?? "").localeCompare(b.nextRunAt ?? ""));
   const routine = due[0];
-  if (!routine) return state;
+  if (!routine) return swept;
   try {
-    const next = await runRoutine(state, routine.id, deps, "wake");
+    const next = await runRoutine(swept, routine.id, deps, "wake");
     pushEvent(
       next,
       next.goals.at(-1)?.id ?? null,
@@ -483,7 +548,7 @@ export async function wakeDue(state: AppState, deps: Deps): Promise<AppState> {
     );
     return next;
   } catch (error) {
-    const draft = structuredClone(state);
+    const draft = structuredClone(swept);
     const saved = draft.routines.find((item) => item.id === routine.id);
     if (saved) saved.nextRunAt = nextInstant(saved.cadence, deps.now());
     const message = error instanceof Error ? error.message : "The routine could not run.";

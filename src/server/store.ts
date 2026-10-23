@@ -27,6 +27,10 @@ export class Store {
       const raw = await readFile(path.join(this.dir, "state.json"), "utf8");
       const parsed = JSON.parse(raw) as AppState;
       parsed.paused = parsed.paused === true;
+      parsed.approvals = (parsed.approvals ?? []).map((approval) => ({
+        ...approval,
+        expiresAt: typeof approval.expiresAt === "string" ? approval.expiresAt : null,
+      }));
       parsed.routines = (parsed.routines ?? []).map(normalizeRoutine).filter((routine) => routine !== null);
       parsed.skills = (Array.isArray(parsed.skills) ? parsed.skills : [])
         .map(normalizeSkill)

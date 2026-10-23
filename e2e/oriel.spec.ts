@@ -292,6 +292,40 @@ test("ORIEL-F22 a skill applies a do-not-send and does not wake", async ({ page 
   await page.screenshot({ path: "test-results/oriel-skill.png" });
 });
 
+test("ORIEL-F23 a woken hold expires and asking again still waits", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Email Maya the launch update");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await page.getByTestId("save-routine").click();
+  const cadence = page.locator("[data-testid^='cadence-']");
+  await cadence.click();
+  await expect(cadence).toHaveText("Daily");
+  const tick = await page.request.post("/api/tick", { data: { force: true } });
+  expect(tick.ok()).toBeTruthy();
+  await page.reload();
+  await expect(page.getByText("Routine", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("hold-expiry")).toContainText("while you were away");
+  await expect(page.getByTestId("synthesis")).toContainText("while you were away");
+  const expired = await page.request.post("/api/holds/expire", { data: {} });
+  expect(expired.ok()).toBeTruthy();
+  await page.reload();
+  await expect(page.getByTestId("expired")).toContainText("did not run");
+  await expect(page.getByTestId("expired")).toContainText("no always-allow");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await expect(page.locator("[data-testid^='away-approve-']")).toBeVisible();
+  await page.getByTestId("try-again").click();
+  await expect(page.getByTestId("approve")).toBeVisible();
+  await expect(page.getByTestId("expired")).toBeVisible();
+  await expect(page.getByTestId("hold-expiry")).toHaveCount(0);
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("thread")).toContainText("Nothing left this computer");
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-expired.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

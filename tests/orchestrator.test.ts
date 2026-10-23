@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { renderMarkdown } from "../src/core/brief.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setPaused, setRoutineCadence, settle, wakeDue } from "../src/core/convene.js";
+import { HOLD_WINDOW_MS } from "../src/core/hold.js";
 import { initialState, toPublic } from "../src/core/state.js";
 import { startLocalSeat } from "../src/seats/local.js";
 import type { AppState, Deps } from "../src/core/types.js";
@@ -612,6 +613,98 @@ describe("Oriel convenes", () => {
       expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
       expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(0);
     });
+  });
+
+  it("ORIEL-F23 an unattended hold expires without a bridge release", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    const wakeDeps: Deps = { ...deps, now: () => wakeAt };
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = await convene(state, "Email Maya the launch update", undefined, early);
+      const present = state.approvals[0];
+      expect(present?.expiresAt).toBeNull();
+      expect(present?.status).toBe("open");
+      state = await settle(state, present?.id ?? "", "deny", early);
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      const manual = await runRoutine(state, state.routines[0]?.id ?? "", early);
+      expect(manual.approvals.at(-1)?.expiresAt).toBeNull();
+      state = await settle(manual, manual.approvals.at(-1)?.id ?? "", "deny", early);
+
+      state = await wakeDue(state, wakeDeps);
+      const away = state.approvals.at(-1);
+      expect(away?.expiresAt).toBe(new Date(wakeAt.getTime() + HOLD_WINDOW_MS).toISOString());
+      expect(away?.status).toBe("open");
+      expect(state.messages.some((message) => message.text.includes("while you were away"))).toBe(true);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      const afterWake = hits.length;
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+
+      const atExpiry: Deps = { ...deps, now: () => new Date(wakeAt.getTime() + HOLD_WINDOW_MS) };
+      state = await convene(state, "approve", undefined, atExpiry);
+      expect(state.approvals.find((approval) => approval.id === away?.id)?.status).toBe("expired");
+      expect(state.approvals.some((approval) => approval.status === "approved")).toBe(false);
+      expect(state.messages.at(-1)?.text).toContain("did not run");
+      expect(state.messages.at(-1)?.text).toContain("no always-allow");
+      expect(hits).toHaveLength(afterWake);
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+
+      const goal = state.goals.at(-1);
+      state = await convene(state, goal?.text ?? "", goal?.id, atExpiry);
+      const fresh = state.approvals.at(-1);
+      expect(fresh?.expiresAt).toBeNull();
+      expect(fresh?.status).toBe("open");
+      expect(state.approvals.find((approval) => approval.id === away?.id)?.status).toBe("expired");
+      expect(hits.some((hit) => hit.raw.includes('"action":"released"'))).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+    });
+  });
+
+  it("ORIEL-F23 a hold answered inside the window still does not spend", async () => {
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      let state = setConnector(initialState(), "muse", { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      state = await convene(state, "Email Maya the launch update", undefined, early);
+      state = await settle(state, state.approvals[0]?.id ?? "", "deny", early);
+      state = saveRoutine(state, state.goals[0]?.id ?? "", "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await wakeDue(state, { ...deps, now: () => wakeAt });
+      const away = state.approvals.at(-1);
+      const before = hits.length;
+      const justBefore: Deps = { ...deps, now: () => new Date(wakeAt.getTime() + HOLD_WINDOW_MS - 1) };
+      state = await settle(state, away?.id ?? "", "approve", justBefore);
+      expect(state.approvals.find((approval) => approval.id === away?.id)?.status).toBe("approved");
+      expect(hits.length).toBe(before + 1);
+      expect(hits.at(-1)?.raw).toContain('"action":"released"');
+      expect(state.messages.at(-1)?.text).toContain("did not send mail, move money");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+    });
+  });
+
+  it("a paused desk still expires an unattended hold and does not wake", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const wakeAt = new Date("2026-10-23T13:00:00.000Z");
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    state = saveRoutine(state, state.goals[0]?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    state = await wakeDue(state, { ...deps, now: () => wakeAt });
+    const awayId = state.approvals.at(-1)?.id ?? "";
+    const nextRunAt = state.routines[0]?.nextRunAt;
+    state = setPaused(state, true, { ...deps, now: () => wakeAt });
+    const atExpiry: Deps = { ...deps, now: () => new Date("2026-10-23T14:00:00.000Z") };
+    const slept = await wakeDue(state, atExpiry);
+    expect(slept.paused).toBe(true);
+    expect(slept.goals).toHaveLength(2);
+    expect(slept.routines[0]?.nextRunAt).toBe(nextRunAt);
+    expect(slept.approvals.find((approval) => approval.id === awayId)?.status).toBe("expired");
+    expect(slept.approvals.some((approval) => approval.status === "approved")).toBe(false);
+    expect(slept.approvals.find((approval) => approval.expiresAt === null)?.status).toBe("open");
+    expect(slept.messages.at(-1)?.text).toContain("did not run");
+    expect(JSON.stringify(slept)).not.toContain("Always allow");
   });
 
   it("rejects an unknown skill and ignores one on a memory question", async () => {

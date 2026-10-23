@@ -2,7 +2,7 @@
 
 Oriel is one window onto the agents you already run. Grok Bot, Dots, and Muse stay themselves. Oriel convenes them, holds anything risky, and answers in one voice.
 
-The name is a projecting window: several panes, one view. The research behind the product is in [docs/research.md](docs/research.md). The story atlas has more than a thousand stories in [data/user-stories.json](data/user-stories.json), and the twenty flagship stories are the spec the tests run.
+The name is a projecting window: several panes, one view. The research behind the product is in [docs/research.md](docs/research.md). The story atlas has more than a thousand stories in [data/user-stories.json](data/user-stories.json), and the flagship stories are the spec the tests run.
 
 Oriel does not sign in to those products. A seat is in **reference** mode until you bridge an endpoint you control. Reference copy says what that seat would do. It does not pretend the work happened on their computer.
 
@@ -37,7 +37,9 @@ npm run check
 
 Say `Remember that I prefer short briefs.` and the next working brief stays collapsed. `What do you remember?` reads it back. A goal can be continued from the list. `Save as skill` keeps the method. Arm it in the rail, then send a new request: prohibitions in the method still apply, including a do-not-send, and client work in the method stays off Muse. A skill has no cadence. It does not wake, and it does not approve a hold. `Save as routine` reruns the instruction later, and the holds still apply. If that turn used a skill, the routine keeps the method. A saved routine starts as manual. In the rail, the cadence control cycles Manual, Daily, and Hourly. While `npm run dev` is open, Oriel wakes one due routine about once a minute. Set `ORIEL_TICK=0` to keep wakes on the Run button only. A wake does not approve a hold, send mail, or move money. The thread labels that turn Routine.
 
-**Pause wakes** stops those cadences until you resume. The routines stay, Run still works, and an open hold stays open. Pausing does not send mail or move money. You can also say `Pause wakes` or `Resume wakes`. A sentence that merely contains the word pause, such as a request to pause a draft, is ordinary work.
+**Pause wakes** stops those cadences until you resume. The routines stay, Run still works, and pausing does not release a hold. Pausing does not send mail or move money. You can also say `Pause wakes` or `Resume wakes`. A sentence that merely contains the word pause, such as a request to pause a draft, is ordinary work.
+
+A hold from a turn you send waits until you answer. A hold raised by a wake expires after ten minutes if you are away. The card then says expired, and the action does not run. Asking again opens a new hold that still waits. There is no always-allow. Approving inside the ten minutes records the decision and still does not send mail or move money.
 
 ## Bridge a seat you already run
 

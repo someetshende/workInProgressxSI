@@ -422,6 +422,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F23",
+      persona: "a security admin",
+      role: "security",
+      surface: "approvals",
+      capability: "Expire an unattended hold",
+      title: "A hold raised while you were away expires",
+      story:
+        "As a security admin, I want Oriel to expire a hold raised by a routine when I am away, so that a late answer cannot run the action and there is still no always-allow.",
+      acceptance: [
+        "A hold from a turn I am in waits until I answer, and approving it later still does not send mail or move money.",
+        "A hold raised by a woken routine expires after ten minutes, and approving it then does not call the bridge or run the action.",
+        "The expired card offers no always-allow. Asking again opens a new hold that still waits for me.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {
