@@ -564,6 +564,45 @@ export function loosensSpokenNamed(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_SHARED =
+  /^(?:please,?\s+)?which steps?\s+shar(?:e|es|ing)\s+words(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+function phraseKey(phrase: string): string {
+  return phrase.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+export function isSpokenShared(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  return SPOKEN_SHARED.test(normalized);
+}
+
+export function spokenSharedCopy(rules: HandoffRule[]): string {
+  const named = READ_ORDER.flatMap((action) => {
+    const rule = rules.find((item) => item.action === action);
+    if (!rule?.phrase) return [];
+    return [rule];
+  });
+  const counts = new Map<string, number>();
+  for (const rule of named) {
+    const key = phraseKey(rule.phrase ?? "");
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const matched = named.filter((rule) => (counts.get(phraseKey(rule.phrase ?? "")) ?? 0) >= 2);
+  if (!matched.length) {
+    return `No steps share words. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const lines = matched
+    .map((rule) => `${READ_LABEL[rule.action]} is handed to you. The words are “${rule.phrase}”.`)
+    .join(" ");
+  return `These steps share words. ${lines} Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenShared(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which steps?\s+shar(?:e|es|ing)\s+words\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 export function loosensHandoff(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please\s+)?hand(?:\s+over|\s+off|-off)?\b/i.test(normalized)) return false;

@@ -688,6 +688,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F37",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which steps share words",
+      title: "A sentence can ask which steps share words",
+      story:
+        "As a security admin, I want to ask Oriel which steps share words, so that it quotes only a phrase used by more than one rule and does not delete anything.",
+      acceptance: [
+        "Asking which steps share words names only the actions whose phrase matches another rule, and quotes that phrase on each.",
+        "A phrase used once is left out, and a rule with no phrase is not described as the whole action. If none share, Oriel says so.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

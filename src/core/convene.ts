@@ -3,7 +3,7 @@ import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, releaseCopy 
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
-import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenNamed, isSpokenRead, isSpokenUnnamed, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenRead, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenRule, readSpokenStep, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenStepCopy, spokenUnnamedCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
+import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenUnnamed, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenRead, loosensSpokenShared, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenRule, readSpokenStep, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenSharedCopy, spokenStepCopy, spokenUnnamedCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
 import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenRule, SpokenStep, SpokenWords } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
 import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, recall, remember } from "./memory.js";
@@ -184,13 +184,15 @@ export async function convene(
   }
   if (isSpokenUnnamed(original)) return applySpokenUnnamed(swept, original, deps);
   if (isSpokenNamed(original)) return applySpokenNamed(swept, original, deps);
+  if (isSpokenShared(original)) return applySpokenShared(swept, original, deps);
   if (
     loosensSpokenRead(original) ||
     loosensSpokenAsk(original) ||
     loosensSpokenWords(original) ||
     loosensSpokenStep(original) ||
     loosensSpokenUnnamed(original) ||
-    loosensSpokenNamed(original)
+    loosensSpokenNamed(original) ||
+    loosensSpokenShared(original)
   ) {
     throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
   }
@@ -654,6 +656,15 @@ function applySpokenUnnamed(state: AppState, raw: string, deps: Deps): AppState 
 function applySpokenNamed(state: AppState, raw: string, deps: Deps): AppState {
   const draft = structuredClone(state);
   const reply = spokenNamedCopy(draft.handoffRules ?? []);
+  pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, "rule_read", reply, deps);
+  return draft;
+}
+
+function applySpokenShared(state: AppState, raw: string, deps: Deps): AppState {
+  const draft = structuredClone(state);
+  const reply = spokenSharedCopy(draft.handoffRules ?? []);
   pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
   pushMessage(draft, { role: "oriel", text: reply }, deps);
   pushEvent(draft, null, "rule_read", reply, deps);

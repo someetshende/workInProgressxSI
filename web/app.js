@@ -155,7 +155,7 @@ function renderRail() {
   rail.append(
     el("p", {
       class: "rule-note",
-      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me? To ask about one, say: Is a deletion handed to me? To ask whether the words are those, say: Is a deletion that mentions shared project files handed to me? To ask which words a step uses, say: Which words does a deletion hand to me? To ask which step uses certain words, say: Which step mentions shared project files? To ask which steps name no words, say: Which steps name no words? To ask which steps name words, say: Which steps name words?",
+      text: "When a request would do one of these, that step is yours. Say it: Hand deletions that mention shared project files to me. To clear those words, say: Stop handing deletions that mention shared project files to me. To clear a rule with no words, say: Stop handing deletions to me. To read them, say: What is handed to me? To ask about one, say: Is a deletion handed to me? To ask whether the words are those, say: Is a deletion that mentions shared project files handed to me? To ask which words a step uses, say: Which words does a deletion hand to me? To ask which step uses certain words, say: Which step mentions shared project files? To ask which steps name no words, say: Which steps name no words? To ask which steps name words, say: Which steps name words? To ask which steps share words, say: Which steps share words?",
     }),
   );
   const rules = el("div", { class: "rules", "data-testid": "handoff-rules" });
@@ -213,10 +213,15 @@ function renderRail() {
   });
   const described = state.handoffRules?.find((rule) => rule.action === "delete");
   if (described?.phrase) phraseInput.value = described.phrase;
-  actionPick.addEventListener("change", () => {
+  let loadedAction = actionPick.value;
+  const showAction = () => {
+    if (actionPick.value === loadedAction) return;
+    loadedAction = actionPick.value;
     const rule = state.handoffRules?.find((item) => item.action === actionPick.value);
     phraseInput.value = rule?.phrase || "";
-  });
+  };
+  actionPick.addEventListener("input", showAction);
+  actionPick.addEventListener("change", showAction);
   phraseForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const words = phraseInput.value.trim().replace(/\s+/g, " ");
