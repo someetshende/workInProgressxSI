@@ -783,6 +783,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F42",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask whether one step does not share words",
+      title: "A sentence can ask whether one step does not share words",
+      story:
+        "As a security admin, I want to ask Oriel whether one step does not share words, so that it quotes that step's phrase and does not delete anything.",
+      acceptance: [
+        "Asking whether a deletion does not share words quotes the phrase saved on that deletion. If no other rule uses it, Oriel says that step does not share those words and names no other rule.",
+        "If another rule uses those words, Oriel says that step does share them and names only the other actions, in send, pay, delete, and post order. A rule with no phrase is the whole action and is not a comparison.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

@@ -758,6 +758,51 @@ export function loosensSpokenShare(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_NOT_SHARE =
+  /^(?:please,?\s+)?(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?([a-z][a-z-]*)\s+not\s+shar(?:e|es|ing)\s+words(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export type SpokenNotShare = { kind: "ask"; action: HandoffAction } | { kind: "reject"; reason: "action" };
+
+export function readSpokenNotShare(text: string): SpokenNotShare | null {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(SPOKEN_NOT_SHARE);
+  if (!match) return null;
+  const action = SPOKEN_NOUNS[(match[1] ?? "").toLowerCase()];
+  if (!action) return { kind: "reject", reason: "action" };
+  return { kind: "ask", action };
+}
+
+export function spokenNotShareCopy(action: HandoffAction, rules: HandoffRule[]): string {
+  const rule = rules.find((item) => item.action === action);
+  if (!rule) {
+    return `${READ_LABEL[action]} is not handed to you. There is no handoff rule for ${ASK_ONE[action]}. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  if (!rule.phrase) {
+    return `${READ_LABEL[action]} is handed to you. That rule names no words and is ${READ_WHOLE[action]}. Oriel did not treat this question as a share and did not quote another rule. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const key = phraseKey(rule.phrase);
+  const others = READ_ORDER.flatMap((item) => {
+    if (item === action) return [];
+    const other = rules.find((candidate) => candidate.action === item);
+    if (!other?.phrase || phraseKey(other.phrase) !== key) return [];
+    return [other];
+  });
+  if (!others.length) {
+    return `${READ_LABEL[action]} does not share those words. The words are “${rule.phrase}”. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const names = joinLabels(others.map((other) => READ_LABEL[other.action]));
+  const verb = others.length === 1 ? "uses" : "use";
+  return `${READ_LABEL[action]} does share those words. The words are “${rule.phrase}”. ${names} ${verb} them. Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenNotShare(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?(?:does|do)\s+(?:the\s+|an\s+|a\s+|any\s+)?(?:public\s+)?[a-z][a-z-]*\s+not\s+shar(?:e|es|ing)\s+words\b/i.test(normalized)) {
+    return false;
+  }
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 export function loosensHandoff(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please\s+)?hand(?:\s+over|\s+off|-off)?\b/i.test(normalized)) return false;
