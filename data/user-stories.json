@@ -1,8 +1,8 @@
 {
   "product": "Oriel",
   "asOf": "2026-10-23",
-  "count": 3403,
-  "flagship": 37,
+  "count": 3404,
+  "flagship": 38,
   "atlas": 3366,
   "about": "Flagship stories are the executable spec. Atlas stories expand every persona, job, and constraint into a reviewable requirement. Oriel is the window. Grok Bot, Dots, and Muse stay themselves.",
   "stories": [
@@ -665,6 +665,24 @@
       "story": "As a security admin, I want to ask Oriel which steps share words, so that it quotes only a phrase used by more than one rule and does not delete anything.",
       "acceptance": [
         "Asking which steps share words names only the actions whose phrase matches another rule, and quotes that phrase on each.",
+        "A phrase used once is left out, and a rule with no phrase is not described as the whole action. If none share, Oriel says so.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
+      ],
+      "priority": "p0",
+      "kind": "flagship",
+      "testRef": "tests/orchestrator.test.ts",
+      "sourceInsight": "A shared bot computer and a perpetual grant are how one mistake spreads. Oriel approves once and does not offer always-allow."
+    },
+    {
+      "id": "ORIEL-F38",
+      "persona": "a security admin",
+      "role": "security",
+      "surface": "thread",
+      "capability": "Ask which words are shared",
+      "title": "A sentence can ask which words are shared",
+      "story": "As a security admin, I want to ask Oriel which words are shared, so that it quotes each shared phrase once and does not delete anything.",
+      "acceptance": [
+        "Asking which words are shared names only a phrase used by more than one rule, once, and names the actions that use it.",
         "A phrase used once is left out, and a rule with no phrase is not described as the whole action. If none share, Oriel says so.",
         "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money."
       ],

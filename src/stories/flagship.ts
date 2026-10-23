@@ -707,6 +707,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 6,
     },
+    {
+      id: "ORIEL-F38",
+      persona: "a security admin",
+      role: "security",
+      surface: "thread",
+      capability: "Ask which words are shared",
+      title: "A sentence can ask which words are shared",
+      story:
+        "As a security admin, I want to ask Oriel which words are shared, so that it quotes each shared phrase once and does not delete anything.",
+      acceptance: [
+        "Asking which words are shared names only a phrase used by more than one rule, once, and names the actions that use it.",
+        "A phrase used once is left out, and a rule with no phrase is not described as the whole action. If none share, Oriel says so.",
+        "The sentence does not open a card, call a bridge, save or clear a rule, approve a hold, send mail, or move money.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 6,
+    },
   ];
 
   return stories.map((story) => {

@@ -603,6 +603,49 @@ export function loosensSpokenShared(text: string): boolean {
   return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
 }
 
+const SPOKEN_SHARED_WORDS =
+  /^(?:please,?\s+)?which words?\s+(?:are|is)\s+shared(?:\s+hand(?:ed)?(?:\s+(?:off|over))?)?(?:\s+to\s+(?:me|you))?$/i;
+
+export function isSpokenSharedWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  return SPOKEN_SHARED_WORDS.test(normalized);
+}
+
+function joinLabels(labels: string[]): string {
+  if (labels.length <= 1) return labels[0] ?? "";
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
+}
+
+export function spokenSharedWordsCopy(rules: HandoffRule[]): string {
+  const named = READ_ORDER.flatMap((action) => {
+    const rule = rules.find((item) => item.action === action);
+    if (!rule?.phrase) return [];
+    return [rule];
+  });
+  const groups = new Map<string, { phrase: string; actions: HandoffAction[] }>();
+  for (const rule of named) {
+    const key = phraseKey(rule.phrase ?? "");
+    const group = groups.get(key);
+    if (group) group.actions.push(rule.action);
+    else groups.set(key, { phrase: rule.phrase ?? "", actions: [rule.action] });
+  }
+  const shared = [...groups.values()].filter((group) => group.actions.length >= 2);
+  if (!shared.length) {
+    return `No words are shared. Oriel named no other step. ${ASK_TAIL}`;
+  }
+  const lines = shared
+    .map((group) => `“${group.phrase}” is used by ${joinLabels(group.actions.map((action) => READ_LABEL[action]))}.`)
+    .join(" ");
+  return `These words are shared. ${lines} Oriel named no other step. ${ASK_TAIL}`;
+}
+
+export function loosensSpokenSharedWords(text: string): boolean {
+  const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please,?\s+)?which words?\s+(?:are|is)\s+shared\b/i.test(normalized)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|take action without/i.test(normalized);
+}
+
 export function loosensHandoff(text: string): boolean {
   const normalized = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
   if (!/^(?:please\s+)?hand(?:\s+over|\s+off|-off)?\b/i.test(normalized)) return false;
