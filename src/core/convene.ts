@@ -1,12 +1,12 @@
 import { assertBridgeUrl, bridgeFailure, callBridge, describeBridge } from "./bridge.js";
-import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, stayedSentence, stopTaskCopy, stopTaskMissCopy, stopTaskNoneCopy, taskCoverLine, taskReleaseCopy, whoAskedSlackCopy } from "./brief.js";
+import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, stayedSentence, stopRoutineAlreadyCopy, stopRoutineAmbiguousCopy, stopRoutineCopy, stopRoutineMissCopy, stopTaskCopy, stopTaskMissCopy, stopTaskNoneCopy, taskCoverLine, taskReleaseCopy, whoAskedSlackCopy } from "./brief.js";
 import { nextInstant } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
 import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenMentionSame, isSpokenNotMentionSame, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenSharedWords, isSpokenUnnamed, isSpokenMentionedMore, isSpokenMentionedOnce, isSpokenMentionedOnly, isSpokenMentionedWords, isSpokenUnmentionedWords, isSpokenUnsharedSteps, isSpokenUnsharedWords, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenNotShare, loosensSpokenNotShareWith, loosensSpokenRead, loosensSpokenShare, loosensSpokenShareWith, loosensSpokenShared, loosensSpokenSharedWith, loosensSpokenSharedWords, loosensSpokenNotMention, loosensSpokenStepMention, loosensSpokenSameMention, loosensSpokenSameMentionSteps, loosensSpokenSameNotMentionSteps, loosensSpokenSameNotMention, loosensSpokenNotSameWords, loosensSpokenSameWords, loosensSpokenStepNotMention, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenUnsharedSteps, loosensSpokenMentionedMore, loosensSpokenMentionedOnce, loosensSpokenMentionedOnly, loosensSpokenMentionedWords, loosensSpokenUnmentionedWords, loosensSpokenUnsharedWith, loosensSpokenUnsharedWords, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenNotShare, readSpokenNotShareWith, readSpokenNotShareWords, readSpokenRule, loosensSpokenNotShareWords, loosensSpokenNotShareWordsWith, loosensSpokenShareWords, loosensSpokenNotMentionWords, loosensSpokenNotMentionWordsWith, loosensSpokenMentionWords, loosensSpokenMentionSame, loosensSpokenNotMentionSame, loosensSpokenMentionWordsWith, loosensSpokenShareWordsWith, readSpokenNotMention, readSpokenStepMention, readSpokenSameMention, readSpokenSameMentionSteps, readSpokenSameNotMentionSteps, readSpokenSameNotMention, readSpokenNotSameWords, readSpokenSameWords, readSpokenStepNotMention, readSpokenNotShareWordsWith, readSpokenShare, readSpokenShareWith, readSpokenShareWords, readSpokenNotMentionWords, readSpokenNotMentionWordsWith, readSpokenMentionWords, readSpokenMentionWordsWith, readSpokenShareWordsWith, readSpokenSharedWith, readSpokenStep, readSpokenUnsharedWith, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenNotMentionCopy, spokenStepMentionCopy, spokenSameMentionCopy, spokenSameMentionStepsCopy, spokenSameNotMentionStepsCopy, spokenSameNotMentionCopy, spokenNotSameWordsCopy, spokenSameWordsCopy, spokenStepNotMentionCopy, spokenNotShareCopy, spokenNotShareWithCopy, spokenNotShareWordsCopy, spokenNotShareWordsWithCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenShareCopy, spokenShareWithCopy, spokenShareWordsCopy, spokenNotMentionWordsCopy, spokenNotMentionWordsWithCopy, spokenMentionSameCopy, spokenNotMentionSameCopy, spokenMentionWordsCopy, spokenMentionWordsWithCopy, spokenShareWordsWithCopy, spokenSharedCopy, spokenSharedWithCopy, spokenSharedWordsCopy, spokenStepCopy, spokenUnnamedCopy, spokenUnsharedStepsCopy, spokenMentionedMoreCopy, spokenMentionedOnceCopy, spokenMentionedOnlyCopy, spokenMentionedWordsCopy, spokenUnmentionedWordsCopy, spokenUnsharedWithCopy, spokenUnsharedWordsCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
 import type { SpokenAsk, SpokenAskPhrase, SpokenClear, SpokenNotMention, SpokenStepMention, SpokenSameMention, SpokenSameMentionSteps, SpokenSameNotMention, SpokenSameNotMentionSteps, SpokenNotSameWords, SpokenSameWords, SpokenStepNotMention, SpokenNotShare, SpokenNotShareWith, SpokenNotShareWords, SpokenNotShareWordsWith, SpokenRule, SpokenShare, SpokenShareWith, SpokenShareWords, SpokenNotMentionWords, SpokenNotMentionWordsWith, SpokenMentionWords, SpokenMentionWordsWith, SpokenShareWordsWith, SpokenSharedWith, SpokenStep, SpokenUnsharedWith, SpokenWords } from "./handoff.js";
 import { AWAY_HOLD_COPY, EXPIRED_COPY, expiresAtFor } from "./hold.js";
-import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, isStopTask, loosensStopTask, recall, remember } from "./memory.js";
+import { extractLoops, isBareDecision, isMemoryOnly, isMemoryQuery, isStopTask, loosensStopRoutine, loosensStopTask, recall, remember, routineStopName } from "./memory.js";
 import { pauseCopy, readDeskCommand } from "./pause.js";
 import { applyHandoffRules, isWhoAskedSlack, kindsFor, readPolicy, slackAskKind, withSkillProhibitions } from "./policy.js";
 import { clamp, redactSecrets } from "./redact.js";
@@ -89,6 +89,53 @@ function anotherTaskGoal(state: AppState, goalId: string): boolean {
   return state.approvals.some(
     (approval) => approval.goalId !== goalId && approval.status === "approved" && approval.scope === "task",
   );
+}
+
+function sameRoutineName(saved: string, asked: string): boolean {
+  return saved.trim().replace(/\s+/g, " ").toLowerCase() === asked.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function applyStopRoutine(
+  state: AppState,
+  raw: string,
+  asked: string,
+  goalId: string | undefined,
+  deps: Deps,
+): AppState {
+  if (goalId && !state.goals.some((item) => item.id === goalId)) {
+    throw new OrielError("That goal is not in the record.", 404);
+  }
+  const draft = structuredClone(state);
+  const goal = goalId ? (draft.goals.find((item) => item.id === goalId) ?? null) : null;
+  pushMessage(draft, { role: "you", text: redactSecrets(raw), ...(goal ? { goalId: goal.id } : {}) }, deps);
+  const matches = draft.routines.filter((routine) => sameRoutineName(routine.name, asked));
+  if (matches.length === 0) {
+    const reply = stopRoutineMissCopy(asked);
+    pushMessage(draft, { role: "oriel", text: reply, ...(goal ? { goalId: goal.id } : {}) }, deps);
+    pushEvent(draft, goal?.id ?? null, "routine_stop", reply, deps);
+    return draft;
+  }
+  if (matches.length > 1) {
+    const reply = stopRoutineAmbiguousCopy(asked);
+    pushMessage(draft, { role: "oriel", text: reply, ...(goal ? { goalId: goal.id } : {}) }, deps);
+    pushEvent(draft, goal?.id ?? null, "routine_stop", reply, deps);
+    return draft;
+  }
+  const routine = matches[0];
+  if (!routine) return draft;
+  const another = draft.routines.some((item) => item.id !== routine.id);
+  if (routine.cadence === "manual") {
+    const reply = stopRoutineAlreadyCopy(routine.name, another);
+    pushMessage(draft, { role: "oriel", text: reply, ...(goal ? { goalId: goal.id } : {}) }, deps);
+    pushEvent(draft, goal?.id ?? null, "routine_stop", reply, deps);
+    return draft;
+  }
+  routine.cadence = "manual";
+  routine.nextRunAt = null;
+  const reply = stopRoutineCopy(routine.name, another);
+  pushMessage(draft, { role: "oriel", text: reply, ...(goal ? { goalId: goal.id } : {}) }, deps);
+  pushEvent(draft, goal?.id ?? null, "routine_stopped", reply, deps);
+  return draft;
 }
 
 function applyStopTask(state: AppState, raw: string, goalId: string | undefined, deps: Deps): AppState {
@@ -234,6 +281,12 @@ export async function convene(
       throw new OrielError("Nothing is waiting on you.");
     }
     return settleHandoff(swept, open.id, handDecision, deps);
+  }
+
+  const routineName = routineStopName(original);
+  if (routineName) return applyStopRoutine(swept, original, routineName, goalId, deps);
+  if (loosensStopRoutine(original)) {
+    throw new OrielError("Oriel will not take that step without asking. Nothing was sent or spent.");
   }
 
   if (presence === "present") swept = clearHeldBack(swept);

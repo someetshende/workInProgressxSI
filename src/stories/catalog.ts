@@ -373,6 +373,12 @@ export const constraints: Constraint[] = [
     text: "saying stop this task clears Allow for this task on the current goal only, and a sent email cannot be reversed",
     proof: "Stop this task clears that goal's allowance so the next same-kind step asks again. Another goal stays allowed. Nothing is sent or spent.",
   },
+  {
+    id: "stop-routine",
+    short: "Stop one routine",
+    text: "saying stop the named routine sets that one routine to manual, leaves its instruction, and does not change another routine",
+    proof: "Stop the Launch note routine keeps that instruction and stops its wake. Another routine keeps its cadence. Nothing is sent or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

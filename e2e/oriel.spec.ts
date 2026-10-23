@@ -6654,6 +6654,47 @@ test("ORIEL-F75 stop this task asks again and does not reverse a send", async ({
   await page.screenshot({ path: "test-results/oriel-stop-task.png" });
 });
 
+test("ORIEL-F76 stop one named routine leaves the other manual control", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Daily");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Please stop the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "Stopped. “Draft the weekly close but do not send it” wakes only when you run it.",
+  );
+  await expect(page.getByTestId("thread")).toContainText("The instruction stays in the record.");
+  await expect(page.getByTestId("thread")).toContainText("Another routine is unchanged.");
+  await expect(page.getByTestId("thread")).toContainText("A completed action was not undone. Nothing was sent or spent.");
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await expect(firstCadence).toHaveText("Manual");
+  await expect(secondCadence).toHaveText("Daily");
+  await page.locator("[data-testid^='run-routine-']").nth(0).click();
+  await expect(page.getByTestId("thread")).toContainText("weekly close");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(firstCadence).toHaveText("Manual");
+  await expect(secondCadence).toHaveText("Daily");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-stop-routine.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

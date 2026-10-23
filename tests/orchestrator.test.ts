@@ -15052,6 +15052,188 @@ describe("ORIEL-F75", () => {
   });
 });
 
+describe("ORIEL-F76", () => {
+  it("ORIEL-F76 sets one named routine to manual and leaves the other", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      expect(state.goals[0]?.brief.seatReads.map((note) => note.seat)).not.toContain("muse");
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      expect(state.approvals[0]?.status).toBe("approved");
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await runRoutine(state, state.routines[0]?.id ?? "", early);
+      const ranAt = state.routines[0]?.lastRunAt;
+      const instruction = state.routines[0]?.instruction;
+      expect(instruction).toBe("Email the client the launch note");
+      expect(ranAt).toBe("2026-10-23T12:00:00.000Z");
+      const runHold = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      expect(runHold).toBeTruthy();
+
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "hourly", early);
+      const marketNext = state.routines[1]?.nextRunAt;
+      expect(marketNext).toBe("2026-10-23T13:00:00.000Z");
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[1]!.heldBack = ["pay"];
+      const beforeStop = state.goals.length;
+      const beforeHits = hits.length;
+
+      state = await convene(state, "Please stop the Launch note routine?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toHaveLength(beforeStop);
+      expect(state.routines[0]?.cadence).toBe("manual");
+      expect(state.routines[0]?.nextRunAt).toBeNull();
+      expect(state.routines[0]?.instruction).toBe(instruction);
+      expect(state.routines[0]?.lastRunAt).toBe(ranAt);
+      expect(state.routines[0]?.heldBack).toEqual(["send"]);
+      expect(state.routines[0]?.name).toBe("Launch note");
+      expect(state.routines[1]?.cadence).toBe("hourly");
+      expect(state.routines[1]?.nextRunAt).toBe(marketNext);
+      expect(state.routines[1]?.instruction).toBe("Compare the market landscape");
+      expect(state.routines[1]?.heldBack).toEqual(["pay"]);
+      expect(state.routines[1]?.lastRunAt).toBeNull();
+      expect(state.approvals[0]?.status).toBe("approved");
+      expect(state.approvals.find((approval) => approval.id === runHold?.id)?.status).toBe("open");
+      expect(state.messages.at(-1)?.text).toBe(
+        "Stopped. “Launch note” wakes only when you run it. The instruction stays in the record. Another routine is unchanged. A completed action was not undone. Nothing was sent or spent.",
+      );
+      expect(state.messages.at(-1)?.text).not.toContain("I sent");
+      expect(state.messages.at(-1)?.text).not.toContain("No charge was made.");
+      expect(state.events.some((event) => event.type === "routine_stopped")).toBe(true);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const quiet = { ...deps, now: () => new Date("2026-10-23T13:00:00.000Z") };
+      const woke = await wakeDue(state, quiet);
+      expect(woke.goals).toHaveLength(beforeStop + 1);
+      expect(woke.routines[0]?.cadence).toBe("manual");
+      expect(woke.routines[0]?.lastRunAt).toBe(ranAt);
+      expect(woke.routines[0]?.instruction).toBe(instruction);
+      expect(woke.routines[1]?.lastRunAt).toBe("2026-10-23T13:00:00.000Z");
+      expect(woke.routines[1]?.cadence).toBe("hourly");
+      expect(woke.messages.some((message) => message.text.includes("wakes only when you run it"))).toBe(true);
+
+      const again = await convene(state, "STOP THE launch NOTE routine", undefined, early);
+      expect(again.routines[0]?.cadence).toBe("manual");
+      expect(again.routines[1]?.nextRunAt).toBe(marketNext);
+      expect(again.messages.at(-1)?.text).toBe(
+        "“Launch note” already wakes only when you run it. The instruction stays in the record. Another routine is unchanged. Nothing was changed. A completed action was not undone. Nothing was sent or spent.",
+      );
+      expect(again.goals).toHaveLength(beforeStop);
+    });
+  });
+
+  it("ORIEL-F76 leaves a missing, shared, or widened name alone", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    const secondId = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, secondId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const otherNext = state.routines[1]?.nextRunAt;
+    const goals = state.goals.length;
+
+    const shared = await convene(state, 'Stop the "Launch note" routine', undefined, early);
+    expect(shared.goals).toHaveLength(goals);
+    expect(shared.routines[0]?.cadence).toBe("hourly");
+    expect(shared.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(shared.routines[1]?.cadence).toBe("daily");
+    expect(shared.routines[1]?.nextRunAt).toBe(otherNext);
+    expect(shared.messages.at(-1)?.text).toBe(
+      "More than one routine is named “Launch note”. Nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(shared.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    const only = state.routines[0];
+    let single = structuredClone(state);
+    single.routines = only ? [structuredClone(only)] : [];
+    const stopped = await convene(single, "Please stop the Launch note routine.", firstId, early);
+    expect(stopped.routines[0]?.cadence).toBe("manual");
+    expect(stopped.routines[0]?.nextRunAt).toBeNull();
+    expect(stopped.routines[0]?.instruction).toBe(only?.instruction);
+    expect(stopped.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+    expect(stopped.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+    expect(stopped.goals).toHaveLength(goals);
+
+    const whilePaused = await convene(setPaused(single, true, early), "Stop the Launch note routine", firstId, early);
+    expect(whilePaused.paused).toBe(true);
+    expect(whilePaused.routines).toHaveLength(1);
+    expect(whilePaused.routines[0]?.cadence).toBe("manual");
+    expect(whilePaused.routines[0]?.nextRunAt).toBeNull();
+    expect(whilePaused.routines[0]?.instruction).toBe(only?.instruction);
+    expect(whilePaused.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+    expect(whilePaused.goals).toHaveLength(goals);
+    expect(whilePaused.messages.at(-1)?.text).toContain("wakes only when you run it");
+
+    const missed = await convene(state, "Stop the Launch notes routine", undefined, early);
+    expect(missed.goals).toHaveLength(goals);
+    expect(missed.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(missed.routines[1]?.cadence).toBe("daily");
+    expect(missed.messages.at(-1)?.text).toBe(
+      "There is no “Launch notes” routine. Nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+
+    const aside = await convene(state, "Stop the Launch note routine and email Maya", undefined, early);
+    expect(aside.goals).toHaveLength(goals + 1);
+    expect(aside.routines[0]?.cadence).toBe("hourly");
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[1]?.nextRunAt).toBe(otherNext);
+    expect(aside.approvals.filter((approval) => approval.status === "open" && approval.kind === "send").length).toBeGreaterThan(0);
+    expect(aside.messages.at(-1)?.text).not.toContain("wakes only when you run it");
+
+    const declined = await convene(state, "Don't stop the Launch note routine", undefined, early);
+    expect(declined.goals).toHaveLength(goals + 1);
+    expect(declined.routines[0]?.cadence).toBe("hourly");
+    expect(declined.routines[1]?.cadence).toBe("daily");
+    expect(declined.messages.at(-1)?.text).not.toContain("wakes only when you run it");
+
+    const unnamed = await convene(state, "Stop the routine", undefined, early);
+    expect(unnamed.routines[0]?.cadence).toBe("hourly");
+    expect(unnamed.routines[1]?.cadence).toBe("daily");
+    expect(unnamed.messages.at(-1)?.text).not.toContain("wakes only when you run it");
+
+    const plural = await convene(state, "Stop the Launch note routines", undefined, early);
+    expect(plural.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(plural.messages.at(-1)?.text).not.toContain("wakes only when you run it");
+
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[1]!.heldBack = ["pay"];
+    const paused = await convene(setPaused(state, true, early), "Stop the Launch note routine", undefined, early);
+    expect(paused.paused).toBe(true);
+    expect(paused.routines[0]?.cadence).toBe("hourly");
+    expect(paused.routines[1]?.cadence).toBe("daily");
+    expect(paused.routines[0]?.heldBack).toEqual(["send"]);
+    expect(paused.routines[1]?.heldBack).toEqual(["pay"]);
+    expect(paused.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(paused.messages.at(-1)?.text).toContain("More than one routine is named");
+
+    const kept = structuredClone(state);
+    await expect(convene(kept, "Stop the Launch note routine without asking", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Please stop the Launch note routine always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Stop the Launch note routine and allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.cadence).toBe("hourly");
+    expect(kept.routines[1]?.cadence).toBe("daily");
+    expect(kept.routines[0]?.nextRunAt).toBe(launchNext);
+    await expect(convene(kept, "Stop the Launch note routine", "goal_missing", early)).rejects.toThrow(/not in the record/);
+    expect(kept.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(kept.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+  });
+});
+
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [

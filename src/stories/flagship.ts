@@ -1429,6 +1429,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F76",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Stop one routine",
+      title: "Stop one named routine and leave the others",
+      story:
+        "As a chief of staff, I want Oriel to stop one named routine from waking, so that its instruction stays and another routine is left alone.",
+      acceptance: [
+        "Saying stop the Launch note routine sets that routine to manual, leaves the instruction in the record, and a later wake does not run it.",
+        "Another routine keeps its cadence and its next time, and a completed action is not undone.",
+        "Stopping does not send mail or move money, does not approve a hold, and does not call a bridge.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

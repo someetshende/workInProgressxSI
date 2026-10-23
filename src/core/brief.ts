@@ -120,6 +120,28 @@ export function stopTaskNoneCopy(): string {
   return "There is no task to stop. Nothing was cleared. A sent email cannot be reversed from here. Nothing was sent or spent.";
 }
 
+function quotedRoutine(name: string): string {
+  return `“${name}”`;
+}
+
+export function stopRoutineCopy(name: string, another: boolean): string {
+  const other = another ? " Another routine is unchanged." : "";
+  return `Stopped. ${quotedRoutine(name)} wakes only when you run it. The instruction stays in the record.${other} A completed action was not undone. Nothing was sent or spent.`;
+}
+
+export function stopRoutineAlreadyCopy(name: string, another: boolean): string {
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quotedRoutine(name)} already wakes only when you run it. The instruction stays in the record.${other} Nothing was changed. A completed action was not undone. Nothing was sent or spent.`;
+}
+
+export function stopRoutineMissCopy(name: string): string {
+  return `There is no ${quotedRoutine(name)} routine. Nothing was changed. A completed action stays completed. Nothing was sent or spent.`;
+}
+
+export function stopRoutineAmbiguousCopy(name: string): string {
+  return `More than one routine is named ${quotedRoutine(name)}. Nothing was changed. A completed action stays completed. Nothing was sent or spent.`;
+}
+
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
   const names = kinds.map((kind) => KIND_STAY[kind]);

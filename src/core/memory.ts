@@ -132,3 +132,25 @@ export function loosensStopTask(text: string): boolean {
   if (!/^(?:please\s+)?stop this task\b/i.test(value)) return false;
   return /without asking|always[-\s]?allow|allow automatically|allow for this site|take action without/i.test(value);
 }
+
+const ROUTINE_LOOSEN = /without asking|always[-\s]?allow|allow automatically|allow for this site|take action without/i;
+
+function tidySentence(text: string): string {
+  return text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+}
+
+export function routineStopName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = /^(?:please\s+)?stop the (.+) routine$/i.exec(value);
+  if (!match) return null;
+  const name = (match[1] ?? "").trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ").trim();
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensStopRoutine(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineStopName(text)) return false;
+  if (!/^(?:please\s+)?stop the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
