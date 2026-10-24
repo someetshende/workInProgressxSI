@@ -8173,6 +8173,109 @@ test("ORIEL-F96 is the routine active names that one switch", async ({ page }) =
   await page.screenshot({ path: "test-results/oriel-routine-active-ask.png" });
 });
 
+test("ORIEL-F97 is the routine enabled names that one switch", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Is the Launch note routine enabled?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine is enabled names that it is enabled, or says it is not enabled and a wake does not run it.",
+  );
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine enabled?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” is enabled.");
+  await expect(clear).not.toContainText("is not enabled");
+  await expect(clear).not.toContainText("A wake does not run it.");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine enabled?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” is enabled.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(0);
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine enabled?");
+  await page.getByTestId("send").click();
+  const one = page.locator("#thread .turn").last();
+  await expect(one).toContainText("“Draft the weekly close but do not send it” is not enabled. A wake does not run it.");
+  await expect(one).not.toContainText("Summarize the launch risks");
+  await expect(one).not.toContainText("I sent");
+  await expect(firstCadence).toHaveText("Daily");
+  await expect(secondCadence).toHaveText("Hourly");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+  await expect(page.locator("[data-testid^='last-run-']").nth(0)).toHaveText("Has not run");
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+
+  await page.getByTestId("composer").fill("Is the Summarize the launch risks routine enabled?");
+  await page.getByTestId("send").click();
+  const other = page.locator("#thread .turn").last();
+  await expect(other).toContainText("“Summarize the launch risks” is enabled.");
+  await expect(other).not.toContainText("is not enabled");
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine active?");
+  await page.getByTestId("send").click();
+  const stillActive = page.locator("#thread .turn").last();
+  await expect(stillActive).toContainText("“Draft the weekly close but do not send it” is not active. A wake does not run it.");
+  await expect(stillActive).not.toContainText("is enabled");
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine paused?");
+  await page.getByTestId("send").click();
+  const stillPaused = page.locator("#thread .turn").last();
+  await expect(stillPaused).toContainText("“Draft the weekly close but do not send it” is paused. A wake does not run it.");
+  await expect(stillPaused).not.toContainText("is enabled");
+  await expect(stillPaused).not.toContainText("is not active");
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-enabled-ask.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

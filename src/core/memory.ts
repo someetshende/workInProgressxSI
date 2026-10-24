@@ -217,6 +217,24 @@ export function loosensRoutineActiveAsk(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_ENABLED_ASK = /^(?:please,?\s+)?is the (.+) routine enabled$/i;
+
+export function routineEnabledAskName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ENABLED_ASK.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineEnabledAsk(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineEnabledAskName(text)) return false;
+  if (!/^(?:please,?\s+)?is the .+ routine enabled\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

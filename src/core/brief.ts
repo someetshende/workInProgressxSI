@@ -196,6 +196,21 @@ export function routineActiveAskAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineEnabledAskCopy(name: string, paused: boolean, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  if (paused) return `${quoted} is not enabled. A wake does not run it.${other} ${SCHEDULE_TAIL}`;
+  return `${quoted} is enabled.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineEnabledAskMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineEnabledAskAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineWakeCopy(name: string, cadence: Cadence, nextRunAt: string | null, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
