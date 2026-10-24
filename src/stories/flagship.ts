@@ -2360,6 +2360,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F125",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether sign-in is still open for one routine",
+      title: "Say that one routine has no open sign-in and do not finish the sign-in",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no open sign-in in the record, so that I can check the work without finishing the sign-in.",
+      acceptance: [
+        "Saying whether sign-in is still open for the Launch note routine says that one routine has no open sign-in in the record.",
+        "Asking does not finish the sign-in, does not choose Sign in, and does not return to the app.",
+        "A stored run is not an open sign-in. An app update is not one. The app-update answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
