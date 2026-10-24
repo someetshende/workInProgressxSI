@@ -508,6 +508,24 @@ export function loosensRoutineTeamRule(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_LOCKED_TEAM_RULE = /^(?:please,?\s+)?is the team rule for the (.+) routine locked$/i;
+
+export function routineLockedTeamRuleName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_LOCKED_TEAM_RULE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineLockedTeamRule(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineLockedTeamRuleName(text)) return false;
+  if (!/^(?:please,?\s+)?is the team rule for the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
