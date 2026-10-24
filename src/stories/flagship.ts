@@ -1961,6 +1961,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F104",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which plugins one routine needs",
+      title: "Say that one routine has no required plugin and do not connect one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no required plugin in the record, so that I can check the troubleshooting step without connecting a plugin.",
+      acceptance: [
+        "Saying which plugins the Launch note routine needs says that one routine has no required plugin in the record.",
+        "Asking does not connect a plugin, does not assign Grok Bot, Dots, or Muse, and does not run the routine or change the cadence, the next time, the instruction, the pause, the last run, or the stored runs.",
+        "A desk-wide pause does not invent a plugin. The owning-bot answer and the time-zone answer stay. Two routines with the same name are left unchanged. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

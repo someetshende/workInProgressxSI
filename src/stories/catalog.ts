@@ -541,6 +541,12 @@ export const constraints: Constraint[] = [
     text: "saying which bot owns one named routine says that routine has no owning bot in the record and does not assign it to Grok Bot, Dots, or Muse or treat a desk-wide pause as an owner",
     proof: "Which bot owns the Launch note routine says there is no owning bot. Asking does not assign one. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-plugin",
+    short: "Ask which plugins one needs",
+    text: "saying which plugins one named routine needs says that routine has no required plugin in the record and does not connect a plugin or assign it to Grok Bot, Dots, or Muse or treat a desk-wide pause as a plugin",
+    proof: "Which plugins does the Launch note routine need says there is no required plugin. Asking does not connect one. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
