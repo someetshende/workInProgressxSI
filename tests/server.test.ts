@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -9876,6 +9876,115 @@ describe("Oriel server", () => {
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
     expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
     expect(still.messages.at(-1).text).toContain("“Launch note” has no required plugin");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F107 says one routine has no failure and does not start a test run", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("What failure does the Launch note routine show?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineFailureMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking what failure one named routine shows");
+    expect(missing.body.trust).toContain("does not start a test run");
+    expect(missing.body.trust).toContain("does not say there is no failure");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, what failure does the Launch note routine show?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineFailureCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not start a test run.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).not.toBe(true);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("What failure does the Launch note routine show?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain(next);
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("What failure does the Launch note routine show?");
+    expect(asked.body.messages.at(-1).text).toBe(routineFailureCopy("Launch note", true));
+    expect(asked.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(asked.body.messages.at(-1).text).not.toContain(next);
+    expect(asked.body.messages.at(-1).text).not.toContain("Market check");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+    expect(asked.body.goals).toHaveLength(2);
+
+    const quiet = await turn("Why hasn't the Launch note routine run?");
+    expect(quiet.body.messages.at(-1).text).toContain("It is paused.");
+    expect(quiet.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(quiet.body.messages.at(-1).text).not.toContain("has no failure");
+    expect(quiet.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const usage = await turn("Has usage been paused for the Launch note routine?");
+    expect(usage.body.messages.at(-1).text).toBe(routineUsageCopy("Launch note", true));
+    expect(usage.body.messages.at(-1).text).toContain("“Launch note” has no usage pause in the record.");
+    expect(usage.body.messages.at(-1).text).not.toContain("has no failure");
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const gone = await turn("What failure does the Launch note routine show?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("What failure does the Launch note routine show without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(still.messages.at(-1).text).toContain("“Launch note” has no usage pause");
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
 

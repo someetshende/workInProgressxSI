@@ -2018,6 +2018,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F107",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "What failure one routine shows",
+      title: "Say that one routine has no failure and do not start a test run",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no failure in the record, so that I can check recent run history without starting a test run.",
+      acceptance: [
+        "Saying what failure the Launch note routine shows says that one routine has no failure in the record.",
+        "Asking does not start a test run, does not pause account access or the routine, and does not connect a computer or a plugin.",
+        "A stored run is not a failure. A desk-wide pause does not invent a failure. A usage pause is not a failure. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
