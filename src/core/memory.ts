@@ -472,6 +472,24 @@ export function loosensRoutineAskFirst(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_ALLOW_AUTO = /^(?:please,?\s+)?which allow-automatically rule covers the (.+) routine$/i;
+
+export function routineAllowAutoName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ALLOW_AUTO.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineAllowAuto(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineAllowAutoName(text)) return false;
+  if (!/^(?:please,?\s+)?which allow-automatically rule covers the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

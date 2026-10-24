@@ -2113,6 +2113,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F112",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which allow-automatically rule covers one routine",
+      title: "Say that one routine has no allow-automatically rule and do not turn one on",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no allow-automatically rule in the record, so that I can check an automatic allowance without turning one on.",
+      acceptance: [
+        "Saying which allow-automatically rule covers the Launch note routine says that one routine has no allow-automatically rule in the record.",
+        "Asking does not turn one on, does not save an ask-first rule, and does not confirm a matching rule.",
+        "A stored run is not an allow-automatically rule. An ask-first rule is not one. The ask-first answer and the matching-rule answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
