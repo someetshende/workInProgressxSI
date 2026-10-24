@@ -1030,6 +1030,24 @@ export function loosensRoutineSoloRoster(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_TEAM_BENCH = /^(?:please,?\s+)?does the (.+) routine share a cloud-hosted bot with everyone on the team$/i;
+
+export function routineTeamBenchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TEAM_BENCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTeamBench(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTeamBenchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine share a cloud-hosted bot with everyone on the team\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

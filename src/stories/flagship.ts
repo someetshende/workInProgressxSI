@@ -2702,6 +2702,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F143",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine shares a cloud-hosted bot with everyone on the team",
+      title: "Say that one routine has no team bench and do not share a team bot",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no team bench in the record, so that I can check the work without sharing a team bot.",
+      acceptance: [
+        "Saying whether the Launch note routine shares a cloud-hosted bot with everyone on the team says that one routine has no team bench in the record.",
+        "Asking does not share a team bot, does not invite a member, and does not open someone else's chat.",
+        "A stored run is not a team bench. A solo roster is not one. The solo-roster answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

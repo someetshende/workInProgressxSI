@@ -16720,6 +16720,148 @@ test("ORIEL-F142 whether one routine needs its own Cursor user does not give a w
   await page.screenshot({ path: "test-results/oriel-routine-solo-roster.png" });
 });
 
+test("ORIEL-F143 whether one routine shares a cloud-hosted bot with everyone on the team does not share a team bot", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine share a cloud-hosted bot with everyone on the team?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine shares a cloud-hosted bot with everyone on the team says that routine has no team bench in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether a login or file for one routine is available to every bot says that routine has no common tray in the record.",
+  );
+  await expect(page.locator("[data-testid^='team-bench-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-bench-']").nth(0)).toHaveText("No team bench");
+  await expect(page.locator("[data-testid^='solo-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='roster-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='common-tray-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='common-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='tray-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='persona-ledger-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='persona-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ledger-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='guest-slice-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  const followsTray = await page.evaluate(() => {
+    const tray = document.querySelector("[data-testid^='common-tray-']");
+    const roster = document.querySelector("[data-testid^='team-bench-']");
+    if (!tray || !roster || tray.parentElement !== roster.parentElement) return false;
+    return tray.compareDocumentPosition(roster) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsTray).toBe(true);
+  const noteIds = await page.locator("[data-testid^='team-bench-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("team-bench-"))).toBe(true);
+  for (const prefix of ["solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "computer-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine share a cloud-hosted bot with everyone on the team?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no team bench in the record.");
+  await expect(clear).toContainText("Asking does not share a team bot.");
+  await expect(clear).not.toContainText("has no common tray");
+  await expect(clear).not.toContainText("has no solo roster");
+  await expect(clear).not.toContainText("Asking does not sign the browser out.");
+  await expect(clear).not.toContainText("Asking does not create a Cursor user.");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("computer");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine share a cloud-hosted bot with everyone on the team?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no team bench in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine share a cloud-hosted bot with everyone on the team?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no team bench in the record.");
+  await expect(pausedAsk).toContainText("Asking does not share a team bot.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine need its own Cursor user for a separate computer and credential set?");
+  await page.getByTestId("send").click();
+  const rosterLeft = page.locator("#thread .turn").last();
+  await expect(rosterLeft).toContainText("has no solo roster");
+  await expect(rosterLeft).toContainText("Asking does not give a workload its own user.");
+  await expect(rosterLeft).not.toContainText("has no team bench");
+
+  await page.getByTestId("composer").fill("Is a login or file for the Draft the weekly close but do not send it routine available to every bot?");
+  await page.getByTestId("send").click();
+  const trayLeft = page.locator("#thread .turn").last();
+  await expect(trayLeft).toContainText("“Draft the weekly close but do not send it” has no common tray in the record.");
+  await expect(trayLeft).toContainText("Asking does not sign the browser out.");
+  await expect(trayLeft).not.toContainText("has no team bench");
+
+  await page.getByTestId("composer").fill("Is an app update waiting for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const updateLeft = page.locator("#thread .turn").last();
+  await expect(updateLeft).toContainText("has no app update");
+  await expect(updateLeft).not.toContainText("has no team bench");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("team bench");
+  await expect(why).not.toContainText("Cursor user");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='team-bench-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='solo-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='roster-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='common-tray-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='common-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='tray-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='persona-ledger-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-team-bench.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
