@@ -2493,6 +2493,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F132",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether recovery should wait until one routine finishes computer work",
+      title: "Say that one routine has no finish-before-rebuild and do not rebuild the computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no finish-before-rebuild in the record, so that I can check the work without rebuilding the computer.",
+      acceptance: [
+        "Saying whether recovery should wait until the Launch note routine finishes computer work says that one routine has no finish-before-rebuild in the record.",
+        "Asking does not rebuild the computer, does not recover a computer, and does not reset the computer.",
+        "A stored run is not a finish-before-rebuild. An active screen task is not one. The screen-task answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

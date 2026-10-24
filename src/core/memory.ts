@@ -832,6 +832,24 @@ export function loosensRoutineScreenTask(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_FINISH_BEFORE_REBUILD = /^(?:please,?\s+)?should recovery wait until the (.+) routine finishes computer work$/i;
+
+export function routineFinishBeforeRebuildName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_FINISH_BEFORE_REBUILD.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineFinishBeforeRebuild(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineFinishBeforeRebuildName(text)) return false;
+  if (!/^(?:please,?\s+)?should recovery wait until the .+ routine finishes computer work\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
