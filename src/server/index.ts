@@ -3,7 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderMarkdown } from "../core/brief.js";
 import { isCadence } from "../core/cadence.js";
-import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../core/convene.js";
+import { convene, expireHolds, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../core/convene.js";
 import type { Deps } from "../core/types.js";
 import { OrielError } from "../core/errors.js";
 import { refineWithGlm } from "../core/glm.js";
@@ -344,6 +344,19 @@ export async function startServer(options: {
         const cadence = body.cadence === undefined ? "manual" : body.cadence;
         if (!isCadence(cadence)) throw new OrielError("Cadence must be manual, daily, or hourly.");
         const next = await store.update((current) => saveRoutine(current, body.goalId as string, name, depsFor(), cadence));
+        sendJson(res, 200, toPublic(next, getCatalog().length));
+        return;
+      }
+      const stampMatch = method === "POST" ? pathname.match(/^\/api\/routines\/([A-Za-z0-9_]+)\/stamp$/) : null;
+      if (stampMatch) {
+        if (!testMode) {
+          sendJson(res, 404, { error: "Not found." });
+          return;
+        }
+        const body = asObject(await readBody(req));
+        if (typeof body.count !== "number") throw new OrielError("A test stamp names how many runs to record, from 1 to 200.");
+        const id = stampMatch[1] ?? "";
+        const next = await store.update((current) => stampRoutineRuns(current, id, body.count as number, depsFor()));
         sendJson(res, 200, toPublic(next, getCatalog().length));
         return;
       }

@@ -1,6 +1,6 @@
 import { assertBridgeUrl, bridgeFailure, callBridge, describeBridge } from "./bridge.js";
-import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, routineChangeAmbiguousCopy, routineChangeCopy, routineChangeMissCopy, routineDeliveredAmbiguousCopy, routineDeliveredCopy, routineDeliveredMissCopy, routineDoAmbiguousCopy, routineDoCopy, routineDoMissCopy, routineDeleteCopy, routineHoldAlreadyCopy, routineHoldCopy, routineRanAmbiguousCopy, routineRanCopy, routineRanMissCopy, routineRunAmbiguousCopy, routineRunCopy, routineRunMissCopy, routineCapCopy, routinePaceAlreadyCopy, routinePaceApartCopy, routinePaceCopy, routineSaveAlreadyCopy, routineSaveAmbiguousCopy, routineSaveCopy, routineSaveMissCopy, routineWakeAmbiguousCopy, routineWakeCopy, routineWakeMissCopy, scheduleReadCopy, stayedSentence, stopRoutineAlreadyCopy, stopRoutineAmbiguousCopy, stopRoutineCopy, stopRoutineMissCopy, stopTaskCopy, stopTaskMissCopy, stopTaskNoneCopy, taskCoverLine, taskReleaseCopy, whoAskedSlackCopy } from "./brief.js";
-import { closerThanFiveMinutes, nextInstant, ROUTINE_CAP } from "./cadence.js";
+import { APPROVAL_TITLE, approvalDetail, composeBrief, DENIAL_COPY, DRAFT_ONLY_COPY, FORWARD_COPY, FORWARD_TASK, releaseCopy, routineChangeAmbiguousCopy, routineChangeCopy, routineChangeMissCopy, routineDeliveredAmbiguousCopy, routineDeliveredCopy, routineDeliveredMissCopy, routineDoAmbiguousCopy, routineDoCopy, routineDoMissCopy, routineDeleteCopy, routineHoldAlreadyCopy, routineHoldCopy, routineRanAmbiguousCopy, routineRanCopy, routineRanMissCopy, routineRunAmbiguousCopy, routineRunCopy, routineRunMissCopy, routineCapCopy, deskHourCopy, routineHourCopy, routinePaceAlreadyCopy, routinePaceApartCopy, routinePaceCopy, routineSaveAlreadyCopy, routineSaveAmbiguousCopy, routineSaveCopy, routineSaveMissCopy, routineWakeAmbiguousCopy, routineWakeCopy, routineWakeMissCopy, scheduleReadCopy, stayedSentence, stopRoutineAlreadyCopy, stopRoutineAmbiguousCopy, stopRoutineCopy, stopRoutineMissCopy, stopTaskCopy, stopTaskMissCopy, stopTaskNoneCopy, taskCoverLine, taskReleaseCopy, whoAskedSlackCopy } from "./brief.js";
+import { closerThanFiveMinutes, nextInstant, rememberedRuns, ROUTINE_CAP, ROUTINE_HOUR_CAP, routineRateBlock } from "./cadence.js";
 import { DISPLAY, chooseSeats, isSeatId } from "./doctrine.js";
 import { OrielError } from "./errors.js";
 import { HANDOFF_DONE, HANDOFF_LEFT, HANDOFF_TASK, cleanPhrase, handoffCardDetail, handoffTitle, isHandoffAction, isHandoffDecision, isSpokenMentionSame, isSpokenNotMentionSame, isSpokenNamed, isSpokenRead, isSpokenShared, isSpokenSharedWords, isSpokenUnnamed, isSpokenMentionedMore, isSpokenMentionedOnce, isSpokenMentionedOnly, isSpokenMentionedWords, isSpokenUnmentionedWords, isSpokenUnsharedSteps, isSpokenUnsharedWords, loosensHandoff, loosensSpokenAsk, loosensSpokenClear, loosensSpokenNamed, loosensSpokenNotShare, loosensSpokenNotShareWith, loosensSpokenRead, loosensSpokenShare, loosensSpokenShareWith, loosensSpokenShared, loosensSpokenSharedWith, loosensSpokenSharedWords, loosensSpokenNotMention, loosensSpokenStepMention, loosensSpokenSameMention, loosensSpokenSameMentionSteps, loosensSpokenSameNotMentionSteps, loosensSpokenSameNotMention, loosensSpokenNotSameWords, loosensSpokenSameWords, loosensSpokenStepNotMention, loosensSpokenStep, loosensSpokenUnnamed, loosensSpokenUnsharedSteps, loosensSpokenMentionedMore, loosensSpokenMentionedOnce, loosensSpokenMentionedOnly, loosensSpokenMentionedWords, loosensSpokenUnmentionedWords, loosensSpokenUnsharedWith, loosensSpokenUnsharedWords, loosensSpokenWords, readSpokenAsk, readSpokenAskPhrase, readSpokenClear, readSpokenNotShare, readSpokenNotShareWith, readSpokenNotShareWords, readSpokenRule, loosensSpokenNotShareWords, loosensSpokenNotShareWordsWith, loosensSpokenShareWords, loosensSpokenNotMentionWords, loosensSpokenNotMentionWordsWith, loosensSpokenMentionWords, loosensSpokenMentionSame, loosensSpokenNotMentionSame, loosensSpokenMentionWordsWith, loosensSpokenShareWordsWith, readSpokenNotMention, readSpokenStepMention, readSpokenSameMention, readSpokenSameMentionSteps, readSpokenSameNotMentionSteps, readSpokenSameNotMention, readSpokenNotSameWords, readSpokenSameWords, readSpokenStepNotMention, readSpokenNotShareWordsWith, readSpokenShare, readSpokenShareWith, readSpokenShareWords, readSpokenNotMentionWords, readSpokenNotMentionWordsWith, readSpokenMentionWords, readSpokenMentionWordsWith, readSpokenShareWordsWith, readSpokenSharedWith, readSpokenStep, readSpokenUnsharedWith, readSpokenWords, skillGuardsSeat, spokenAskCopy, spokenAskPhraseCopy, spokenBareClearCopy, spokenBareClearMissCopy, spokenClearCopy, spokenClearMissCopy, spokenNamedCopy, spokenNotMentionCopy, spokenStepMentionCopy, spokenSameMentionCopy, spokenSameMentionStepsCopy, spokenSameNotMentionStepsCopy, spokenSameNotMentionCopy, spokenNotSameWordsCopy, spokenSameWordsCopy, spokenStepNotMentionCopy, spokenNotShareCopy, spokenNotShareWithCopy, spokenNotShareWordsCopy, spokenNotShareWordsWithCopy, spokenPhraseMatches, spokenReadCopy, spokenRuleCopy, spokenShareCopy, spokenShareWithCopy, spokenShareWordsCopy, spokenNotMentionWordsCopy, spokenNotMentionWordsWithCopy, spokenMentionSameCopy, spokenNotMentionSameCopy, spokenMentionWordsCopy, spokenMentionWordsWithCopy, spokenShareWordsWithCopy, spokenSharedCopy, spokenSharedWithCopy, spokenSharedWordsCopy, spokenStepCopy, spokenUnnamedCopy, spokenUnsharedStepsCopy, spokenMentionedMoreCopy, spokenMentionedOnceCopy, spokenMentionedOnlyCopy, spokenMentionedWordsCopy, spokenUnmentionedWordsCopy, spokenUnsharedWithCopy, spokenUnsharedWordsCopy, spokenWordsCopy, taskSuffix } from "./handoff.js";
@@ -513,6 +513,9 @@ async function applySpokenRun(
   }
   const routine = matches[0];
   if (!routine) return state;
+  if (routineRateBlock(state.routines, routine.id, deps.now())) {
+    return refuseRoutineRate(state, routine.id, deps, raw);
+  }
   const another = state.routines.some((item) => item.id !== routine.id);
   const draft = clearHeldBack(structuredClone(state));
   pushMessage(draft, { role: "you", text: redactSecrets(raw) }, deps);
@@ -2054,6 +2057,7 @@ export function saveRoutine(
     cadence,
     createdAt: at(deps),
     lastRunAt: null,
+    recentRuns: [],
     nextRunAt: nextInstant(cadence, deps.now()),
     paused: false,
     heldBack: [],
@@ -2075,6 +2079,38 @@ export function setRoutineCadence(state: AppState, routineId: string, cadence: C
   return draft;
 }
 
+function rateReply(name: string, block: "routine" | "desk", another: boolean): string {
+  return block === "routine" ? routineHourCopy(name, another) : deskHourCopy(name, another);
+}
+
+export function refuseRoutineRate(state: AppState, routineId: string, deps: Deps, heard?: string): AppState {
+  const routine = state.routines.find((item) => item.id === routineId);
+  if (!routine) throw new OrielError("That routine is not in the record.", 404);
+  const block = routineRateBlock(state.routines, routineId, deps.now());
+  if (!block) return state;
+  const another = state.routines.some((item) => item.id !== routineId);
+  const reply = rateReply(routine.name, block, another);
+  const draft = structuredClone(state);
+  if (heard) pushMessage(draft, { role: "you", text: redactSecrets(heard) }, deps);
+  pushMessage(draft, { role: "oriel", text: reply }, deps);
+  pushEvent(draft, null, "routine_rate", reply, deps);
+  return draft;
+}
+
+export function stampRoutineRuns(state: AppState, routineId: string, count: number, deps: Deps): AppState {
+  if (!Number.isInteger(count) || count < 1 || count > ROUTINE_HOUR_CAP) {
+    throw new OrielError("A test stamp names how many runs to record, from 1 to 200.");
+  }
+  const draft = structuredClone(state);
+  const routine = draft.routines.find((item) => item.id === routineId);
+  if (!routine) throw new OrielError("That routine is not in the record.", 404);
+  const now = deps.now().getTime();
+  const stamps = [...(routine.recentRuns ?? [])];
+  for (let i = 0; i < count; i += 1) stamps.push(new Date(now - i).toISOString());
+  routine.recentRuns = rememberedRuns(stamps);
+  return draft;
+}
+
 export async function runRoutine(
   state: AppState,
   routineId: string,
@@ -2083,6 +2119,7 @@ export async function runRoutine(
 ): Promise<AppState> {
   const routine = state.routines.find((item) => item.id === routineId);
   if (!routine) throw new OrielError("That routine is not in the record.", 404);
+  if (routineRateBlock(state.routines, routineId, deps.now())) return refuseRoutineRate(state, routineId, deps);
   const next = await convene(
     state,
     routine.instruction,
@@ -2093,7 +2130,9 @@ export async function runRoutine(
   );
   const saved = next.routines.find((item) => item.id === routineId);
   if (saved) {
-    saved.lastRunAt = at(deps);
+    const instant = at(deps);
+    saved.lastRunAt = instant;
+    saved.recentRuns = rememberedRuns([...(saved.recentRuns ?? []), instant]);
     if (via === "wake") saved.nextRunAt = nextInstant(saved.cadence, deps.now());
   }
   const goal = next.goals.at(-1);
@@ -2138,26 +2177,35 @@ export async function wakeDue(state: AppState, deps: Deps): Promise<AppState> {
         routine.nextRunAt <= now,
     )
     .sort((a, b) => (a.nextRunAt ?? "").localeCompare(b.nextRunAt ?? ""));
-  const routine = due[0];
-  if (!routine) return swept;
-  try {
-    const next = await runRoutine(swept, routine.id, deps, "wake");
-    pushEvent(
-      next,
-      next.goals.at(-1)?.id ?? null,
-      "woke",
-      `Oriel woke “${routine.name}” on its ${routine.cadence} cadence. Holds still apply. Nothing was sent or spent.`,
-      deps,
-    );
-    return next;
-  } catch (error) {
-    const draft = structuredClone(swept);
-    const saved = draft.routines.find((item) => item.id === routine.id);
-    if (saved) saved.nextRunAt = nextInstant(saved.cadence, deps.now());
-    const message = error instanceof Error ? error.message : "The routine could not run.";
-    pushEvent(draft, null, "wake_failed", `Oriel could not wake “${routine.name}”: ${clamp(message, 160)}`, deps);
-    return draft;
+  for (const routine of due) {
+    if (routineRateBlock(swept.routines, routine.id, deps.now())) continue;
+    try {
+      const next = await runRoutine(swept, routine.id, deps, "wake");
+      pushEvent(
+        next,
+        next.goals.at(-1)?.id ?? null,
+        "woke",
+        `Oriel woke “${routine.name}” on its ${routine.cadence} cadence. Holds still apply. Nothing was sent or spent.`,
+        deps,
+      );
+      return next;
+    } catch (error) {
+      const draft = structuredClone(swept);
+      const saved = draft.routines.find((item) => item.id === routine.id);
+      if (saved) saved.nextRunAt = nextInstant(saved.cadence, deps.now());
+      const message = error instanceof Error ? error.message : "The routine could not run.";
+      pushEvent(draft, null, "wake_failed", `Oriel could not wake “${routine.name}”: ${clamp(message, 160)}`, deps);
+      return draft;
+    }
   }
+  const blocked = due.find((routine) => routineRateBlock(swept.routines, routine.id, deps.now()));
+  if (!blocked) return swept;
+  const block = routineRateBlock(swept.routines, blocked.id, deps.now());
+  if (!block) return swept;
+  const another = swept.routines.some((item) => item.id !== blocked.id);
+  const reply = rateReply(blocked.name, block, another);
+  if (swept.messages.at(-1)?.role === "oriel" && swept.messages.at(-1)?.text === reply) return swept;
+  return refuseRoutineRate(swept, blocked.id, deps);
 }
 
 export async function probeConnector(state: AppState, id: string, deps: Deps): Promise<AppState> {

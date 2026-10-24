@@ -4,6 +4,39 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 export const SCHEDULE_GAP_MS = 5 * 60 * 1000;
 export const ROUTINE_CAP = 50;
+export const ROUTINE_HOUR_CAP = 200;
+export const DESK_HOUR_CAP = 300;
+
+export function rememberedRuns(stamps: string[] | undefined): string[] {
+  const kept: { t: number; iso: string }[] = [];
+  for (const stamp of stamps ?? []) {
+    if (typeof stamp !== "string") continue;
+    const t = Date.parse(stamp);
+    if (!Number.isFinite(t)) continue;
+    kept.push({ t, iso: new Date(t).toISOString() });
+  }
+  kept.sort((left, right) => left.t - right.t || left.iso.localeCompare(right.iso));
+  return kept.slice(-ROUTINE_HOUR_CAP).map((item) => item.iso);
+}
+
+export function runsThisHour(stamps: string[] | undefined, now: Date): string[] {
+  const cutoff = now.getTime() - HOUR;
+  const nowMs = now.getTime();
+  return rememberedRuns(stamps).filter((iso) => {
+    const t = Date.parse(iso);
+    return t > cutoff && t <= nowMs;
+  });
+}
+
+export function routineRateBlock(routines: Routine[], routineId: string, now: Date): "routine" | "desk" | null {
+  const routine = routines.find((item) => item.id === routineId);
+  if (!routine) return null;
+  if (runsThisHour(routine.recentRuns, now).length >= ROUTINE_HOUR_CAP) return "routine";
+  let total = 0;
+  for (const item of routines) total += runsThisHour(item.recentRuns, now).length;
+  if (total >= DESK_HOUR_CAP) return "desk";
+  return null;
+}
 
 export function closerThanFiveMinutes(left: string, right: string): boolean {
   const a = Date.parse(left);
@@ -44,6 +77,7 @@ export function normalizeRoutine(value: unknown): Routine | null {
     cadence,
     createdAt: routine.createdAt,
     lastRunAt: typeof routine.lastRunAt === "string" ? routine.lastRunAt : null,
+    recentRuns: rememberedRuns(Array.isArray(routine.recentRuns) ? routine.recentRuns : []),
     nextRunAt: cadence === "manual" ? null : typeof routine.nextRunAt === "string" ? routine.nextRunAt : fallback,
     paused: routine.paused === true,
     heldBack: heldBackFrom(routine.heldBack),

@@ -457,6 +457,12 @@ export const constraints: Constraint[] = [
     text: "saving a routine when 50 routines are already in the record does not add a 51st and says a bot can own up to 50 routines",
     proof: "Save as routine leaves the fiftieth in place. Nothing is deleted or run. A save under the cap still obeys a hold.",
   },
+  {
+    id: "hour-routines",
+    short: "Stop at the hour",
+    text: "saying run and one routine's name does not run it when that routine has already run 200 times in the last hour, or when the desk has already run 300, and a run an hour old does not count",
+    proof: "Run the Launch note routine names the hour cap and leaves the last run. A wake does not move the next time. Nothing is sent or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

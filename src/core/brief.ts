@@ -306,6 +306,19 @@ export function routineCapCopy(): string {
   return "A bot can own up to 50 routines. Nothing was added. Nothing was deleted. Nothing was run. Every routine already saved stays. The cadence stays. The next time stays. The instruction stays. The pause stays. The last run stays. Nothing was sent or spent.";
 }
 
+const RATE_TAIL =
+  "This run did not start. The cadence stays. The next time stays. The instruction stays. The pause stays. The last run stays. Nothing was sent or spent.";
+
+export function routineHourCopy(name: string, another: boolean): string {
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quotedRoutine(name)} has already run 200 times this hour. Each routine can run up to 200 times an hour.${other} ${RATE_TAIL}`;
+}
+
+export function deskHourCopy(name: string, another: boolean): string {
+  const other = another ? " Another routine is unchanged." : "";
+  return `Routines have already run 300 times this hour. Routines can run up to 300 times an hour in total. ${quotedRoutine(name)} did not run.${other} ${RATE_TAIL}`;
+}
+
 const HOLD_TAIL = "The instruction stays. The last run stays. Nothing was run. Nothing was sent or spent.";
 
 function paceWord(cadence: Cadence): string {

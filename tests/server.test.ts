@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { routineCapCopy } from "../src/core/brief.js";
+import { deskHourCopy, routineCapCopy, routineHourCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -8241,6 +8241,127 @@ describe("Oriel server", () => {
     expect(freed.body.routines.at(-1).name).toBe("Note the open risks");
     expect(freed.body.messages.at(-1).text).not.toContain("50 routines");
   }, 60_000);
+
+  it("ORIEL-F90 stops a run after 200 this hour and 300 on the desk", async () => {
+    const clock = new Date("2026-10-24T03:15:00.000Z");
+    const server = await startServer({
+      port: 0,
+      host: "127.0.0.1",
+      dataDir: await mkdtemp(path.join(tmpdir(), "oriel-hour-")),
+      testMode: true,
+      now: () => clock,
+    });
+    running.push({ close: server.close, dir: server.dir });
+    const turn = async (text: string) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const body = await response.json();
+      return { status: response.status, body };
+    };
+    const opened = await turn("Summarize the launch risks");
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: opened.body.goals[0].id, name: "Launch note" }),
+    });
+    const savedBody = await saved.json();
+    const launchId = savedBody.routines[0].id as string;
+    expect(savedBody.routines[0].recentRuns).toEqual([]);
+    const market = await turn("Compare the market landscape");
+    const marketSaved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: market.body.goals.at(-1).id, name: "Market check" }),
+    });
+    const marketBody = await marketSaved.json();
+    const marketId = marketBody.routines.find((routine: { name: string }) => routine.name === "Market check").id as string;
+    const bad = await fetch(`${server.url}/api/routines/${launchId}/stamp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 201 }),
+    });
+    expect(bad.status).toBe(400);
+    const stamped = await fetch(`${server.url}/api/routines/${launchId}/stamp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 199 }),
+    });
+    const stampedBody = await stamped.json();
+    expect(stamped.status).toBe(200);
+    expect(stampedBody.routines[0].recentRuns).toHaveLength(199);
+    expect(stampedBody.routines[0].lastRunAt).toBeNull();
+    expect(stampedBody.messages.at(-1).text).not.toContain("200 times");
+    const ran = await turn('Please, run the "Launch note" routine?');
+    expect(ran.body.messages.at(-1).text).toContain("Ran “Launch note”.");
+    expect(ran.body.routines[0].recentRuns).toHaveLength(200);
+    expect(ran.body.routines[0].lastRunAt).toBe("2026-10-24T03:15:00.000Z");
+    const goals = ran.body.goals.length;
+    const again = await turn("Run the Launch note routine");
+    expect(again.body.messages.at(-1).text).toBe(routineHourCopy("Launch note", true));
+    expect(again.body.routines[0].recentRuns).toHaveLength(200);
+    expect(again.body.routines[0].lastRunAt).toBe("2026-10-24T03:15:00.000Z");
+    expect(again.body.goals).toHaveLength(goals);
+    expect(JSON.stringify(again.body.messages)).not.toContain("I sent");
+    const clicked = await fetch(`${server.url}/api/routines/${launchId}/run`, { method: "POST" });
+    const clickedBody = await clicked.json();
+    expect(clicked.status).toBe(200);
+    expect(clickedBody.messages.at(-1).text).toBe(routineHourCopy("Launch note", true));
+    expect(clickedBody.routines[0].recentRuns).toHaveLength(200);
+    const marketStamp = await fetch(`${server.url}/api/routines/${marketId}/stamp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 100 }),
+    });
+    const marketStampBody = await marketStamp.json();
+    expect(marketStampBody.routines.find((routine: { id: string }) => routine.id === marketId).recentRuns).toHaveLength(100);
+    const desk = await turn("Run the Market check routine");
+    expect(desk.body.messages.at(-1).text).toBe(deskHourCopy("Market check", true));
+    expect(desk.body.routines.find((routine: { id: string }) => routine.id === marketId).lastRunAt).toBeNull();
+    expect(desk.body.routines.find((routine: { id: string }) => routine.id === launchId).recentRuns).toHaveLength(200);
+    const missing = await fetch(`${server.url}/api/routines/routine_missing/stamp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 1 }),
+    });
+    expect(missing.status).toBe(404);
+
+    const closed = await startServer({
+      port: 0,
+      host: "127.0.0.1",
+      dataDir: await mkdtemp(path.join(tmpdir(), "oriel-hour-off-")),
+      testMode: false,
+      now: () => clock,
+    });
+    running.push({ close: closed.close, dir: closed.dir });
+    const plain = await fetch(`${closed.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Summarize the launch risks" }),
+    });
+    const plainBody = await plain.json();
+    const plainSaved = await fetch(`${closed.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: plainBody.goals[0].id, name: "Launch note" }),
+    });
+    const plainSavedBody = await plainSaved.json();
+    const plainId = plainSavedBody.routines[0].id as string;
+    const hidden = await fetch(`${closed.url}/api/routines/${plainId}/stamp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 1 }),
+    });
+    expect(hidden.status).toBe(404);
+    const once = await fetch(`${closed.url}/api/routines/${plainId}/run`, { method: "POST" });
+    const onceBody = await once.json();
+    expect(once.status).toBe(200);
+    expect(onceBody.routines[0].recentRuns).toHaveLength(1);
+    expect(onceBody.routines[0].lastRunAt).toBe("2026-10-24T03:15:00.000Z");
+    expect(onceBody.messages.at(-1).text).not.toContain("200 times");
+  });
 
   it("rejects an empty turn", async () => {
     const server = await boot();

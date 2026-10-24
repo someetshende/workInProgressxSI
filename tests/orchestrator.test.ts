@@ -2,8 +2,9 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { renderMarkdown, routineCapCopy } from "../src/core/brief.js";
-import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, wakeDue } from "../src/core/convene.js";
+import { deskHourCopy, renderMarkdown, routineCapCopy, routineHourCopy } from "../src/core/brief.js";
+import { runsThisHour } from "../src/core/cadence.js";
+import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
 import { HOLD_WINDOW_MS } from "../src/core/hold.js";
 import { initialState, toPublic } from "../src/core/state.js";
@@ -19284,6 +19285,200 @@ describe("ORIEL-F89", () => {
     expect(freed.routines.at(-1)?.name).toBe("Note the open risks");
     expect(freed.messages.at(-1)?.text).not.toContain("50 routines");
     expect(Object.hasOwn(freed, "vault")).toBe(false);
+  });
+});
+
+describe("ORIEL-F90", () => {
+  it("stops the 201st run this hour and the 301st across the desk", async () => {
+    const now = new Date("2026-10-24T03:15:00.000Z");
+    const hour = 60 * 60 * 1000;
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const fill = (count: number, offset = 0) =>
+      Array.from({ length: count }, (_, index) => new Date(now.getTime() - offset - index).toISOString());
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const holdId = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send")?.id ?? "";
+    expect(holdId).not.toBe("");
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    const launchId = state.routines[0]?.id ?? "";
+    state = await convene(state, "Compare the market landscape", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    expect(state.routines).toHaveLength(2);
+    expect(state.routines[0]?.recentRuns).toEqual([]);
+    expect(state.routines[1]?.recentRuns).toEqual([]);
+
+    state = stampRoutineRuns(state, launchId, 199, early);
+    expect(state.routines[0]?.recentRuns).toHaveLength(199);
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[0]!.lastRunAt = "2026-10-23T12:00:00.000Z";
+    const nextTime = state.routines[0]?.nextRunAt ?? null;
+    const cadence = state.routines[0]?.cadence;
+
+    const ran = await convene(state, 'Please, run the "Launch note" routine?', undefined, early);
+    expect(ran.messages.at(-1)?.text).toContain("Ran “Launch note”.");
+    expect(ran.messages.at(-1)?.text).not.toContain("200 times");
+    expect(ran.routines[0]?.recentRuns).toHaveLength(200);
+    expect(ran.routines[0]?.lastRunAt).toBe(now.toISOString());
+    expect(ran.routines[0]?.heldBack).toEqual([]);
+    expect(ran.routines[0]?.paused).toBe(true);
+    expect(ran.routines[0]?.cadence).toBe(cadence);
+    expect(ran.routines[0]?.nextRunAt).toBe(nextTime);
+    expect(ran.routines[1]?.recentRuns).toEqual([]);
+    expect(ran.approvals.find((approval) => approval.id === holdId)?.status).toBe("open");
+    expect(JSON.stringify(ran)).not.toContain("I sent");
+
+    const blocked = await convene(ran, "Run the Launch note routine", undefined, early);
+    expect(blocked.messages.at(-1)?.text).toBe(routineHourCopy("Launch note", true));
+    expect(blocked.routines[0]?.recentRuns).toHaveLength(200);
+    expect(blocked.routines[0]?.lastRunAt).toBe(now.toISOString());
+    expect(blocked.routines[0]?.paused).toBe(true);
+    expect(blocked.routines[0]?.nextRunAt).toBe(nextTime);
+    expect(blocked.routines[1]?.recentRuns).toEqual([]);
+    expect(blocked.goals).toHaveLength(ran.goals.length);
+    expect(blocked.approvals.find((approval) => approval.id === holdId)?.status).toBe("open");
+    expect(JSON.stringify(blocked)).not.toContain("I sent");
+
+    await expect(convene(blocked, "Run the Launch note routine without asking", undefined, early)).rejects.toThrow(/without asking/);
+    expect(blocked.routines[0]?.recentRuns).toHaveLength(200);
+
+    const aged = structuredClone(blocked);
+    aged.routines[0]!.recentRuns = Array.from({ length: 200 }, () => new Date(now.getTime() - hour).toISOString());
+    const agedRan = await convene(aged, "Run the Launch note routine", undefined, early);
+    expect(agedRan.messages.at(-1)?.text).toContain("Ran “Launch note”.");
+    expect(agedRan.messages.at(-1)?.text).not.toContain("200 times");
+    expect(runsThisHour(agedRan.routines[0]?.recentRuns, now)).toHaveLength(1);
+
+    const inside = structuredClone(blocked);
+    inside.routines[0]!.recentRuns = Array.from({ length: 200 }, () => new Date(now.getTime() - hour + 1).toISOString());
+    inside.routines[0]!.lastRunAt = "2026-10-23T12:00:00.000Z";
+    inside.routines[0]!.heldBack = ["send"];
+    const openBefore = inside.approvals.filter((approval) => approval.status === "open").length;
+    const refused = await convene(inside, "Run the Launch note routine.", undefined, early);
+    expect(refused.messages.at(-1)?.text).toBe(routineHourCopy("Launch note", true));
+    expect(refused.routines[0]?.lastRunAt).toBe("2026-10-23T12:00:00.000Z");
+    expect(refused.routines[0]?.heldBack).toEqual(["send"]);
+    expect(refused.routines[0]?.recentRuns).toHaveLength(200);
+    expect(refused.approvals.filter((approval) => approval.status === "open")).toHaveLength(openBefore);
+    expect(refused.goals).toHaveLength(inside.goals.length);
+    expect(refused.approvals.find((approval) => approval.id === holdId)?.status).toBe("open");
+
+    const clicked = await runRoutine(inside, launchId, early);
+    expect(clicked.messages.at(-1)?.text).toBe(routineHourCopy("Launch note", true));
+    expect(clicked.routines[0]?.recentRuns).toHaveLength(200);
+    expect(clicked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(clicked.goals).toHaveLength(inside.goals.length);
+
+    const desk = structuredClone(ran);
+    desk.routines[0]!.recentRuns = fill(100);
+    desk.routines[1]!.recentRuns = fill(200);
+    desk.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+    desk.routines[1]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+    const deskRefused = await convene(desk, "Run the Launch note routine", undefined, early);
+    expect(deskRefused.messages.at(-1)?.text).toBe(deskHourCopy("Launch note", true));
+    expect(deskRefused.routines[0]?.recentRuns).toHaveLength(100);
+    expect(deskRefused.routines[1]?.recentRuns).toHaveLength(200);
+    expect(deskRefused.routines[0]?.lastRunAt).toBe("2026-10-23T11:00:00.000Z");
+    expect(deskRefused.routines[1]?.lastRunAt).toBe("2026-10-23T11:00:00.000Z");
+    expect(deskRefused.goals).toHaveLength(desk.goals.length);
+    expect(deskRefused.approvals.find((approval) => approval.id === holdId)?.status).toBe("open");
+
+    const removed = await convene(deskRefused, "Delete the Market check routine", undefined, early);
+    expect(removed.routines).toHaveLength(1);
+    const freed = await convene(removed, "Run the Launch note routine", undefined, early);
+    expect(freed.messages.at(-1)?.text).toContain("Ran “Launch note”.");
+    expect(freed.messages.at(-1)?.text).not.toContain("300 times");
+    expect(freed.routines[0]?.recentRuns).toHaveLength(101);
+
+    const under = structuredClone(desk);
+    under.routines[1]!.recentRuns = fill(199);
+    const underRan = await convene(under, "Run the Launch note routine", undefined, early);
+    expect(underRan.messages.at(-1)?.text).toContain("Ran “Launch note”.");
+    expect(underRan.messages.at(-1)?.text).not.toContain("300 times");
+    expect(underRan.routines[0]?.recentRuns).toHaveLength(101);
+    expect(underRan.routines[1]?.recentRuns).toHaveLength(199);
+
+    const waking = structuredClone(ran);
+    waking.paused = false;
+    waking.routines[0]!.paused = false;
+    waking.routines[1]!.paused = false;
+    waking.routines[0]!.cadence = "hourly";
+    waking.routines[1]!.cadence = "hourly";
+    waking.routines[0]!.nextRunAt = "2026-10-24T03:00:00.000Z";
+    waking.routines[1]!.nextRunAt = "2026-10-24T03:10:00.000Z";
+    waking.routines[0]!.recentRuns = fill(200);
+    waking.routines[1]!.recentRuns = [];
+    waking.routines[0]!.lastRunAt = "2026-10-23T12:00:00.000Z";
+    waking.routines[1]!.lastRunAt = null;
+    const woke = await wakeDue(waking, early);
+    expect(woke.routines[0]?.lastRunAt).toBe("2026-10-23T12:00:00.000Z");
+    expect(woke.routines[0]?.nextRunAt).toBe("2026-10-24T03:00:00.000Z");
+    expect(woke.routines[0]?.recentRuns).toHaveLength(200);
+    expect(woke.routines[1]?.lastRunAt).toBe(now.toISOString());
+    expect(woke.routines[1]?.recentRuns).toHaveLength(1);
+    expect(woke.routines[1]?.nextRunAt).toBe("2026-10-24T04:15:00.000Z");
+    expect(woke.messages.at(-1)?.text).not.toContain("200 times");
+
+    const alone = structuredClone(waking);
+    alone.routines[1]!.nextRunAt = "2026-10-24T04:00:00.000Z";
+    alone.routines[1]!.recentRuns = [];
+    alone.routines[1]!.lastRunAt = null;
+    const heldWake = await wakeDue(alone, early);
+    expect(heldWake.messages.at(-1)?.text).toBe(routineHourCopy("Launch note", true));
+    expect(heldWake.routines[0]?.nextRunAt).toBe("2026-10-24T03:00:00.000Z");
+    expect(heldWake.routines[0]?.lastRunAt).toBe("2026-10-23T12:00:00.000Z");
+    expect(heldWake.routines[1]?.lastRunAt).toBeNull();
+    expect(heldWake.routines[1]?.nextRunAt).toBe("2026-10-24T04:00:00.000Z");
+    const messages = heldWake.messages.length;
+    const quiet = await wakeDue(heldWake, early);
+    expect(quiet.messages).toHaveLength(messages);
+    expect(quiet.routines[0]?.nextRunAt).toBe("2026-10-24T03:00:00.000Z");
+    expect(quiet.routines[1]?.lastRunAt).toBeNull();
+
+    const both = structuredClone(waking);
+    both.routines[0]!.recentRuns = fill(100);
+    both.routines[1]!.recentRuns = fill(200);
+    both.routines[0]!.lastRunAt = null;
+    both.routines[1]!.lastRunAt = null;
+    const none = await wakeDue(both, early);
+    expect(none.messages.at(-1)?.text).toBe(deskHourCopy("Launch note", true));
+    expect(none.routines[0]?.lastRunAt).toBeNull();
+    expect(none.routines[1]?.lastRunAt).toBeNull();
+    expect(none.routines[0]?.nextRunAt).toBe("2026-10-24T03:00:00.000Z");
+    expect(none.routines[1]?.nextRunAt).toBe("2026-10-24T03:10:00.000Z");
+
+    const missing = await convene(ran, "Run the Newsletter routine", undefined, early);
+    expect(missing.messages.at(-1)?.text).toContain("no such routine");
+    expect(missing.goals).toHaveLength(ran.goals.length);
+    expect(missing.routines[0]?.recentRuns).toHaveLength(200);
+
+    const twin = structuredClone(ran);
+    twin.routines[1]!.name = "Launch note";
+    const ambiguous = await convene(twin, "Run the Launch note routine", undefined, early);
+    expect(ambiguous.messages.at(-1)?.text).toContain("More than one routine");
+    expect(ambiguous.messages.at(-1)?.text).not.toContain("200 times");
+    expect(ambiguous.routines[0]?.recentRuns).toHaveLength(200);
+    expect(ambiguous.routines[1]?.recentRuns).toEqual([]);
+
+    const ordinary = await convene(ran, "Run the Launch note routine and email Maya", undefined, early);
+    expect(ordinary.messages.at(-1)?.text).not.toContain("200 times");
+    expect(ordinary.goals.length).toBeGreaterThan(ran.goals.length);
+    expect(ordinary.routines[0]?.recentRuns).toHaveLength(200);
+
+    const listed = await convene(ran, "What is scheduled?", undefined, early);
+    expect(listed.messages.at(-1)?.text).not.toContain("200 times");
+    expect(listed.routines[0]?.recentRuns).toHaveLength(200);
+
+    const paced = setRoutineCadence(ran, launchId, "daily", early);
+    expect(paced.routines[0]?.cadence).toBe("daily");
+    expect(paced.routines[0]?.recentRuns).toHaveLength(200);
+
+    const solo = structuredClone(ran);
+    solo.routines = [solo.routines[0]!];
+    const soloRefused = await convene(solo, "Run the Launch note routine", undefined, early);
+    expect(soloRefused.messages.at(-1)?.text).toBe(routineHourCopy("Launch note", false));
+    expect(soloRefused.messages.at(-1)?.text).not.toContain("Another routine");
+    expect(soloRefused.routines[0]?.recentRuns).toHaveLength(200);
   });
 });
 

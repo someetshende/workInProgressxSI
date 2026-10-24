@@ -166,6 +166,8 @@ export type Routine = {
   cadence: Cadence;
   createdAt: string;
   lastRunAt: string | null;
+  /** Newest-first storage is not required. These are the instants this routine ran, newest 200 kept. The hour cap counts only the last hour. */
+  recentRuns: string[];
   nextRunAt: string | null;
   /** When true, a wake skips this routine and leaves its next time. The desk-wide pause is separate. */
   paused: boolean;

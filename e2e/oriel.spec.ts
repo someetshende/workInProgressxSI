@@ -7709,6 +7709,52 @@ test("an earlier hold can be released from the return card", async ({ page }) =>
   await expect(page.getByTestId("thread")).not.toContainText("I sent");
 });
 
+test("ORIEL-F90 a routine stops after two hundred runs this hour", async ({ page, request }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  await expect(page.locator("[data-testid^='run-routine-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='last-run-']")).toHaveText("Has not run");
+  await expect(page.locator("[data-testid^='delivery-']")).toHaveText("No delivery");
+  const state = await (await request.get("/api/state")).json();
+  const id = state.routines[0].id as string;
+  const stamped = await request.post(`/api/routines/${id}/stamp`, { data: { count: 199 } });
+  expect(stamped.ok()).toBeTruthy();
+
+  await page.getByTestId("composer").fill("Run the Summarize the launch risks routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("Ran “Summarize the launch risks”.");
+  await expect(page.locator("#thread .turn").last()).not.toContainText("200 times");
+  await expect(page.locator("#thread .turn").last()).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='delivery-']")).toHaveText("No delivery");
+  const lastRun = page.locator("[data-testid^='last-run-']");
+  await expect(lastRun).not.toHaveText("Has not run");
+  const ranAt = (await lastRun.textContent()) ?? "";
+
+  await page.getByTestId("composer").fill("Run the Summarize the launch risks routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("has already run 200 times this hour");
+  await expect(page.locator("#thread .turn").last()).toContainText("Each routine can run up to 200 times an hour.");
+  await expect(page.locator("#thread .turn").last()).toContainText("This run did not start.");
+  await expect(page.locator("#thread .turn").last()).toContainText("Nothing was sent or spent.");
+  await expect(page.locator("#thread .turn").last()).not.toContainText("I sent");
+  await expect(lastRun).toHaveText(ranAt);
+  await expect(page.locator("[data-testid^='delivery-']")).toHaveText("No delivery");
+
+  await page.locator("[data-testid^='run-routine-']").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("has already run 200 times this hour");
+  await expect(lastRun).toHaveText(ranAt);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-hour.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

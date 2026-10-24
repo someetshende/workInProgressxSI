@@ -1695,6 +1695,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/server.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F90",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Cap the hour",
+      title: "Stop a routine that has already run two hundred times this hour",
+      story:
+        "As a chief of staff, I want Oriel to leave a routine unrun when it has already run 200 times this hour, or when the desk has already run 300, so that unattended work stays inside the hour and this sentence does not send or spend.",
+      acceptance: [
+        "Saying run the Launch note routine does not run it when that routine already has 200 runs in the last hour, and the reply says each routine can run up to 200 times an hour.",
+        "When the desk already has 300 runs this hour and this routine has fewer, the reply says routines can run up to 300 times an hour in total and does not run it.",
+        "The cadence, the next time, the instruction, the pause, and the last run stay. A run an hour old does not count. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
