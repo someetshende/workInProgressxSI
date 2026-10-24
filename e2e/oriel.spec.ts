@@ -15552,6 +15552,139 @@ test("ORIEL-F134 whether the computer image keeps logins leaves the saved files 
   await page.screenshot({ path: "test-results/oriel-routine-kept-file.png" });
 });
 
+
+test("ORIEL-F135 whether a software update keeps installed apps does not refresh the software", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does a software update for the Launch note routine keep installed apps?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether a software update for one routine keeps installed apps says that routine has no software refresh in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether the computer image for one routine keeps logins says that routine has no kept-file in the record.",
+  );
+  await expect(page.locator("[data-testid^='software-refresh-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='software-refresh-']").nth(0)).toHaveText("No software refresh");
+  await expect(page.locator("[data-testid^='kept-file-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kept-file-']").nth(0)).toHaveText("No kept-file");
+  await expect(page.locator("[data-testid^='kept-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='finish-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='screen-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='refresh-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  const followsFile = await page.evaluate(() => {
+    const file = document.querySelector("[data-testid^='kept-file-']");
+    const refresh = document.querySelector("[data-testid^='software-refresh-']");
+    if (!file || !refresh || file.parentElement !== refresh.parentElement) return false;
+    return file.compareDocumentPosition(refresh) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsFile).toBe(true);
+  const noteIds = await page.locator("[data-testid^='software-refresh-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("software-refresh-"))).toBe(true);
+  for (const prefix of ["kept-file-", "kept-chat-", "app-", "update-", "computer-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does a software update for the Draft the weekly close but do not send it routine keep installed apps?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no software refresh in the record.");
+  await expect(clear).toContainText("Asking does not refresh the software.");
+  await expect(clear).not.toContainText("has no kept-file");
+  await expect(clear).not.toContainText("Asking leaves the saved files in place.");
+  await expect(clear).not.toContainText("installed");
+  await expect(clear).not.toContainText("update");
+  await expect(clear).not.toContainText("apps");
+  await expect(clear).not.toContainText("package");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does a software update for the Draft the weekly close but do not send it routine keep installed apps?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no software refresh in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does a software update for the Draft the weekly close but do not send it routine keep installed apps?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no software refresh in the record.");
+  await expect(pausedAsk).toContainText("Asking does not refresh the software.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the computer image for the Draft the weekly close but do not send it routine keep logins?");
+  await page.getByTestId("send").click();
+  const fileLeft = page.locator("#thread .turn").last();
+  await expect(fileLeft).toContainText("“Draft the weekly close but do not send it” has no kept-file in the record.");
+  await expect(fileLeft).toContainText("Asking leaves the saved files in place.");
+  await expect(fileLeft).not.toContainText("has no software refresh");
+
+  await page.getByTestId("composer").fill("Is an app update waiting for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const updateLeft = page.locator("#thread .turn").last();
+  await expect(updateLeft).toContainText("has no app update");
+  await expect(updateLeft).not.toContainText("has no software refresh");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("software refresh");
+  await expect(why).not.toContainText("installed apps");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='software-refresh-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kept-file-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='screen-']")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-software-refresh.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

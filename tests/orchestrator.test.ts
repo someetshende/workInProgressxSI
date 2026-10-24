@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -33974,6 +33974,337 @@ describe("ORIEL-F134", () => {
     const why = await convene(one, "Why hasn't the Launch note routine run?", undefined, early);
     expect(why.messages.at(-1)?.text).toContain("It is paused.");
     expect(why.messages.at(-1)?.text).not.toContain("kept-file");
+    expect(why.routines[0]?.nextRunAt).toBe(launchNext);
+  });
+});
+
+
+describe("ORIEL-F135", () => {
+  it("ORIEL-F135 says one routine has no software refresh and does not refresh the software", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T04:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+
+      state = await convene(state, "Please, does a software update for the Launch note routine keep installed apps?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(routineSoftwareRefreshCopy("Launch note", true));
+      expect(state.messages.at(-1)?.text).toContain("“Launch note” has no software refresh in the record.");
+      expect(state.messages.at(-1)?.text).toContain("Asking does not refresh the software.");
+      expect(state.messages.at(-1)?.text).not.toContain("has no kept-file");
+      expect(state.messages.at(-1)?.text).not.toContain("has no kept conversation");
+      expect(state.messages.at(-1)?.text).not.toContain("has no app update");
+      expect(state.messages.at(-1)?.text).not.toContain("has no computer setup");
+      expect(state.messages.at(-1)?.text).not.toContain("has no login wait");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking leaves the saved files in place.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking leaves the saved chat in place.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not rebuild the computer.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not recover a computer.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not reset the computer.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not update the computer.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not remove an installed app.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not remove a package.");
+      expect(state.messages.at(-1)?.text).not.toContain("installed");
+      expect(state.messages.at(-1)?.text).not.toContain("update");
+      expect(state.messages.at(-1)?.text).not.toContain("apps");
+      expect(state.messages.at(-1)?.text).not.toContain("package");
+      expect(state.messages.at(-1)?.text).not.toMatch(/password/i);
+      const hasNo = "has no software refresh";
+      for (const other of [
+        "has no kept-file",
+        "has no kept conversation",
+        "has no finish-before-rebuild",
+        "has no active screen task",
+        "has no app update",
+        "has no computer setup",
+        "has no login wait",
+      ]) {
+        expect(hasNo.includes(other)).toBe(false);
+        expect(other.includes(hasNo)).toBe(false);
+      }
+      const short = "Asking does not refresh the software.";
+      for (const other of [
+        "Asking leaves the saved files in place.",
+        "Asking leaves the saved chat in place.",
+        "Asking does not rebuild the computer.",
+        "Asking does not recover a computer.",
+        "Asking does not reset the computer.",
+        "Asking does not update the computer.",
+        "Asking does not remove an installed app.",
+        "Asking does not remove a package.",
+      ]) {
+        expect(short.includes(other)).toBe(false);
+        expect(other.includes(short)).toBe(false);
+      }
+      expect(hasNo.includes("installed")).toBe(false);
+      expect(hasNo.includes("apps")).toBe(false);
+      expect(hasNo.includes("update")).toBe(false);
+      expect("software-refresh-".startsWith("kept-file-")).toBe(false);
+      expect("software-refresh-".startsWith("kept-chat-")).toBe(false);
+      expect("software-refresh-".startsWith("app-")).toBe(false);
+      expect("software-refresh-".startsWith("update-")).toBe(false);
+      expect("software-refresh-".startsWith("computer-")).toBe(false);
+      expect("software-refresh-".startsWith("finish-")).toBe(false);
+      expect("software-refresh-".startsWith("screen-")).toBe(false);
+      expect("software-refresh-".startsWith("least-")).toBe(false);
+      expect("software-refresh-".startsWith("plugin-")).toBe(false);
+      expect("software-refresh-".startsWith("login-")).toBe(false);
+      expect("software-refresh-".startsWith("stuck-")).toBe(false);
+      expect("software-refresh-".startsWith("source-")).toBe(false);
+      expect("software-refresh-".startsWith("active-")).toBe(false);
+      expect("software-refresh-".startsWith("task-")).toBe(false);
+      expect("software-refresh-".startsWith("file-")).toBe(false);
+      expect(routineKeptFileCopy("Launch note", true)).toContain("Asking leaves the saved files in place.");
+      expect(routineKeptFileCopy("Launch note", true)).not.toContain("has no software refresh");
+      expect(routineKeptFileCopy("Launch note", true)).not.toContain("Asking does not refresh the software.");
+      expect(routineKeptConversationCopy("Launch note", true)).not.toContain("has no software refresh");
+      expect(routineAppUpdateCopy("Launch note", true)).toContain("has no app update");
+      expect(routineAppUpdateCopy("Launch note", true)).not.toContain("has no software refresh");
+      expect(routineComputerSetupCopy("Launch note", true)).not.toContain("has no software refresh");
+      expect(routineSoftwareRefreshCopy("Launch note", true)).not.toContain("has no kept-file");
+      expect(routineSoftwareRefreshCopy("Launch note", true)).not.toContain("has no app update");
+      expect(routineSoftwareRefreshCopy("Launch note", true)).not.toContain("Asking leaves the saved files in place.");
+      expect(routineSoftwareRefreshCopy("Launch note", true)).not.toMatch(/password/i);
+      expect(state.messages.at(-1)?.text).toContain("Another routine is unchanged.");
+      expect(state.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(state.messages.at(-1)?.text).not.toContain("Dots");
+      expect(state.messages.at(-1)?.text).not.toContain("Muse");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T02:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("Market check");
+      expect(state.events.some((event) => event.type === "routine_software_refresh")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_ran")).toBe(false);
+      const published = JSON.stringify(toPublic(state, 0));
+      expect(published).not.toContain("bridge-secret-xyz");
+      expect(published).not.toContain("Always allow");
+      expect(published).toContain("Asking whether a software update for one named routine keeps installed apps");
+      expect(published).toContain("has no software refresh in the record");
+      expect(published).toContain("Asking does not refresh the software");
+      expect(published).toContain("does not install an app");
+      expect(published).toContain("does not update the computer");
+      expect(published).toContain("does not remove an installed app");
+      expect(published).toContain("does not remove a package");
+      expect(published).toContain("does not move the saved files");
+      expect(published).toContain("does not move the saved chat");
+      expect(published).toContain("does not rebuild the computer");
+      expect(published).toContain("does not recover a computer");
+      expect(published).toContain("does not reset the computer");
+      expect(published).toContain("does not redirect the screen");
+      expect(published).toContain("does not open the computer");
+      expect(published).toContain("does not take a destructive step");
+      expect(published).toContain("The short reply says Asking does not refresh the software");
+      expect(published).toContain("The kept-file reply still says Asking leaves the saved files in place");
+      expect(published).toContain("The row says No software refresh");
+      expect(published).toContain("The row test id is software-refresh-");
+      expect(published).toContain("does not say there is no software refresh");
+      expect(published).toContain("does not name a software refresh");
+      expect(published).toContain("A failure is not a software refresh");
+      expect(published).toContain("A kept-file is not a software refresh");
+      expect(published).toContain("A kept conversation is not a software refresh");
+      expect(published).toContain("An app update is not a software refresh");
+      expect(published).toContain("A computer setup is not a software refresh");
+      expect(published).toContain("A login wait is not a software refresh");
+      expect(published).toContain("A stored run is not a software refresh");
+      expect(published).toContain("A desk-wide pause does not invent a software refresh");
+      expect(published).not.toContain("A recorded failure is not a software refresh");
+      expect(published).toContain("does not say there is no kept-file");
+
+      const openDesk = structuredClone(state);
+      openDesk.paused = false;
+      const still = await wakeDue(openDesk, early);
+      expect(still.routines[0]?.paused).toBe(true);
+      expect(still.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(still.events.some((event) => event.type === "routine_ran")).toBe(false);
+
+      const market = await convene(state, "Does a software update for the Market check routine keep installed apps?", undefined, early);
+      expect(market.messages.at(-1)?.text).toBe(routineSoftwareRefreshCopy("Market check", true));
+      expect(market.routines[0]?.paused).toBe(true);
+      expect(market.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(market.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(market.routines[0]?.heldBack).toEqual(["send"]);
+
+      const fileLeft = await convene(state, "Does the computer image for the Launch note routine keep logins?", undefined, early);
+      expect(fileLeft.messages.at(-1)?.text).toContain("“Launch note” has no kept-file in the record.");
+      expect(fileLeft.messages.at(-1)?.text).toContain("Asking leaves the saved files in place.");
+      expect(fileLeft.messages.at(-1)?.text).not.toContain("has no software refresh");
+      const chatLeft = await convene(state, "Do conversations for the Launch note routine survive a reset?", undefined, early);
+      expect(chatLeft.messages.at(-1)?.text).toContain("has no kept conversation");
+      expect(chatLeft.messages.at(-1)?.text).not.toContain("has no software refresh");
+      const updateLeft = await convene(state, "Is an app update waiting for the Launch note routine?", undefined, early);
+      expect(updateLeft.messages.at(-1)?.text).toContain("has no app update");
+      expect(updateLeft.messages.at(-1)?.text).not.toContain("has no software refresh");
+      const setupLeft = await convene(state, "Is the computer for the Launch note routine still setting up?", undefined, early);
+      expect(setupLeft.messages.at(-1)?.text).not.toContain("has no software refresh");
+      const active = await convene(state, "Is the Launch note routine active?", undefined, early);
+      expect(active.messages.at(-1)?.text).toContain("“Launch note” is not active.");
+      expect(active.messages.at(-1)?.text).not.toContain("has no software refresh");
+      const why = await convene(state, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(why.messages.at(-1)?.text).toContain("It is paused.");
+      expect(why.messages.at(-1)?.text).not.toContain("software refresh");
+      expect(why.messages.at(-1)?.text).not.toContain("installed apps");
+      expect(why.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+    });
+  });
+
+  it("ORIEL-F135 leaves two names, a desk pause, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T07:00:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), "Does a software update for the Launch note routine keep installed apps?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineSoftwareRefreshMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_software_refresh")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    const launchInstruction = state.routines[0]?.instruction;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = true;
+
+    const asked = await convene(state, "PLEASE, does a software update for the Launch note routine keep installed apps?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineSoftwareRefreshAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).toContain("More than one routine has that name");
+    expect(asked.messages.at(-1)?.text).not.toContain("has no software refresh");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.instruction).toBe(launchInstruction);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+
+    for (const text of [
+      "Please, does a software update for the Launch note routine keep installed apps.",
+      "Does a software update for the Launch note routine keep installed apps??",
+    ]) {
+      const again = await convene(state, text, undefined, early);
+      expect(again.messages.at(-1)?.text).toBe(routineSoftwareRefreshAmbiguousCopy("Launch note"));
+      expect(again.routines[0]?.paused).toBe(true);
+      expect(again.goals).toHaveLength(goals);
+    }
+    const lower = await convene(state, "does a software update for the launch note routine keep installed apps", undefined, early);
+    expect(lower.messages.at(-1)?.text).toBe(routineSoftwareRefreshAmbiguousCopy("launch note"));
+    expect(lower.messages.at(-1)?.text).not.toContain("has no software refresh");
+
+    const one = structuredClone(state);
+    one.routines.splice(1, 1);
+    const named = await convene(one, 'Does a software update for the "Launch note" routine keep installed apps?', undefined, early);
+    expect(named.messages.at(-1)?.text).toBe(routineSoftwareRefreshCopy("Launch note", true));
+    expect(named.messages.at(-1)?.text).toContain("Asking does not refresh the software.");
+    expect(named.routines[0]?.paused).toBe(true);
+    expect(named.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(named.routines[1]?.nextRunAt).toBe(marketNext);
+
+    const quoted = await convene(one, "Does a software update for the “Launch note” routine keep installed apps?", undefined, early);
+    expect(quoted.messages.at(-1)?.text).toBe(routineSoftwareRefreshCopy("Launch note", true));
+    expect(quoted.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const marketAsk = await convene(setPaused(one, true, early), "Does a software update for the Market check routine keep installed apps?", undefined, early);
+    expect(marketAsk.paused).toBe(true);
+    expect(marketAsk.messages.at(-1)?.text).toBe(routineSoftwareRefreshCopy("Market check", true));
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+    expect(marketAsk.routines[0]?.paused).toBe(true);
+
+    const solo = structuredClone(one);
+    solo.routines.splice(1, 1);
+    const alone = await convene(solo, "Does a software update for the Launch note routine keep installed apps?", undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(routineSoftwareRefreshCopy("Launch note", false));
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+    expect(alone.routines).toHaveLength(1);
+
+    const aside = await convene(one, "Does a software update for the Launch note routine keep installed apps and email Maya", undefined, early);
+    expect(aside.goals.length).toBeGreaterThan(one.goals.length);
+    expect(aside.messages.at(-1)?.text).not.toContain("has no software refresh");
+    expect(aside.messages.at(-1)?.text).not.toContain("Asking does not refresh the software.");
+    expect(aside.routines[0]?.paused).toBe(true);
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+
+    const near = await convene(one, "Does a software update for the Launch notes routine keep installed apps?", undefined, early);
+    expect(near.goals).toHaveLength(one.goals.length);
+    expect(near.messages.at(-1)?.text).toBe(routineSoftwareRefreshMissCopy("Launch notes"));
+    expect(near.routines[0]?.paused).toBe(true);
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+
+    for (const text of [
+      "Does a software update keep installed apps?",
+      "Do software updates for the Launch note routine keep installed apps?",
+      "Does a software update for the Launch note routine keep installed apps yet?",
+      "Don't ask if a software update for the Launch note routine keeps installed apps",
+      "Does a software update for the routine keep installed apps?",
+    ]) {
+      const ordinary = await convene(one, text, undefined, early);
+      expect(ordinary.goals.length).toBeGreaterThan(one.goals.length);
+      expect(ordinary.routines[0]?.paused).toBe(true);
+      expect(ordinary.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("has no software refresh");
+      expect(ordinary.messages.at(-1)?.text).not.toContain("There is no such routine");
+    }
+
+    const kept = structuredClone(one);
+    await expect(convene(kept, "Does a software update for the Launch note routine keep installed apps without asking", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Please does a software update for the Launch note routine keep installed apps always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Does a software update for the Launch note routine keep installed apps and allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.goals).toHaveLength(one.goals.length);
+    await expect(convene(kept, "Does a software update for the Launch note routine keep installed apps?", "goal_missing", early)).rejects.toThrow(/not in the record/);
+
+    const fileLeft = await convene(one, "Does the computer image for the Launch note routine keep logins?", undefined, early);
+    expect(fileLeft.messages.at(-1)?.text).toContain("has no kept-file");
+    expect(fileLeft.messages.at(-1)?.text).not.toContain("has no software refresh");
+    const why = await convene(one, "Why hasn't the Launch note routine run?", undefined, early);
+    expect(why.messages.at(-1)?.text).toContain("It is paused.");
+    expect(why.messages.at(-1)?.text).not.toContain("software refresh");
     expect(why.routines[0]?.nextRunAt).toBe(launchNext);
   });
 });

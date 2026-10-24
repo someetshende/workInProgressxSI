@@ -2550,6 +2550,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F135",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether a software update for one routine keeps installed apps",
+      title: "Say that one routine has no software refresh and do not refresh the software",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no software refresh in the record, so that I can check the work without refreshing the software.",
+      acceptance: [
+        "Saying whether a software update for the Launch note routine keeps installed apps says that one routine has no software refresh in the record.",
+        "Asking does not refresh the software, does not install an app, and does not update the computer.",
+        "A stored run is not a software refresh. A kept-file is not one. The kept-file answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
