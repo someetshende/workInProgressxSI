@@ -462,7 +462,7 @@ function renderRail() {
       el("p", {
         class: "rule-note",
         "data-testid": "schedule-hint",
-        text: "Ask what is scheduled, when one routine wakes, what one routine does, or when one routine last ran. Asking does not run a routine. A completed run is not a delivery. Say run and the routine's name to run that one. Saying change and the routine's name quotes the stored instruction and the proposed words, and does not save the change. Saying save and the routine's name writes that instruction and does not run it. Saying wake, the routine's name, and daily, hourly, or manual sets that cadence and does not run it. Saying pause or resume and the routine's name pauses or resumes that one wake and does not change its cadence.",
+        text: "Ask what is scheduled, when one routine wakes, what one routine does, or when one routine last ran. Asking does not run a routine. A completed run is not a delivery. Say run and the routine's name to run that one. Saying change and the routine's name quotes the stored instruction and the proposed words, and does not save the change. Saying save and the routine's name writes that instruction and does not run it. Saying wake, the routine's name, and daily, hourly, or manual sets that cadence and does not run it. Saying pause or resume and the routine's name pauses or resumes that one wake and does not change its cadence. Saying delete and the routine's name removes that one routine from the record and does not run it. The deletion cannot be undone from here.",
       }),
     );
     for (const routine of state.routines) {

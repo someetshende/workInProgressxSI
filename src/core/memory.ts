@@ -338,3 +338,21 @@ export function loosensRoutineHold(text: string): boolean {
   if (!/^(?:please,?\s+)?(?:pause|resume) the .+ routine\b/i.test(value)) return false;
   return ROUTINE_LOOSEN.test(value);
 }
+
+const ROUTINE_DELETE = /^(?:please,?\s+)?delete the (.+?) routine$/i;
+
+export function routineDelete(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DELETE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(value) || /\band\b/i.test(value)) return null;
+  return name;
+}
+
+export function loosensRoutineDelete(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDelete(text)) return false;
+  if (!/^(?:please,?\s+)?delete the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}

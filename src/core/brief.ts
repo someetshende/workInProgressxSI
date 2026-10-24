@@ -325,6 +325,11 @@ export function routineHoldAlreadyCopy(name: string, paused: boolean, cadence: C
   return `${quoted} is not paused. The cadence stays ${word}. The next time was not moved.${other} ${HOLD_TAIL}`;
 }
 
+export function routineDeleteCopy(name: string, another: boolean): string {
+  const other = another ? " Another routine is unchanged." : "";
+  return `Deleted. ${quotedRoutine(name)} is deleted. The deletion cannot be undone from here.${other} Nothing was run. A completed action was not undone. Nothing was sent or spent.`;
+}
+
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
   const names = kinds.map((kind) => KIND_STAY[kind]);

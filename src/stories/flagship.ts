@@ -1638,6 +1638,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F87",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Delete one routine",
+      title: "Delete one routine and do not run it",
+      story:
+        "As a chief of staff, I want Oriel to delete one named routine from the record, so that it no longer wakes and this sentence does not run it or undo a completed action.",
+      acceptance: [
+        "Saying delete the Launch note routine removes that one routine and says the deletion cannot be undone from here.",
+        "Another routine stays, including its pause and a held-back kind, and a later wake does not run the deleted routine.",
+        "Deleting does not run the routine, send mail, or move money, and it does not approve a hold or call a bridge.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

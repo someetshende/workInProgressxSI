@@ -18587,6 +18587,306 @@ describe("ORIEL-F86", () => {
   });
 });
 
+describe("ORIEL-F87", () => {
+  it("ORIEL-F87 deletes one routine, leaves the other, and a later wake skips the deleted one", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+    state = await settle(state, open?.id ?? "", "approve", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    state = await runRoutine(state, state.routines[0]?.id ?? "", early);
+    expect(state.routines[0]?.lastRunAt).toBe("2026-10-23T12:00:00.000Z");
+    state = await convene(state, "Compare the market landscape", undefined, early);
+    const marketGoal = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, marketGoal, "Market check", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const marketNext = "2026-10-23T12:00:00.000Z";
+    state.routines[1]!.nextRunAt = marketNext;
+    state.routines[0]!.nextRunAt = "2026-10-23T11:00:00.000Z";
+    state.routines[0]!.paused = true;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[1]!.paused = true;
+    state.routines[1]!.heldBack = ["pay"];
+    const beforeGoals = state.goals.length;
+    const approvalsBefore = structuredClone(state.approvals);
+    const handoffsBefore = state.handoffs.length;
+    const saved =
+      "Deleted. “Launch note” is deleted. The deletion cannot be undone from here. Another routine is unchanged. Nothing was run. A completed action was not undone. Nothing was sent or spent.";
+
+    state = setHandoffRule(state, "delete", true, early);
+    state = await convene(state, "Please, delete the Launch note routine?", firstId, early, "missing-skill");
+    expect(state.goals).toHaveLength(beforeGoals);
+    expect(state.routines).toHaveLength(1);
+    expect(state.routines[0]?.name).toBe("Market check");
+    expect(state.routines[0]?.paused).toBe(true);
+    expect(state.routines[0]?.cadence).toBe("daily");
+    expect(state.routines[0]?.nextRunAt).toBe(marketNext);
+    expect(state.routines[0]?.instruction).toBe("Compare the market landscape");
+    expect(state.routines[0]?.heldBack).toEqual(["pay"]);
+    expect(state.routines[0]?.lastRunAt).toBeNull();
+    expect(state.approvals).toEqual(approvalsBefore);
+    expect(state.approvals.find((approval) => approval.goalId === firstId)?.status).toBe("approved");
+    expect(state.handoffs).toHaveLength(handoffsBefore);
+    expect(state.handoffs.some((item) => item.status === "open")).toBe(false);
+    expect(state.messages.at(-1)?.text).toBe(saved);
+    expect(state.messages.at(-1)?.text).not.toContain("I sent");
+    expect(state.events.some((event) => event.type === "routine_delete" && event.detail === saved)).toBe(true);
+    expect(state.events.some((event) => event.type === "routine_ran" && event.detail === saved)).toBe(false);
+    expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+    const listed = await convene(state, "What is scheduled?", undefined, early);
+    expect(listed.messages.at(-1)?.text).toContain("“Market check” is daily.");
+    expect(listed.messages.at(-1)?.text).not.toContain("Launch note");
+    expect(listed.routines).toHaveLength(1);
+    expect(listed.goals).toHaveLength(beforeGoals);
+
+    const missingWake = await convene(state, "When does the Launch note routine wake?", undefined, early);
+    expect(missingWake.messages.at(-1)?.text).toBe(
+      "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(missingWake.routines).toHaveLength(1);
+    expect(missingWake.goals).toHaveLength(beforeGoals);
+
+    const missingRun = await convene(state, "Run the Launch note routine", undefined, early);
+    expect(missingRun.messages.at(-1)?.text).toBe(
+      "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(missingRun.routines).toHaveLength(1);
+    expect(missingRun.goals).toHaveLength(beforeGoals);
+
+    const runnable = structuredClone(state);
+    runnable.routines[0]!.paused = false;
+    const woken = await wakeDue(runnable, early);
+    expect(woken.routines).toHaveLength(1);
+    expect(woken.routines[0]?.name).toBe("Market check");
+    expect(woken.routines[0]?.lastRunAt).toBe("2026-10-23T12:00:00.000Z");
+    expect(woken.goals.at(-1)?.text).toBe("Compare the market landscape");
+    expect(woken.messages.some((message) => message.text.includes("I sent"))).toBe(false);
+    expect(woken.events.some((event) => event.type === "woke" && event.detail.includes("Launch note"))).toBe(false);
+    expect(woken.events.some((event) => event.type === "woke" && event.detail.includes("Market check"))).toBe(true);
+
+    const stayed = await wakeDue(state, early);
+    expect(stayed.routines).toHaveLength(1);
+    expect(stayed.routines[0]?.paused).toBe(true);
+    expect(stayed.routines[0]?.lastRunAt).toBeNull();
+    expect(stayed.routines[0]?.nextRunAt).toBe(marketNext);
+    expect(stayed.goals).toHaveLength(beforeGoals);
+
+    const stopped = await convene(state, "Stop the Market check routine", undefined, early);
+    expect(stopped.routines).toHaveLength(1);
+    expect(stopped.routines[0]?.name).toBe("Market check");
+    expect(stopped.routines[0]?.cadence).toBe("manual");
+    expect(stopped.routines[0]?.paused).toBe(true);
+    expect(stopped.messages.at(-1)?.text).toContain("wakes only when you run it");
+    expect(stopped.messages.at(-1)?.text).not.toContain("is deleted");
+
+    const paused = await convene(state, "Pause the Market check routine", undefined, early);
+    expect(paused.routines).toHaveLength(1);
+    expect(paused.routines[0]?.paused).toBe(true);
+    expect(paused.messages.at(-1)?.text).toContain("is already paused");
+    expect(paused.messages.at(-1)?.text).not.toContain("is deleted");
+
+    const resumed = await convene(state, "Resume the Market check routine", undefined, early);
+    expect(resumed.routines).toHaveLength(1);
+    expect(resumed.routines[0]?.name).toBe("Market check");
+    expect(resumed.routines[0]?.paused).toBe(false);
+    expect(resumed.routines[0]?.cadence).toBe("daily");
+    expect(resumed.routines[0]?.nextRunAt).toBe(marketNext);
+    expect(resumed.messages.at(-1)?.text).toContain("Resumed. “Market check” can wake again.");
+    expect(resumed.messages.at(-1)?.text).not.toContain("is deleted");
+
+    const desk = await convene(setPaused(state, true, early), "Delete the Market check routine", undefined, early);
+    expect(desk.paused).toBe(true);
+    expect(desk.routines).toHaveLength(0);
+    expect(desk.messages.at(-1)?.text).toBe(
+      "Deleted. “Market check” is deleted. The deletion cannot be undone from here. Nothing was run. A completed action was not undone. Nothing was sent or spent.",
+    );
+    expect(desk.goals).toHaveLength(beforeGoals);
+    expect(desk.approvals.find((approval) => approval.goalId === firstId)?.status).toBe("approved");
+    const afterDesk = await wakeDue(desk, early);
+    expect(afterDesk.routines).toHaveLength(0);
+    expect(afterDesk.goals).toHaveLength(beforeGoals);
+  });
+
+  it("ORIEL-F87 leaves a missing name, a duplicate, and a widened sentence alone", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const none = await convene(initialState(), "Delete the Launch note routine?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(
+      "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(none.messages.at(-1)?.text).not.toContain("is deleted");
+    expect(none.events.some((event) => event.type === "routine_delete")).toBe(true);
+    expect(none.events.some((event) => event.type === "routine_ran")).toBe(false);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    state.routines[0]!.paused = true;
+    state.routines[0]!.heldBack = ["send"];
+    const only =
+      "Deleted. “Launch note” is deleted. The deletion cannot be undone from here. Nothing was run. A completed action was not undone. Nothing was sent or spent.";
+    for (const text of [
+      "Please, delete the Launch note routine.",
+      "Delete the Launch note routine?",
+      "delete the launch note routine",
+      "PLEASE, delete the “Launch note” routine?",
+    ]) {
+      const again = await convene(state, text, firstId, early, "missing-skill");
+      expect(again.messages.at(-1)?.text).toBe(only);
+      expect(again.messages.at(-1)?.text).not.toContain("Another routine");
+      expect(again.routines).toHaveLength(0);
+      expect(again.goals).toHaveLength(1);
+      expect(again.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+      expect(again.approvals.find((approval) => approval.goalId === firstId)?.status).toBe("approved");
+    }
+
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "daily", early);
+    const secondNext = state.routines[0]?.nextRunAt;
+    state.routines[0]!.lastRunAt = "2026-10-22T09:00:00.000Z";
+    state.routines[0]!.paused = false;
+    state.routines[0]!.heldBack = ["send"];
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    const secondId = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, secondId, "Launch note", early);
+    const noah = state.routines.at(-1);
+    state = setRoutineCadence(state, noah?.id ?? "", "hourly", early);
+    const duplicateNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Compare the market landscape", undefined, early);
+    const marketGoal = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, marketGoal, "Market check", early);
+    const market = state.routines.at(-1);
+    state = setRoutineCadence(state, market?.id ?? "", "daily", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    state.routines[2]!.paused = true;
+    state.routines[2]!.heldBack = ["pay"];
+    const goals = state.goals.length;
+    const ambiguous =
+      "More than one routine has that name, “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+
+    const asked = await convene(state, "PLEASE, delete the “Launch note” routine?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.routines).toHaveLength(3);
+    expect(asked.routines[0]?.name).toBe("Launch note");
+    expect(asked.routines[0]?.cadence).toBe("daily");
+    expect(asked.routines[0]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[0]?.lastRunAt).toBe("2026-10-22T09:00:00.000Z");
+    expect(asked.routines[1]?.name).toBe("Launch note");
+    expect(asked.routines[1]?.cadence).toBe("hourly");
+    expect(asked.routines[1]?.nextRunAt).toBe(duplicateNext);
+    expect(asked.routines[2]?.name).toBe("Market check");
+    expect(asked.routines[2]?.paused).toBe(true);
+    expect(asked.routines[2]?.heldBack).toEqual(["pay"]);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(asked.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+    expect(asked.messages.at(-1)?.text).toBe(ambiguous);
+    expect(asked.messages.at(-1)?.text).not.toContain("is deleted");
+
+    const near = await convene(state, "Delete the Launch notes routine", undefined, early);
+    expect(near.goals).toHaveLength(goals);
+    expect(near.messages.at(-1)?.text).toBe(
+      "There is no such routine as “Launch notes”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(near.routines).toHaveLength(3);
+    expect(near.routines[2]?.paused).toBe(true);
+    expect(near.routines[2]?.heldBack).toEqual(["pay"]);
+
+    const widenedBase = structuredClone(state);
+    const aside = await convene(widenedBase, "Delete the Launch note routine and email Maya", undefined, early);
+    expect(aside.goals).toHaveLength(goals + 1);
+    expect(aside.routines).toHaveLength(3);
+    expect(aside.routines[0]?.name).toBe("Launch note");
+    expect(aside.routines[1]?.name).toBe("Launch note");
+    expect(aside.routines[2]?.name).toBe("Market check");
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[1]?.heldBack).toEqual([]);
+    expect(aside.routines[2]?.heldBack).toEqual([]);
+    expect(aside.routines[2]?.paused).toBe(true);
+    expect(aside.routines[0]?.nextRunAt).toBe(secondNext);
+    expect(aside.messages.at(-1)?.text).not.toContain("The deletion cannot be undone from here");
+
+    for (const text of [
+      "Delete the routine",
+      "Delete the Launch note routines",
+      "Delete the newsletter draft",
+      "Don't delete the Launch note routine",
+    ]) {
+      const ordinary = await convene(state, text, undefined, early);
+      expect(ordinary.goals).toHaveLength(goals + 1);
+      expect(ordinary.routines).toHaveLength(3);
+      expect(ordinary.routines[0]?.cadence).toBe("daily");
+      expect(ordinary.routines[0]?.nextRunAt).toBe(secondNext);
+      expect(ordinary.routines[1]?.cadence).toBe("hourly");
+      expect(ordinary.routines[1]?.nextRunAt).toBe(duplicateNext);
+      expect(ordinary.routines[2]?.paused).toBe(true);
+      expect(ordinary.routines[2]?.heldBack).toEqual([]);
+      expect(ordinary.routines[2]?.nextRunAt).toBe(marketNext);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("The deletion cannot be undone from here");
+    }
+
+    const kept = structuredClone(state);
+    await expect(convene(kept, "Delete the Launch note routine without asking", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "Please delete the Market check routine always allow", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(
+      convene(kept, "Delete the Launch note routine and allow for this site", undefined, early),
+    ).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines).toHaveLength(3);
+    expect(kept.routines[0]?.nextRunAt).toBe(secondNext);
+    expect(kept.routines[2]?.paused).toBe(true);
+    expect(kept.routines[2]?.heldBack).toEqual(["pay"]);
+    expect(kept.goals).toHaveLength(goals);
+    await expect(convene(kept, "Delete the Market check routine", "goal_missing", early)).rejects.toThrow(
+      /not in the record/,
+    );
+    expect(kept.goals).toHaveLength(goals);
+    expect(kept.routines).toHaveLength(3);
+    expect(kept.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    const byStop = await convene(state, "Stop the Market check routine", undefined, early);
+    expect(byStop.routines).toHaveLength(3);
+    expect(byStop.routines[2]?.cadence).toBe("manual");
+    expect(byStop.routines[2]?.name).toBe("Market check");
+    expect(byStop.messages.at(-1)?.text).not.toContain("is deleted");
+    const byPause = await convene(state, "Pause the Launch note routine", undefined, early);
+    expect(byPause.routines).toHaveLength(3);
+    expect(byPause.messages.at(-1)?.text).toContain("More than one routine has that name");
+    expect(byPause.messages.at(-1)?.text).not.toContain("is deleted");
+    const onePause = await convene(state, "Pause the Market check routine", undefined, early);
+    expect(onePause.routines).toHaveLength(3);
+    expect(onePause.routines[2]?.paused).toBe(true);
+    expect(onePause.messages.at(-1)?.text).toContain("is already paused");
+    const oneResume = await convene(onePause, "Resume the Market check routine", undefined, early);
+    expect(oneResume.routines).toHaveLength(3);
+    expect(oneResume.routines[2]?.paused).toBe(false);
+    expect(oneResume.routines[2]?.cadence).toBe("daily");
+    expect(oneResume.messages.at(-1)?.text).toContain("Resumed.");
+    expect(oneResume.messages.at(-1)?.text).not.toContain("is deleted");
+
+    const removed = await convene(state, "Delete the Market check routine.", undefined, early);
+    expect(removed.routines.map((routine) => routine.name)).toEqual(["Launch note", "Launch note"]);
+    expect(removed.messages.at(-1)?.text).toBe(
+      "Deleted. “Market check” is deleted. The deletion cannot be undone from here. Another routine is unchanged. Nothing was run. A completed action was not undone. Nothing was sent or spent.",
+    );
+    const scheduled = await convene(removed, "What is scheduled?", undefined, early);
+    expect(scheduled.messages.at(-1)?.text).not.toContain("Market check");
+    expect(scheduled.messages.at(-1)?.text).toContain("Launch note");
+    expect(launchNext).toBeTruthy();
+  });
+});
+
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [

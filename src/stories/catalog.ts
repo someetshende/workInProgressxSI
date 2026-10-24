@@ -439,6 +439,12 @@ export const constraints: Constraint[] = [
     text: "saying pause or resume and one routine's name pauses or resumes that one wake, leaves the cadence and the next time, and does not run the routine",
     proof: "Pause the Launch note routine leaves that cadence and the next time. Resume clears only that pause. A desk pause does not mark the routine. Nothing is run, sent, or spent.",
   },
+  {
+    id: "delete-routine",
+    short: "Delete one routine",
+    text: "saying delete and one routine's name removes that one routine from the record, leaves every other routine, and does not run it or undo a completed action",
+    proof: "Delete the Launch note routine removes that routine and says the deletion cannot be undone. Stop, pause, and resume do not delete it. Nothing is run, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

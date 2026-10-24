@@ -7429,6 +7429,81 @@ test("ORIEL-F86 pausing one routine leaves its cadence and shows Paused", async 
   await page.screenshot({ path: "test-results/oriel-routine-pause.png" });
 });
 
+test("ORIEL-F87 deleting one routine removes it from the rail and runs none", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Delete the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText(
+    "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+  );
+  await expect(page.locator("#thread .turn").last()).not.toContainText("is deleted");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Saying delete and the routine's name removes that one routine from the record and does not run it.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Saying pause or resume and the routine's name pauses or resumes that one wake and does not change its cadence.",
+  );
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Delete the Summarize the launch risks routine");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "Deleted. “Summarize the launch risks” is deleted. The deletion cannot be undone from here. Another routine is unchanged.",
+  );
+  await expect(page.getByTestId("thread")).toContainText(
+    "Nothing was run. A completed action was not undone. Nothing was sent or spent.",
+  );
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveText("Daily");
+  expect(await page.locator("[data-testid^='cadence-']").getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='instruction-']")).toHaveText("Draft the weekly close but do not send it");
+  await expect(page.locator("[data-testid^='run-routine-']")).toContainText("Draft the weekly close but do not send it");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+
+  await page.getByTestId("composer").fill("What is scheduled?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("Draft the weekly close but do not send it");
+  await expect(page.locator("#thread .turn").last()).not.toContainText("Summarize the launch risks");
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveCount(1);
+
+  await page.getByTestId("composer").fill("Stop the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveText("Manual");
+  await expect(page.locator("#thread .turn").last()).not.toContainText("is deleted");
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveCount(1);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-routine-delete.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");
