@@ -9,9 +9,9 @@ describe("story atlas", () => {
   it("contains more than a thousand reviewable stories", () => {
     expect(personas).toHaveLength(18);
     expect(jobs).toHaveLength(17);
-    expect(constraints).toHaveLength(79);
-    expect(flagshipStories()).toHaveLength(141);
-    expect(stories.length).toBe(141 + 18 * 17 * 79);
+    expect(constraints).toHaveLength(80);
+    expect(flagshipStories()).toHaveLength(142);
+    expect(stories.length).toBe(142 + 18 * 17 * 80);
     expect(stories.length).toBeGreaterThanOrEqual(1000);
   });
 

@@ -2683,6 +2683,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F142",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine needs its own Cursor user for a separate computer",
+      title: "Say that one routine has no solo roster and do not give a workload its own user",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no solo roster in the record, so that I can check the work without giving a workload its own user.",
+      acceptance: [
+        "Saying whether the Launch note routine needs its own Cursor user for a separate computer and credential set says that one routine has no solo roster in the record.",
+        "Asking does not give a workload its own user, does not create a Cursor user, and does not sign the browser out.",
+        "A stored run is not a solo roster. A common tray is not one. The common-tray answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

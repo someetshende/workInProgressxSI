@@ -1012,6 +1012,24 @@ export function loosensRoutineCommonTray(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SOLO_ROSTER = /^(?:please,?\s+)?does the (.+) routine need its own cursor user for a separate computer and credential set$/i;
+
+export function routineSoloRosterName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SOLO_ROSTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSoloRoster(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSoloRosterName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine need its own cursor user for a separate computer and credential set\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
