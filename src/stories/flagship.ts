@@ -2512,6 +2512,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F133",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether conversations for one routine survive a reset",
+      title: "Say that one routine has no kept conversation and leave the saved chat in place",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no kept conversation in the record, so that I can check the work without moving the saved chat.",
+      acceptance: [
+        "Saying whether conversations for the Launch note routine survive a reset says that one routine has no kept conversation in the record.",
+        "Asking leaves the saved chat in place, does not reset the computer, and does not rebuild the computer.",
+        "A stored run is not a kept conversation. A finish-before-rebuild is not one. The finish-before-rebuild answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

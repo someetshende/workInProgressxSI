@@ -850,6 +850,24 @@ export function loosensRoutineFinishBeforeRebuild(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_KEPT_CONVERSATION = /^(?:please,?\s+)?do conversations for the (.+) routine survive a reset$/i;
+
+export function routineKeptConversationName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_KEPT_CONVERSATION.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineKeptConversation(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineKeptConversationName(text)) return false;
+  if (!/^(?:please,?\s+)?do conversations for the .+ routine survive a reset\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

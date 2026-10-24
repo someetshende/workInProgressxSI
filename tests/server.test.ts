@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -14679,6 +14679,159 @@ describe("Oriel server", () => {
     expect(still.messages.at(-1).text).toContain("A wake does not run it.");
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
+
+
+  it("ORIEL-F133 says one routine has no kept conversation and leaves the saved chat in place", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Do conversations for the Launch note routine survive a reset?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineKeptConversationMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether conversations for one named routine survive a reset");
+    expect(missing.body.trust).toContain("has no kept conversation in the record");
+    expect(missing.body.trust).toContain("Asking leaves the saved chat in place");
+    expect(missing.body.trust).toContain("does not start another screen task");
+    expect(missing.body.trust).toContain("does not finish the current screen task");
+    expect(missing.body.trust).toContain("Asking does not send a redirect");
+    expect(missing.body.trust).toContain("does not open the computer");
+    expect(missing.body.trust).toContain("does not stop the routine");
+    expect(missing.body.trust).toContain("does not take a destructive step");
+    expect(missing.body.trust).toContain("does not disconnect the app");
+    expect(missing.body.trust).toContain("does not retry");
+    expect(missing.body.trust).toContain("does not assign the routine to Grok Bot, Dots, or Muse");
+    expect(missing.body.trust).toContain("The short reply says Asking leaves the saved chat in place");
+    expect(missing.body.trust).toContain("The stuck-state reply still says Asking does not open the computer");
+    expect(missing.body.trust).toContain("The least-destructive reply still says Asking does not take a destructive step");
+    expect(missing.body.trust).toContain("The disconnected-app reply still says Asking does not disconnect the app");
+    expect(missing.body.trust).toContain("A failure is not a kept conversation");
+    expect(missing.body.trust).toContain("A least-destructive step is not a kept conversation");
+    expect(missing.body.trust).toContain("A stuck state is not a kept conversation");
+    expect(missing.body.trust).toContain("A disconnected app is not a kept conversation");
+    expect(missing.body.trust).toContain("A stored run is not a kept conversation");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a kept conversation");
+    expect(missing.body.trust).toContain("The row says No kept conversation");
+    expect(missing.body.trust).toContain("The row test id is kept-chat-");
+    expect(missing.body.trust).toContain("does not say there is no kept conversation");
+    expect(missing.body.trust).toContain("does not name a kept conversation");
+    expect(missing.body.trust).toContain("A recorded failure is not an allow-automatically rule");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a kept conversation");
+    expect("has no kept conversation".includes("has no stuck state")).toBe(false);
+    expect("has no stuck state".includes("has no kept conversation")).toBe(false);
+    expect("has no kept conversation".includes("has no least-destructive step")).toBe(false);
+    expect("has no least-destructive step".includes("has no kept conversation")).toBe(false);
+    expect("has no kept conversation".includes("reset")).toBe(false);
+    expect("reset".includes("has no kept conversation")).toBe(false);
+    expect("Asking leaves the saved chat in place.".includes("Asking does not send a redirect.")).toBe(false);
+    expect("Asking does not send a redirect.".includes("Asking leaves the saved chat in place.")).toBe(false);
+    expect("Asking leaves the saved chat in place.".includes("Asking does not take a destructive step.")).toBe(false);
+    expect("Asking does not take a destructive step.".includes("Asking leaves the saved chat in place.")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineKeptConversationCopy("Launch note", true)).toContain("Asking leaves the saved chat in place.");
+    expect(routineKeptConversationCopy("Launch note", true)).not.toContain("Asking does not send a redirect.");
+    expect(routineKeptConversationCopy("Launch note", true)).not.toContain("reset");
+    expect(routineKeptConversationCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineKeptConversationCopy("Launch note", true)).not.toContain("verification code");
+    expect(routineLeastDestructiveCopy("Launch note", true)).toContain("Asking does not take a destructive step.");
+    expect(routineLeastDestructiveCopy("Launch note", true)).not.toContain("has no kept conversation");
+    expect(routineDisconnectedAppCopy("Launch note", true)).not.toContain("has no kept conversation");
+    expect(routineStuckStateCopy("Launch note", true)).toContain("Asking does not open the computer.");
+    expect(routineStuckStateCopy("Launch note", true)).not.toContain("has no kept conversation");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, do conversations for the Launch note routine survive a reset?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineKeptConversationCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no kept conversation in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking leaves the saved chat in place.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no least-destructive step");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not send a redirect.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toContain("verification code");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Do conversations for the Launch note routine survive a reset?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no kept conversation in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Do conversations for the Launch note routine survive a reset?");
+    expect(asked.body.messages.at(-1).text).toBe(routineKeptConversationCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const active = await turn("Is the Launch note routine active?");
+    expect(active.body.messages.at(-1).text).toContain("is not active");
+    expect(active.body.messages.at(-1).text).not.toContain("has no kept conversation");
+    const stuckLeft = await turn("Is the Launch note routine stuck?");
+    expect(stuckLeft.body.messages.at(-1).text).toContain("has no stuck state");
+    expect(stuckLeft.body.messages.at(-1).text).not.toContain("has no kept conversation");
+    const stepLeft = await turn("Did the Launch note routine start with the least destructive step?");
+    expect(stepLeft.body.messages.at(-1).text).toContain("has no least-destructive step");
+    expect(stepLeft.body.messages.at(-1).text).not.toContain("has no kept conversation");
+    const appLeft = await turn("Is the app disconnected for the Launch note routine?");
+    expect(appLeft.body.messages.at(-1).text).toContain("has no disconnected app");
+    expect(appLeft.body.messages.at(-1).text).not.toContain("has no kept conversation");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("kept conversation");
+    expect(why.body.messages.at(-1).text).not.toContain("reset");
+
+    const gone = await turn("Do conversations for the Launch note routine survive a reset?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Do conversations for the Launch note routine survive a reset without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
 
 
   it("rejects an empty turn", async () => {
