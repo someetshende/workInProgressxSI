@@ -2607,6 +2607,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F138",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether isolation between users is strict for one routine",
+      title: "Say that one routine has no private host and do not share one computer across users",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no private host in the record, so that I can check the work without sharing one computer across users.",
+      acceptance: [
+        "Saying whether isolation between users is strict for the Launch note routine says that one routine has no private host in the record.",
+        "Asking does not share one computer across users, does not merge the screens, and does not change a security boundary.",
+        "A stored run is not a private host. A work surface is not one. The work-surface answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

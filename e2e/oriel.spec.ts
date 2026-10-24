@@ -15967,6 +15967,159 @@ test("ORIEL-F137 whether a screen is a separate security boundary does not merge
   await page.screenshot({ path: "test-results/oriel-routine-work-surface.png" });
 });
 
+test("ORIEL-F138 whether isolation between users is strict does not share one computer across users", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Is isolation between users strict for the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether isolation between users is strict for one routine says that routine has no private host in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether a screen for one routine is a separate security boundary says that routine has no work surface in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether a normal recovery for one routine replaces uncommitted state says that routine has no scratch folder in the record.",
+  );
+  await expect(page.locator("[data-testid^='private-host-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='private-host-']").nth(0)).toHaveText("No private host");
+  await expect(page.locator("[data-testid^='work-surface-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='work-surface-']").nth(0)).toHaveText("No work surface");
+  await expect(page.locator("[data-testid^='work-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='surface-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='scratch-folder-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='scratch-folder-']").nth(0)).toHaveText("No scratch folder");
+  await expect(page.locator("[data-testid^='scratch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='folder-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='software-refresh-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='software-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kept-file-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kept-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='finish-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='screen-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='refresh-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  const followsScratch = await page.evaluate(() => {
+    const surface = document.querySelector("[data-testid^='work-surface-']");
+    const host = document.querySelector("[data-testid^='private-host-']");
+    if (!surface || !host || surface.parentElement !== host.parentElement) return false;
+    return surface.compareDocumentPosition(host) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsScratch).toBe(true);
+  const noteIds = await page.locator("[data-testid^='private-host-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("private-host-"))).toBe(true);
+  for (const prefix of ["work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "computer-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Is isolation between users strict for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no private host in the record.");
+  await expect(clear).toContainText("Asking does not share one computer across users.");
+  await expect(clear).not.toContainText("has no scratch folder");
+  await expect(clear).not.toContainText("Asking does not delete a temporary directory.");
+  await expect(clear).not.toContainText("isolation");
+  await expect(clear).not.toContainText("strict");
+  await expect(clear).not.toContainText("between");
+  await expect(clear).not.toContainText("hardware");
+  await expect(clear).not.toContainText("dedicated");
+  await expect(clear).not.toContainText("security");
+  await expect(clear).not.toContainText("boundary");
+  await expect(clear).not.toContainText("separate");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Is isolation between users strict for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no private host in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Is isolation between users strict for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no private host in the record.");
+  await expect(pausedAsk).toContainText("Asking does not share one computer across users.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does a normal recovery for the Draft the weekly close but do not send it routine replace uncommitted state?");
+  await page.getByTestId("send").click();
+  const scratchLeft = page.locator("#thread .turn").last();
+  await expect(scratchLeft).toContainText("“Draft the weekly close but do not send it” has no scratch folder in the record.");
+  await expect(scratchLeft).toContainText("Asking does not delete a temporary directory.");
+  await expect(scratchLeft).not.toContainText("has no private host");
+
+  await page.getByTestId("composer").fill("Is an app update waiting for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const updateLeft = page.locator("#thread .turn").last();
+  await expect(updateLeft).toContainText("has no app update");
+  await expect(updateLeft).not.toContainText("has no private host");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("private host");
+  await expect(why).not.toContainText("isolation");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='private-host-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='scratch-folder-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='software-refresh-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kept-file-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='screen-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='refresh-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='folder-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='surface-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-private-host.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
