@@ -2170,6 +2170,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F115",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether local computer work is refused for one routine",
+      title: "Say that one routine has no local-computer refusal and do not turn local access on",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no local-computer refusal in the record, so that I can check local access without turning it on.",
+      acceptance: [
+        "Saying whether local computer work is refused for the Launch note routine says that one routine has no local-computer refusal in the record.",
+        "Asking does not turn local access on, does not connect a computer, and does not connect a plugin.",
+        "A stored run is not a local-computer refusal. A source system is not one. The source answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

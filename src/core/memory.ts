@@ -526,6 +526,24 @@ export function loosensRoutineLockedTeamRule(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_LOCAL_COMPUTER = /^(?:please,?\s+)?is local computer work refused for the (.+) routine$/i;
+
+export function routineLocalComputerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_LOCAL_COMPUTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineLocalComputer(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineLocalComputerName(text)) return false;
+  if (!/^(?:please,?\s+)?is local computer work refused for the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

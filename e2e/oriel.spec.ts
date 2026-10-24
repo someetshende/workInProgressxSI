@@ -10448,6 +10448,221 @@ test("ORIEL-F114 whether the team rule for one routine is locked does not lock o
   await page.screenshot({ path: "test-results/oriel-routine-locked-team-rule.png" });
 });
 
+test("ORIEL-F115 whether local computer work is refused for one routine does not turn local access on", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Is local computer work refused for the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether local computer work is refused for one routine says that routine has no local-computer refusal in the record.",
+  );
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+  await expect(page.locator("[data-testid^='locked-team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-rule-']").nth(0)).toHaveText("No team rule");
+  await expect(page.locator("[data-testid^='allow-automatically-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='allow-automatically-']").nth(0)).toHaveText("No allow-automatically rule");
+  await expect(page.locator("[data-testid^='ask-first-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ask-first-']").nth(0)).toHaveText("No ask-first rule");
+  await expect(page.locator("[data-testid^='matching-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='matching-rule-']").nth(0)).toHaveText("No matching rule");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  const localFollowsLocked = await page.evaluate(() => {
+    const locked = document.querySelector("[data-testid^='locked-team-rule-']");
+    const local = document.querySelector("[data-testid^='local-computer-']");
+    if (!locked || !local || locked.parentElement !== local.parentElement) return false;
+    return locked.compareDocumentPosition(local) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(localFollowsLocked).toBe(true);
+  const localIds = await page.locator("[data-testid^='local-computer-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(localIds.every((id) => id.startsWith("local-computer-"))).toBe(true);
+  expect(localIds.some((id) => id.startsWith("source-"))).toBe(false);
+  expect(localIds.some((id) => id.startsWith("computer-"))).toBe(false);
+  expect(localIds.some((id) => id.startsWith("locked-team-rule-"))).toBe(false);
+  expect(localIds.some((id) => id.startsWith("team-rule-"))).toBe(false);
+  expect(localIds.some((id) => id.startsWith("rule-"))).toBe(false);
+  const ruleIds = await page.locator("[data-testid^='rule-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(ruleIds).toEqual(expect.arrayContaining(["rule-send", "rule-pay", "rule-delete", "rule-post"]));
+  expect(ruleIds.some((id) => id.startsWith("local-computer"))).toBe(false);
+  await expect(page.locator("[data-testid^='run-failure-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='usage-pause-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='owner-']").nth(0)).toHaveText("No owning bot");
+  await expect(page.locator("[data-testid^='zone-']").nth(0)).toHaveText("No time zone");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Is local computer work refused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no local-computer refusal in the record.");
+  await expect(clear).toContainText("Asking does not turn local access on.");
+  await expect(clear).not.toContainText("has no source system");
+  await expect(clear).not.toContainText("Asking does not connect a computer.");
+  await expect(clear).not.toContainText("has no locked team rule");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  await expect(clear).not.toContainText("Summarize the launch risks");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='team-rule-']").nth(0)).toHaveText("No team rule");
+  await expect(page.locator("[data-testid^='allow-automatically-']").nth(0)).toHaveText("No allow-automatically rule");
+  await expect(page.locator("[data-testid^='ask-first-']").nth(0)).toHaveText("No ask-first rule");
+  await expect(page.locator("[data-testid^='matching-rule-']").nth(0)).toHaveText("No matching rule");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Is local computer work refused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no local-computer refusal in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Is local computer work refused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no local-computer refusal in the record.");
+  await expect(pausedAsk).toContainText("Asking does not turn local access on.");
+  await expect(pausedAsk).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine reach its source?");
+  await page.getByTestId("send").click();
+  const source = page.locator("#thread .turn").last();
+  await expect(source).toContainText("“Draft the weekly close but do not send it” has no source system in the record.");
+  await expect(source).toContainText("Asking does not connect a computer.");
+  await expect(source).not.toContainText("has no local-computer refusal");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+
+  await page.getByTestId("composer").fill("Is the team rule for the Draft the weekly close but do not send it routine locked?");
+  await page.getByTestId("send").click();
+  const locked = page.locator("#thread .turn").last();
+  await expect(locked).toContainText("“Draft the weekly close but do not send it” has no locked team rule in the record.");
+  await expect(locked).toContainText("Asking does not lock a team rule.");
+  await expect(locked).not.toContainText("has no local-computer refusal");
+  await expect(locked).not.toContainText("local-computer");
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+
+  await page.getByTestId("composer").fill("Which team rule blocks the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const team = page.locator("#thread .turn").last();
+  await expect(team).toContainText("“Draft the weekly close but do not send it” has no team rule in the record.");
+  await expect(team).not.toContainText("has no local-computer refusal");
+  await expect(page.locator("[data-testid^='team-rule-']").nth(0)).toHaveText("No team rule");
+
+  await page.getByTestId("composer").fill("Which allow-automatically rule covers the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const allow = page.locator("#thread .turn").last();
+  await expect(allow).toContainText("“Draft the weekly close but do not send it” has no allow-automatically rule in the record.");
+  await expect(allow).not.toContainText("local-computer");
+  await expect(page.locator("[data-testid^='allow-automatically-']").nth(0)).toHaveText("No allow-automatically rule");
+
+  await page.getByTestId("composer").fill("Which ask-first rule blocks the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const askFirst = page.locator("#thread .turn").last();
+  await expect(askFirst).toContainText("“Draft the weekly close but do not send it” has no ask-first rule in the record.");
+  await expect(askFirst).not.toContainText("local-computer");
+
+  await page.getByTestId("composer").fill("Which matching rule starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const matching = page.locator("#thread .turn").last();
+  await expect(matching).toContainText("“Draft the weekly close but do not send it” has no matching rule in the record.");
+  await expect(matching).not.toContainText("local-computer");
+
+  await page.getByTestId("composer").fill("Which repository starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const repository = page.locator("#thread .turn").last();
+  await expect(repository).toContainText("“Draft the weekly close but do not send it” has no source repository in the record.");
+  await expect(repository).not.toContainText("has no local-computer refusal");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+
+  await page.getByTestId("composer").fill("Which channel starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const channel = page.locator("#thread .turn").last();
+  await expect(channel).toContainText("“Draft the weekly close but do not send it” has no source channel in the record.");
+  await expect(channel).not.toContainText("has no local-computer refusal");
+
+  await page.getByTestId("composer").fill("What failure does the Draft the weekly close but do not send it routine show?");
+  await page.getByTestId("send").click();
+  const failure = page.locator("#thread .turn").last();
+  await expect(failure).toContainText("“Draft the weekly close but do not send it” has no failure in the record.");
+  await expect(failure).not.toContainText("local-computer");
+
+  await page.getByTestId("composer").fill("Has usage been paused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const usage = page.locator("#thread .turn").last();
+  await expect(usage).toContainText("“Draft the weekly close but do not send it” has no usage pause in the record.");
+  await expect(usage).not.toContainText("has no local-computer refusal");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const quiet = page.locator("#thread .turn").last();
+  await expect(quiet).toContainText("A wake does not run it.");
+  await expect(quiet).not.toContainText("local-computer");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-local-computer.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
