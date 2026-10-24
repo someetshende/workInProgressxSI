@@ -17009,6 +17009,169 @@ test("ORIEL-F144 whether one routine uses one computer of its own in Slack chann
   await page.screenshot({ path: "test-results/oriel-routine-group-computer.png" });
 });
 
+
+test("ORIEL-F145 whether one routine works on that member's computer in that member's own chat or Slack DM does not put the work on that member's computer", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine work on that member's computer in that member's own chat or Slack DM?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine works on that member's computer in that member's own chat or Slack DM says that routine has no direct desk in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine uses one computer of its own in Slack channels, threads, group DMs, and group chats says that routine has no group computer in the record.",
+  );
+  await expect(page.locator("[data-testid^='direct-desk-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='direct-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='desk-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='group-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-bench-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='group-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='direct-desk-']").nth(0)).toHaveText("No direct desk");
+  await expect(page.locator("[data-testid^='solo-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='roster-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='common-tray-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='common-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='tray-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='persona-ledger-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='persona-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ledger-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='guest-slice-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  const followsGroup = await page.evaluate(() => {
+    const group = document.querySelector("[data-testid^='group-computer-']");
+    const desk = document.querySelector("[data-testid^='direct-desk-']");
+    if (!group || !desk || group.parentElement !== desk.parentElement) return false;
+    return group.compareDocumentPosition(desk) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsGroup).toBe(true);
+  const noteIds = await page.locator("[data-testid^='direct-desk-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("direct-desk-"))).toBe(true);
+  for (const prefix of ["group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine work on that member's computer in that member's own chat or Slack DM?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no direct desk in the record.");
+  await expect(clear).toContainText("Asking does not put the work on that member's computer.");
+  await expect(clear).not.toContainText("has no group computer");
+  await expect(clear).not.toContainText("has no solo roster");
+  await expect(clear).not.toContainText("Asking does not give the group its own computer.");
+  await expect(clear).not.toContainText("Asking does not sign the browser out.");
+  await expect(clear).not.toContainText("Asking does not create a Cursor user.");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine work on that member's computer in that member's own chat or Slack DM?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no direct desk in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine work on that member's computer in that member's own chat or Slack DM?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no direct desk in the record.");
+  await expect(pausedAsk).toContainText("Asking does not put the work on that member's computer.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine use one computer of its own in Slack channels, threads, group DMs, and group chats?");
+  await page.getByTestId("send").click();
+  const groupLeft = page.locator("#thread .turn").last();
+  await expect(groupLeft).toContainText("has no group computer");
+  await expect(groupLeft).toContainText("Asking does not give the group its own computer.");
+  await expect(groupLeft).not.toContainText("has no direct desk");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine need its own Cursor user for a separate computer and credential set?");
+  await page.getByTestId("send").click();
+  const rosterLeft = page.locator("#thread .turn").last();
+  await expect(rosterLeft).toContainText("has no solo roster");
+  await expect(rosterLeft).toContainText("Asking does not give a workload its own user.");
+  await expect(rosterLeft).not.toContainText("has no direct desk");
+
+  await page.getByTestId("composer").fill("Is a login or file for the Draft the weekly close but do not send it routine available to every bot?");
+  await page.getByTestId("send").click();
+  const trayLeft = page.locator("#thread .turn").last();
+  await expect(trayLeft).toContainText("“Draft the weekly close but do not send it” has no common tray in the record.");
+  await expect(trayLeft).toContainText("Asking does not sign the browser out.");
+  await expect(trayLeft).not.toContainText("has no direct desk");
+
+  await page.getByTestId("composer").fill("Is an app update waiting for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const updateLeft = page.locator("#thread .turn").last();
+  await expect(updateLeft).toContainText("has no app update");
+  await expect(updateLeft).not.toContainText("has no direct desk");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("direct desk");
+  await expect(why).not.toContainText("group computer");
+  await expect(why).not.toContainText("Cursor user");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='direct-desk-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='direct-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='desk-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='group-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-bench-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='group-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='solo-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='roster-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='common-tray-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='common-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='tray-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='persona-ledger-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-direct-desk.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

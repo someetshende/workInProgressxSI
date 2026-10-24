@@ -2740,6 +2740,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F145",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine works on that member's computer in that member's own chat or Slack DM",
+      title: "Say that one routine has no direct desk and do not put the work on that member's computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no direct desk in the record, so that I can check the work without putting the work on that member's computer.",
+      acceptance: [
+        "Saying whether the Launch note routine works on that member's computer in that member's own chat or Slack DM says that one routine has no direct desk in the record.",
+        "Asking does not put the work on that member's computer, does not borrow that member's computer, and does not seat the work on that member's machine.",
+        "A stored run is not a direct desk. A group computer is not one. The group-computer answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
