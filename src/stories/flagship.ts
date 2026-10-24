@@ -2417,6 +2417,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F128",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether a retry changed the result for one routine",
+      title: "Say that one routine has no retry result and do not retry",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no retry result in the record, so that I can check the work without retrying it.",
+      acceptance: [
+        "Saying whether a retry changed the result for the Launch note routine says that one routine has no retry result in the record.",
+        "Asking does not retry, does not restart the app, and does not update the computer.",
+        "A stored run is not a retry result. A support note is not one. The support-note answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
