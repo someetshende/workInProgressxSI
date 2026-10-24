@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -12243,6 +12243,253 @@ describe("Oriel server", () => {
     const gone = await turn("Is the plugin for the Launch note routine authenticated?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Is the plugin for the Launch note routine authenticated without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F121 says one routine has no readable attachment and does not read an attachment", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Can the Launch note routine read its attachment?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineReadableAttachmentMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether one named routine can read its attachment");
+    expect(missing.body.trust).toContain("has no readable attachment in the record");
+    expect(missing.body.trust).toContain("Asking does not read an attachment");
+    expect(missing.body.trust).toContain("does not install a plugin");
+    expect(missing.body.trust).toContain("does not reconnect a plugin");
+    expect(missing.body.trust).toContain("does not remove a plugin");
+    expect(missing.body.trust).toContain("does not connect a plugin");
+    expect(missing.body.trust).toContain("does not take over the computer");
+    expect(missing.body.trust).toContain("does not type a password");
+    expect(missing.body.trust).toContain("does not paste a code");
+    expect(missing.body.trust).toContain("does not complete a sign-in");
+    expect(missing.body.trust).toContain("does not open the computer");
+    expect(missing.body.trust).toContain("does not send a redirect");
+    expect(missing.body.trust).toContain("does not stop the routine");
+    expect(missing.body.trust).toContain("does not recover a computer");
+    expect(missing.body.trust).toContain("does not update the computer");
+    expect(missing.body.trust).toContain("does not reset the computer");
+    expect(missing.body.trust).toContain("does not turn cloud access on");
+    expect(missing.body.trust).toContain("does not turn local access on");
+    expect(missing.body.trust).toContain("does not connect a computer");
+    expect(missing.body.trust).toContain("does not lock a team rule");
+    expect(missing.body.trust).toContain("does not edit a team rule");
+    expect(missing.body.trust).toContain("does not delete a team rule");
+    expect(missing.body.trust).toContain("does not save an ask-first rule");
+    expect(missing.body.trust).toContain("does not turn on allow automatically");
+    expect(missing.body.trust).toContain("does not turn on an allow-automatically rule");
+    expect(missing.body.trust).toContain("does not confirm a matching rule");
+    expect(missing.body.trust).toContain("does not confirm a repository");
+    expect(missing.body.trust).toContain("does not connect a channel");
+    expect(missing.body.trust).toContain("does not start a test run");
+    expect(missing.body.trust).toContain("does not pause account access");
+    expect(missing.body.trust).toContain("does not pause the routine");
+    expect(missing.body.trust).toContain("does not assign the routine to Grok Bot, Dots, or Muse");
+    expect(missing.body.trust).toContain("does not change the cadence, the next time, the instruction, the pause, the last run, the stored runs");
+    expect(missing.body.trust).toContain("or the login-wait answer");
+    expect(missing.body.trust).toContain("A stored run is not a readable attachment");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a readable attachment");
+    expect(missing.body.trust).toContain("A failure is not a readable attachment");
+    expect(missing.body.trust).toContain("A usage pause is not a readable attachment");
+    expect(missing.body.trust).toContain("A source channel is not a readable attachment");
+    expect(missing.body.trust).toContain("A source repository is not a readable attachment");
+    expect(missing.body.trust).toContain("A matching rule is not a readable attachment");
+    expect(missing.body.trust).toContain("An ask-first rule is not a readable attachment");
+    expect(missing.body.trust).toContain("An allow-automatically rule is not a readable attachment");
+    expect(missing.body.trust).toContain("A team rule is not a readable attachment");
+    expect(missing.body.trust).toContain("A locked team rule is not a readable attachment");
+    expect(missing.body.trust).toContain("A local-computer refusal is not a readable attachment");
+    expect(missing.body.trust).toContain("A cloud-computer refusal is not a readable attachment");
+    expect(missing.body.trust).toContain("A reachable computer is not a readable attachment");
+    expect(missing.body.trust).toContain("A stuck state is not a readable attachment");
+    expect(missing.body.trust).toContain("A login wait is not a readable attachment");
+    expect(missing.body.trust).toContain("A required plugin is not a readable attachment");
+    expect(missing.body.trust).toContain("A source system is not a readable attachment");
+    expect(missing.body.trust).toContain("The short reply says Asking does not read an attachment");
+    expect(missing.body.trust).toContain("does not remove document protection");
+    expect(missing.body.trust).toContain("does not export a file");
+    expect(missing.body.trust).toContain("does not finish an upload");
+    expect(missing.body.trust).toContain("does not read an attachment");
+    expect(missing.body.trust).toContain("The plugin-authentication reply still says Asking does not authenticate a plugin");
+    expect(missing.body.trust).toContain("the plugin-authentication answer");
+    expect(missing.body.trust).toContain("The required-plugin reply still says Asking does not connect one");
+    expect(missing.body.trust).toContain("The login reply still says Asking does not take over the computer");
+    expect(missing.body.trust).toContain("does not say there is no readable attachment");
+    expect(missing.body.trust).toContain("does not name a readable attachment");
+    expect(missing.body.trust).toContain("The row says No readable attachment");
+    expect(missing.body.trust).toContain("A recorded failure is not an allow-automatically rule");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a readable attachment");
+    expect("has no readable attachment".includes("has no required plugin")).toBe(false);
+    expect("has no required plugin".includes("has no readable attachment")).toBe(false);
+    expect("has no readable attachment".includes("has no login wait")).toBe(false);
+    expect("has no readable attachment".includes("has no plugin authentication")).toBe(false);
+    expect("has no plugin authentication".includes("has no readable attachment")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, can the Launch note routine read its attachment?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineReadableAttachmentCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no readable attachment in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not read an attachment.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no plugin authentication");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not authenticate a plugin.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no required plugin");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not connect one.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no login wait");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not take over the computer.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toContain("verification code");
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).not.toBe(true);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Can the Launch note routine read its attachment?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no readable attachment in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Can the Launch note routine read its attachment?");
+    expect(asked.body.messages.at(-1).text).toBe(routineReadableAttachmentCopy("Launch note", true));
+    expect(asked.body.messages.at(-1).text).toContain("“Launch note” has no readable attachment in the record.");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const authLeft = await turn("Is the plugin for the Launch note routine authenticated?");
+    expect(authLeft.body.messages.at(-1).text).toContain("“Launch note” has no plugin authentication in the record.");
+    expect(authLeft.body.messages.at(-1).text).toContain("Asking does not authenticate a plugin.");
+    expect(authLeft.body.messages.at(-1).text).not.toContain("has no readable attachment");
+    expect(authLeft.body.messages.at(-1).text).not.toContain("Asking does not read an attachment.");
+
+    const plugins = await turn("Which plugins does the Launch note routine need?");
+    expect(plugins.body.messages.at(-1).text).toBe(routinePluginCopy("Launch note", true));
+    expect(plugins.body.messages.at(-1).text).toContain("“Launch note” has no required plugin in the record.");
+    expect(plugins.body.messages.at(-1).text).toContain("Asking does not connect one.");
+    expect(plugins.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const login = await turn("Is the Launch note routine waiting on a login?");
+    expect(login.body.messages.at(-1).text).toContain("“Launch note” has no login wait in the record.");
+    expect(login.body.messages.at(-1).text).toContain("Asking does not take over the computer.");
+    expect(login.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const stuck = await turn("Is the Launch note routine stuck?");
+    expect(stuck.body.messages.at(-1).text).toContain("“Launch note” has no stuck state in the record.");
+    expect(stuck.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const reachable = await turn("Can the Launch note routine reach its computer?");
+    expect(reachable.body.messages.at(-1).text).toContain("“Launch note” has no reachable computer in the record.");
+    expect(reachable.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const cloud = await turn("Is cloud computer work refused for the Launch note routine?");
+    expect(cloud.body.messages.at(-1).text).toContain("“Launch note” has no cloud-computer refusal in the record.");
+    expect(cloud.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const local = await turn("Is local computer work refused for the Launch note routine?");
+    expect(local.body.messages.at(-1).text).toContain("“Launch note” has no local-computer refusal in the record.");
+    expect(local.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const source = await turn("Can the Launch note routine reach its source?");
+    expect(source.body.messages.at(-1).text).toContain("“Launch note” has no source system in the record.");
+    expect(source.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const locked = await turn("Is the team rule for the Launch note routine locked?");
+    expect(locked.body.messages.at(-1).text).toContain("“Launch note” has no locked team rule in the record.");
+    expect(locked.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const team = await turn("Which team rule blocks the Launch note routine?");
+    expect(team.body.messages.at(-1).text).toContain("“Launch note” has no team rule in the record.");
+    expect(team.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const allow = await turn("Which allow-automatically rule covers the Launch note routine?");
+    expect(allow.body.messages.at(-1).text).toContain("“Launch note” has no allow-automatically rule in the record.");
+    expect(allow.body.messages.at(-1).text).not.toContain("readable attachment");
+
+    const askFirst = await turn("Which ask-first rule blocks the Launch note routine?");
+    expect(askFirst.body.messages.at(-1).text).toContain("“Launch note” has no ask-first rule in the record.");
+    expect(askFirst.body.messages.at(-1).text).not.toContain("readable attachment");
+
+    const matching = await turn("Which matching rule starts the Launch note routine?");
+    expect(matching.body.messages.at(-1).text).toContain("“Launch note” has no matching rule in the record.");
+    expect(matching.body.messages.at(-1).text).not.toContain("readable attachment");
+
+    const repository = await turn("Which repository starts the Launch note routine?");
+    expect(repository.body.messages.at(-1).text).toContain("“Launch note” has no source repository in the record.");
+    expect(repository.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const channel = await turn("Which channel starts the Launch note routine?");
+    expect(channel.body.messages.at(-1).text).toContain("“Launch note” has no source channel in the record.");
+    expect(channel.body.messages.at(-1).text).not.toContain("has no readable attachment");
+
+    const failed = await turn("What failure does the Launch note routine show?");
+    expect(failed.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(failed.body.messages.at(-1).text).not.toContain("readable attachment");
+
+    const usage = await turn("Has usage been paused for the Launch note routine?");
+    expect(usage.body.messages.at(-1).text).toContain("“Launch note” has no usage pause in the record.");
+    expect(usage.body.messages.at(-1).text).not.toContain("has no readable attachment");
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const quiet = await turn("Why hasn't the Launch note routine run?");
+    expect(quiet.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(quiet.body.messages.at(-1).text).not.toContain("readable attachment");
+    expect(quiet.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const gone = await turn("Can the Launch note routine read its attachment?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Can the Launch note routine read its attachment without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);

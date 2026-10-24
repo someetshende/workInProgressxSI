@@ -11965,6 +11965,313 @@ test("ORIEL-F120 whether the plugin for one routine is authenticated does not au
   await page.screenshot({ path: "test-results/oriel-routine-plugin-auth.png" });
 });
 
+test("ORIEL-F121 whether one routine can read its attachment does not read an attachment", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Can the Launch note routine read its attachment?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine can read its attachment says that routine has no readable attachment in the record.",
+  );
+  await expect(page.locator("[data-testid^='auth-plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+  await expect(page.locator("[data-testid^='readable-attachment-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='readable-attachment-']").nth(0)).toHaveText("No readable attachment");
+  await expect(page.locator("[data-testid^='login-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='login-wait-']").nth(0)).toHaveText("No login wait");
+  await expect(page.locator("[data-testid^='plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='stuck-state-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stuck-state-']").nth(0)).toHaveText("No stuck state");
+  await expect(page.locator("[data-testid^='reachable-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reachable-computer-']").nth(0)).toHaveText("No reachable computer");
+  await expect(page.locator("[data-testid^='cloud-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='cloud-computer-']").nth(0)).toHaveText("No cloud-computer refusal");
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+  await expect(page.locator("[data-testid^='locked-team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-rule-']").nth(0)).toHaveText("No team rule");
+  await expect(page.locator("[data-testid^='allow-automatically-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='allow-automatically-']").nth(0)).toHaveText("No allow-automatically rule");
+  await expect(page.locator("[data-testid^='ask-first-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ask-first-']").nth(0)).toHaveText("No ask-first rule");
+  await expect(page.locator("[data-testid^='matching-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='matching-rule-']").nth(0)).toHaveText("No matching rule");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  const authFollowsLogin = await page.evaluate(() => {
+    const login = document.querySelector("[data-testid^='login-wait-']");
+    const auth = document.querySelector("[data-testid^='auth-plugin-']");
+    if (!login || !auth || login.parentElement !== auth.parentElement) return false;
+    return login.compareDocumentPosition(auth) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(authFollowsLogin).toBe(true);
+  const authIds = await page.locator("[data-testid^='auth-plugin-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(authIds.every((id) => id.startsWith("auth-plugin-"))).toBe(true);
+  expect(authIds.some((id) => id.startsWith("plugin-"))).toBe(false);
+  expect(authIds.some((id) => id.startsWith("plugin-auth-"))).toBe(false);
+  expect(authIds.some((id) => id.startsWith("login-wait-"))).toBe(false);
+  expect(authIds.some((id) => id.startsWith("wait-"))).toBe(false);
+  expect(authIds.some((id) => id.startsWith("stuck-state-"))).toBe(false);
+  expect(authIds.some((id) => id.startsWith("state-"))).toBe(false);
+  expect(authIds.some((id) => id.startsWith("computer-"))).toBe(false);
+  const ruleIds = await page.locator("[data-testid^='rule-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(ruleIds).toEqual(expect.arrayContaining(["rule-send", "rule-pay", "rule-delete", "rule-post"]));
+  expect(ruleIds.some((id) => id.startsWith("auth-plugin"))).toBe(false);
+  expect(ruleIds.some((id) => id.startsWith("login-wait"))).toBe(false);
+  const attachmentFollowsAuth = await page.evaluate(() => {
+    const auth = document.querySelector("[data-testid^='auth-plugin-']");
+    const attachment = document.querySelector("[data-testid^='readable-attachment-']");
+    if (!auth || !attachment || auth.parentElement !== attachment.parentElement) return false;
+    return auth.compareDocumentPosition(attachment) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(attachmentFollowsAuth).toBe(true);
+  const attachmentIds = await page.locator("[data-testid^='readable-attachment-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(attachmentIds.every((id) => id.startsWith("readable-attachment-"))).toBe(true);
+  expect(attachmentIds.some((id) => id.startsWith("attachment-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("auth-plugin-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("plugin-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("plugin-auth-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("login-wait-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("wait-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("stuck-state-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("state-"))).toBe(false);
+  expect(attachmentIds.some((id) => id.startsWith("computer-"))).toBe(false);
+  expect(ruleIds.some((id) => id.startsWith("readable-attachment"))).toBe(false);
+  expect(ruleIds).toEqual(expect.arrayContaining(["rule-send", "rule-pay", "rule-delete", "rule-post"]));
+
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine read its attachment?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no readable attachment in the record.");
+  await expect(clear).toContainText("Asking does not read an attachment.");
+  await expect(clear).not.toContainText("has no plugin authentication");
+  await expect(clear).not.toContainText("Asking does not authenticate a plugin.");
+  await expect(clear).not.toContainText("has no required plugin");
+  await expect(clear).not.toContainText("Asking does not connect one.");
+  await expect(clear).not.toContainText("has no login wait");
+  await expect(clear).not.toContainText("Asking does not take over the computer.");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("verification code");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+  await expect(page.locator("[data-testid^='login-wait-']").nth(0)).toHaveText("No login wait");
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine read its attachment?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no readable attachment in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine read its attachment?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no readable attachment in the record.");
+  await expect(pausedAsk).toContainText("Asking does not read an attachment.");
+  await expect(pausedAsk).not.toContainText("password");
+  await expect(pausedAsk).not.toContainText("verification code");
+  await expect(pausedAsk).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Is the plugin for the Draft the weekly close but do not send it routine authenticated?");
+  await page.getByTestId("send").click();
+  const authLeft = page.locator("#thread .turn").last();
+  await expect(authLeft).toContainText("“Draft the weekly close but do not send it” has no plugin authentication in the record.");
+  await expect(authLeft).toContainText("Asking does not authenticate a plugin.");
+  await expect(authLeft).not.toContainText("has no readable attachment");
+  await expect(authLeft).not.toContainText("Asking does not read an attachment.");
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+
+  await page.getByTestId("composer").fill("Which plugins does the Draft the weekly close but do not send it routine need?");
+  await page.getByTestId("send").click();
+  const plugins = page.locator("#thread .turn").last();
+  await expect(plugins).toContainText("“Draft the weekly close but do not send it” has no required plugin in the record.");
+  await expect(plugins).toContainText("Asking does not connect one.");
+  await expect(plugins).not.toContainText("has no readable attachment");
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine waiting on a login?");
+  await page.getByTestId("send").click();
+  const login = page.locator("#thread .turn").last();
+  await expect(login).toContainText("“Draft the weekly close but do not send it” has no login wait in the record.");
+  await expect(login).toContainText("Asking does not take over the computer.");
+  await expect(login).not.toContainText("has no readable attachment");
+  await expect(page.locator("[data-testid^='login-wait-']").nth(0)).toHaveText("No login wait");
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine stuck?");
+  await page.getByTestId("send").click();
+  const stuckReply = page.locator("#thread .turn").last();
+  await expect(stuckReply).toContainText("“Draft the weekly close but do not send it” has no stuck state in the record.");
+  await expect(stuckReply).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine reach its computer?");
+  await page.getByTestId("send").click();
+  const reachable = page.locator("#thread .turn").last();
+  await expect(reachable).toContainText("“Draft the weekly close but do not send it” has no reachable computer in the record.");
+  await expect(reachable).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Is cloud computer work refused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const cloudReply = page.locator("#thread .turn").last();
+  await expect(cloudReply).toContainText("“Draft the weekly close but do not send it” has no cloud-computer refusal in the record.");
+  await expect(cloudReply).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Is local computer work refused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const localReply = page.locator("#thread .turn").last();
+  await expect(localReply).toContainText("“Draft the weekly close but do not send it” has no local-computer refusal in the record.");
+  await expect(localReply).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine reach its source?");
+  await page.getByTestId("send").click();
+  const source = page.locator("#thread .turn").last();
+  await expect(source).toContainText("“Draft the weekly close but do not send it” has no source system in the record.");
+  await expect(source).not.toContainText("has no readable attachment");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+
+  await page.getByTestId("composer").fill("Is the team rule for the Draft the weekly close but do not send it routine locked?");
+  await page.getByTestId("send").click();
+  const locked = page.locator("#thread .turn").last();
+  await expect(locked).toContainText("“Draft the weekly close but do not send it” has no locked team rule in the record.");
+  await expect(locked).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Which team rule blocks the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const team = page.locator("#thread .turn").last();
+  await expect(team).toContainText("“Draft the weekly close but do not send it” has no team rule in the record.");
+  await expect(team).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Which allow-automatically rule covers the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const allow = page.locator("#thread .turn").last();
+  await expect(allow).toContainText("“Draft the weekly close but do not send it” has no allow-automatically rule in the record.");
+  await expect(allow).not.toContainText("readable attachment");
+
+  await page.getByTestId("composer").fill("Which ask-first rule blocks the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const askFirst = page.locator("#thread .turn").last();
+  await expect(askFirst).toContainText("“Draft the weekly close but do not send it” has no ask-first rule in the record.");
+  await expect(askFirst).not.toContainText("readable attachment");
+
+  await page.getByTestId("composer").fill("Which matching rule starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const matching = page.locator("#thread .turn").last();
+  await expect(matching).toContainText("“Draft the weekly close but do not send it” has no matching rule in the record.");
+  await expect(matching).not.toContainText("readable attachment");
+
+  await page.getByTestId("composer").fill("Which repository starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const repository = page.locator("#thread .turn").last();
+  await expect(repository).toContainText("“Draft the weekly close but do not send it” has no source repository in the record.");
+  await expect(repository).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Which channel starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const channel = page.locator("#thread .turn").last();
+  await expect(channel).toContainText("“Draft the weekly close but do not send it” has no source channel in the record.");
+  await expect(channel).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("What failure does the Draft the weekly close but do not send it routine show?");
+  await page.getByTestId("send").click();
+  const failure = page.locator("#thread .turn").last();
+  await expect(failure).toContainText("“Draft the weekly close but do not send it” has no failure in the record.");
+  await expect(failure).not.toContainText("readable attachment");
+
+  await page.getByTestId("composer").fill("Has usage been paused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const usage = page.locator("#thread .turn").last();
+  await expect(usage).toContainText("“Draft the weekly close but do not send it” has no usage pause in the record.");
+  await expect(usage).not.toContainText("has no readable attachment");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const quiet = page.locator("#thread .turn").last();
+  await expect(quiet).toContainText("A wake does not run it.");
+  await expect(quiet).not.toContainText("readable attachment");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+  await expect(page.locator("[data-testid^='auth-plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+  await expect(page.locator("[data-testid^='readable-attachment-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='readable-attachment-']").nth(0)).toHaveText("No readable attachment");
+  await expect(page.locator("[data-testid^='login-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='login-wait-']").nth(0)).toHaveText("No login wait");
+  await expect(page.locator("[data-testid^='plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='stuck-state-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reachable-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='cloud-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='allow-automatically-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ask-first-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='matching-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-readable-attachment.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
