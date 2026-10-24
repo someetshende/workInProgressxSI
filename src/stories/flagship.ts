@@ -2645,6 +2645,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F140",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine isolates workspaces, not compute",
+      title: "Say that one routine has no persona ledger and do not merge personalities",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no persona ledger in the record, so that I can check the work without merging personalities.",
+      acceptance: [
+        "Saying whether the Launch note routine isolates workspaces, not compute says that one routine has no persona ledger in the record.",
+        "Asking does not merge personalities, does not split compute, and does not boot a microVM.",
+        "A stored run is not a persona ledger. A guest slice is not one. The guest-slice answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

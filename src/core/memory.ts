@@ -976,6 +976,24 @@ export function loosensRoutineGuestSlice(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_PERSONA_LEDGER = /^(?:please,?\s+)?does the (.+) routine isolate workspaces, not compute$/i;
+
+export function routinePersonaLedgerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_PERSONA_LEDGER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutinePersonaLedger(text: string): boolean {
+  const value = tidySentence(text);
+  if (routinePersonaLedgerName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine isolate workspaces, not compute\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
