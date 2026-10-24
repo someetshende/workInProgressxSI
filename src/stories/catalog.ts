@@ -469,6 +469,12 @@ export const constraints: Constraint[] = [
     text: "saying what runs one named routine has names up to the twenty newest stored run instants, newest first, and says a last run is not a delivery, and does not run it or change the stored runs",
     proof: "What runs does the Launch note routine have names those times, or says there are no runs in the record. The rail does not list them. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "why-quiet",
+    short: "Why it has not run",
+    text: "saying why one named routine has not run explains the pause, the wait, or the hour, and does not start a run or change the stored runs",
+    proof: "Why hasn't the Launch note routine run names that reason. No runs yet means nothing has started it. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

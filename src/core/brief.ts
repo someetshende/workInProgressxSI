@@ -248,6 +248,59 @@ export function routineRunsAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+const QUIET_TAIL =
+  "The cadence stays. The next time stays. The instruction stays. The pause stays. The last run stays. The stored runs stay. Nothing was sent or spent.";
+
+export function routineQuietCopy(
+  name: string,
+  routine: Pick<Routine, "cadence" | "paused" | "nextRunAt" | "lastRunAt" | "recentRuns">,
+  deskPaused: boolean,
+  blocked: boolean,
+  nowIso: string,
+  another: boolean,
+): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  const paused = routine.paused === true;
+  const cadence = routine.cadence === "hourly" || routine.cadence === "daily" ? routine.cadence : "manual";
+  const next = typeof routine.nextRunAt === "string" && routine.nextRunAt.trim() ? routine.nextRunAt.trim() : "";
+  const last = typeof routine.lastRunAt === "string" && routine.lastRunAt.trim() ? routine.lastRunAt.trim() : "";
+  const stored = rememberedRuns(routine.recentRuns);
+  const due = cadence !== "manual" && next !== "" && next <= nowIso;
+  const pauseLine = paused ? "It is paused." : "It is not paused.";
+  const cadenceLine =
+    cadence === "hourly" ? " It wakes hourly." : cadence === "daily" ? " It wakes daily." : " It wakes only when you run it.";
+  const whenLine =
+    next === ""
+      ? " It has no next time in the record."
+      : due
+        ? ` It was due at ${next}.`
+        : ` It next wakes at ${next}.`;
+  let why: string;
+  if (paused) why = " A wake does not run it.";
+  else if (cadence === "manual") why = " A schedule has not started it. Use Run to try it now.";
+  else if (!due) why = " A new schedule waits for its next time. Use Run to try it now.";
+  else if (deskPaused) why = " Wakes are paused, so a schedule does not run it. Run still works.";
+  else if (blocked) {
+    why = " Automation run rate limit exceeded. This run is not retried automatically. Use Run to try it again yourself.";
+  } else why = " A wake can still run it. Asking does not start it.";
+  const runsLine =
+    !last && stored.length === 0
+      ? " No runs yet means nothing has started the routine yet."
+      : last
+        ? ` It last ran at ${last}. A last run is not a delivery.`
+        : " A stored run is not a delivery.";
+  return `${quoted} has not started from this question. ${pauseLine}${cadenceLine}${whenLine}${why}${runsLine}${other} ${QUIET_TAIL}`;
+}
+
+export function routineQuietMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineQuietAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineRunCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine keeps its instruction, its cadence, and its next time." : "";

@@ -1733,6 +1733,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F92",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Why it has not run",
+      title: "Say why one routine has not run and do not start it",
+      story:
+        "As a chief of staff, I want Oriel to say why one saved routine has not run, so that I can see the pause, the wait, or the hour without starting it.",
+      acceptance: [
+        "Saying why hasn't the Launch note routine run names the pause, the cadence, and the next time, and does not start a run.",
+        "When nothing is stored it says no runs yet. When the hour has stopped a due routine it says the run rate limit was exceeded and the run is not retried.",
+        "The cadence, the next time, the instruction, the pause, the last run, and the stored runs stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

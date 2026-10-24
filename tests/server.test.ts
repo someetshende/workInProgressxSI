@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { deskHourCopy, routineCapCopy, routineHourCopy, routineRunsCopy } from "../src/core/brief.js";
+import { deskHourCopy, routineCapCopy, routineHourCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -8417,6 +8417,84 @@ describe("Oriel server", () => {
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines[0].recentRuns).toEqual(runs);
     expect(still.messages.at(-1).text).toContain("has no delivery in the record");
+  });
+
+  it("ORIEL-F92 says why a routine has not run and stores nothing when the goal is missing", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const created = await turn("Summarize the launch risks");
+    expect(created.status).toBe(200);
+    const goalId = created.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note" }),
+    });
+    const savedBody = await saved.json();
+    const id = savedBody.routines[0].id as string;
+    const asked = await turn("Why hasn't the Launch note routine run?", { skillId: "missing-skill" });
+    expect(asked.status).toBe(200);
+    expect(asked.body.messages.at(-1).text).toBe(
+      routineQuietCopy("Launch note", asked.body.routines[0], false, false, asked.body.messages.at(-1).at, false),
+    );
+    expect(asked.body.messages.at(-1).text).toContain("No runs yet means nothing has started the routine yet.");
+    expect(asked.body.messages.at(-1).text).toContain("It wakes only when you run it.");
+    expect(asked.body.messages.at(-1).text).toContain("Use Run to try it now.");
+    expect(asked.body.routines[0].lastRunAt).toBeNull();
+    expect(asked.body.routines[0].recentRuns).toEqual([]);
+    expect(asked.body.trust).toContain("Asking why one named routine has not run");
+    const paced = await turn("Wake the Launch note routine hourly");
+    expect(paced.body.routines[0].cadence).toBe("hourly");
+    const next = paced.body.routines[0].nextRunAt as string;
+    const waiting = await turn("Why hasn't the Launch note routine run?");
+    expect(waiting.body.messages.at(-1).text).toContain("A new schedule waits for its next time.");
+    expect(waiting.body.messages.at(-1).text).toContain("It wakes hourly.");
+    expect(waiting.body.messages.at(-1).text).toContain(`It next wakes at ${next}.`);
+    expect(waiting.body.routines[0].nextRunAt).toBe(next);
+    expect(waiting.body.routines[0].lastRunAt).toBeNull();
+    const stamped = await fetch(`${server.url}/api/routines/${id}/stamp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 1 }),
+    });
+    const stampedBody = await stamped.json();
+    expect(stamped.status).toBe(200);
+    const runs = stampedBody.routines[0].recentRuns as string[];
+    expect(runs).toHaveLength(1);
+    const stored = await turn("Why hasn't the Launch note routine run?");
+    expect(stored.body.messages.at(-1).text).toContain("A stored run is not a delivery.");
+    expect(stored.body.messages.at(-1).text).not.toContain("No runs yet");
+    expect(stored.body.messages.at(-1).text).not.toContain(runs[0]);
+    expect(stored.body.routines[0].recentRuns).toEqual(runs);
+    expect(stored.body.routines[0].lastRunAt).toBeNull();
+    expect(stored.body.routines[0].nextRunAt).toBe(next);
+    const paused = await turn("Pause the Launch note routine");
+    expect(paused.body.routines[0].paused).toBe(true);
+    const quiet = await turn("Why hasn't the Launch note routine run?");
+    expect(quiet.body.messages.at(-1).text).toContain("It is paused.");
+    expect(quiet.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(quiet.body.routines[0].cadence).toBe("hourly");
+    expect(quiet.body.routines[0].nextRunAt).toBe(next);
+    expect(quiet.body.routines[0].recentRuns).toEqual(runs);
+    const missing = await turn("Why hasn't the Launch note routine run?", { goalId: "goal_missing" });
+    expect(missing.status).toBe(404);
+    const after = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(after.routines[0].recentRuns).toEqual(runs);
+    expect(after.routines[0].nextRunAt).toBe(next);
+    expect(after.messages.at(-1).text).toContain("A wake does not run it.");
+    const refused = await turn("Why hasn't the Launch note routine run without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines[0].recentRuns).toEqual(runs);
+    expect(still.routines[0].nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
   });
 
   it("rejects an empty turn", async () => {

@@ -7814,6 +7814,68 @@ test("ORIEL-F91 asking what runs a routine has names twenty times and the rail d
   await page.screenshot({ path: "test-results/oriel-routine-runs.png" });
 });
 
+test("ORIEL-F92 asking why a routine has not run does not start it", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  await expect(page.locator("[data-testid^='run-routine-']")).toHaveCount(1);
+  await expect(page.locator("[data-testid^='last-run-']")).toHaveText("Has not run");
+  await expect(page.locator("[data-testid^='delivery-']")).toHaveText("No delivery");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking why one routine has not run says whether it is paused, whether a new schedule is still waiting, or that the hour stopped it. It does not start a run.",
+  );
+
+  await page.getByTestId("composer").fill("Why hasn't the Summarize the launch risks routine run?");
+  await page.getByTestId("send").click();
+  const first = page.locator("#thread .turn").last();
+  await expect(first).toContainText("has not started from this question");
+  await expect(first).toContainText("It wakes only when you run it.");
+  await expect(first).toContainText("A schedule has not started it.");
+  await expect(first).toContainText("Use Run to try it now.");
+  await expect(first).toContainText("No runs yet means nothing has started the routine yet.");
+  await expect(first).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='last-run-']")).toHaveText("Has not run");
+  await expect(page.locator("[data-testid^='delivery-']")).toHaveText("No delivery");
+  await expect(page.getByTestId("schedule-hint")).not.toContainText("No runs yet");
+  await expect(page.locator("[data-testid^='instruction-']")).not.toContainText("No runs yet");
+
+  await page.getByTestId("composer").fill("Wake the Summarize the launch risks routine hourly");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveText("Hourly");
+  await page.getByTestId("composer").fill("Why hasn't the Summarize the launch risks routine run?");
+  await page.getByTestId("send").click();
+  const waiting = page.locator("#thread .turn").last();
+  await expect(waiting).toContainText("A new schedule waits for its next time.");
+  await expect(waiting).toContainText("It wakes hourly.");
+  await expect(waiting).toContainText("Use Run to try it now.");
+  await expect(waiting).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='last-run-']")).toHaveText("Has not run");
+  await expect(page.locator("[data-testid^='delivery-']")).toHaveText("No delivery");
+
+  await page.getByTestId("composer").fill("Pause the Summarize the launch risks routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveText("Hourly");
+  await page.getByTestId("composer").fill("Why hasn't the Summarize the launch risks routine run?");
+  await page.getByTestId("send").click();
+  const paused = page.locator("#thread .turn").last();
+  await expect(paused).toContainText("It is paused.");
+  await expect(paused).toContainText("A wake does not run it.");
+  await expect(paused).toContainText("It wakes hourly.");
+  await expect(paused).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='last-run-']")).toHaveText("Has not run");
+  await expect(page.locator("[data-testid^='cadence-']")).toHaveText("Hourly");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-quiet.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

@@ -258,6 +258,24 @@ export function loosensRoutineRuns(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_QUIET = /^(?:please,?\s+)?why (?:hasn't|has not) the (.+) routine run$/i;
+
+export function routineQuietName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_QUIET.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineQuiet(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineQuietName(text)) return false;
+  if (!/^(?:please,?\s+)?why (?:hasn't|has not) the .+ routine run\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_RUN = /^(?:please,?\s+)?run the (.+) routine$/i;
 
 export function routineRunName(text: string): string | null {

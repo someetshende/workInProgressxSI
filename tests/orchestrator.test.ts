@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { deskHourCopy, renderMarkdown, routineCapCopy, routineHourCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { deskHourCopy, renderMarkdown, routineCapCopy, routineHourCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -19746,6 +19746,354 @@ describe("ORIEL-F91", () => {
     );
     expect(kept.goals).toHaveLength(goals);
     expect(kept.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+  });
+});
+
+describe("ORIEL-F92", () => {
+  it("ORIEL-F92 says why one routine has not run and does not start it", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T03:15:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      const hour = 60 * 60 * 1000;
+      const fill = (count: number, at = now.getTime()) =>
+        Array.from({ length: count }, (_, index) => new Date(at - index).toISOString());
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      const marketNext = state.routines[1]?.nextRunAt;
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = fill(200);
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+
+      state = await convene(state, "Please, why hasn't the Launch note routine run?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(
+        routineQuietCopy("Launch note", routinesBefore[0]!, true, true, now.toISOString(), true),
+      );
+      expect(state.messages.at(-1)?.text).toContain("It is paused.");
+      expect(state.messages.at(-1)?.text).toContain("It wakes hourly.");
+      expect(state.messages.at(-1)?.text).toContain("It was due at 2026-10-24T02:00:00.000Z.");
+      expect(state.messages.at(-1)?.text).toContain("A wake does not run it.");
+      expect(state.messages.at(-1)?.text).toContain("It last ran at 2026-10-23T11:00:00.000Z.");
+      expect(state.messages.at(-1)?.text).toContain("A last run is not a delivery.");
+      expect(state.messages.at(-1)?.text).not.toContain("Automation run rate limit exceeded");
+      expect(state.messages.at(-1)?.text).not.toContain("No runs yet");
+      expect(state.messages.at(-1)?.text).not.toContain("200 times");
+      expect(state.messages.at(-1)?.text).not.toContain("has these runs");
+      expect(state.messages.at(-1)?.text).not.toContain("has no runs in the record");
+      expect(state.messages.at(-1)?.text).not.toContain("has no delivery");
+      expect(state.messages.at(-1)?.text).not.toContain("I sent");
+      expect(state.events.some((event) => event.type === "routine_quiet")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_ran")).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+
+      const waiting = structuredClone(routinesBefore);
+      const future = structuredClone(state);
+      future.routines[0]!.paused = false;
+      future.routines[0]!.nextRunAt = "2026-10-24T04:15:00.000Z";
+      future.paused = false;
+      const waited = await convene(future, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(waited.messages.at(-1)?.text).toBe(
+        routineQuietCopy("Launch note", future.routines[0]!, false, true, now.toISOString(), true),
+      );
+      expect(waited.messages.at(-1)?.text).toContain("A new schedule waits for its next time.");
+      expect(waited.messages.at(-1)?.text).toContain("Use Run to try it now.");
+      expect(waited.messages.at(-1)?.text).not.toContain("Automation run rate limit exceeded");
+      expect(waited.messages.at(-1)?.text).not.toContain("It was due");
+      expect(waited.routines[0]?.nextRunAt).toBe("2026-10-24T04:15:00.000Z");
+      expect(waited.routines[0]?.recentRuns).toEqual(waiting[0]?.recentRuns);
+      expect(waited.routines[0]?.paused).toBe(false);
+      expect(waited.routines[0]?.heldBack).toEqual(["send"]);
+      expect(waited.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+
+      const due = structuredClone(future);
+      due.routines[0]!.nextRunAt = now.toISOString();
+      const limited = await convene(due, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(limited.messages.at(-1)?.text).toContain("It was due at 2026-10-24T03:15:00.000Z.");
+      expect(limited.messages.at(-1)?.text).toContain("Automation run rate limit exceeded.");
+      expect(limited.messages.at(-1)?.text).toContain("This run is not retried automatically.");
+      expect(limited.messages.at(-1)?.text).toContain("Use Run to try it again yourself.");
+      expect(limited.messages.at(-1)?.text).not.toContain("A wake can still run it");
+      expect(limited.messages.at(-1)?.text).not.toContain("200 times");
+      expect(limited.messages.at(-1)?.text).not.toContain("300 times");
+      expect(limited.routines[0]?.recentRuns).toHaveLength(200);
+      expect(limited.routines[0]?.lastRunAt).toBe("2026-10-23T11:00:00.000Z");
+      expect(limited.routines[0]?.nextRunAt).toBe(now.toISOString());
+      expect(limited.routines[0]?.heldBack).toEqual(["send"]);
+      expect(limited.routines[1]?.heldBack).toEqual(["pay"]);
+
+      const under = structuredClone(due);
+      under.routines[0]!.recentRuns = fill(199);
+      const openWake = await convene(under, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(openWake.messages.at(-1)?.text).toContain("A wake can still run it.");
+      expect(openWake.messages.at(-1)?.text).toContain("Asking does not start it.");
+      expect(openWake.messages.at(-1)?.text).not.toContain("Automation run rate limit exceeded");
+      expect(openWake.routines[0]?.recentRuns).toHaveLength(199);
+      expect(openWake.routines[0]?.nextRunAt).toBe(now.toISOString());
+      const woke = await wakeDue(openWake, early);
+      expect(woke.routines[0]?.lastRunAt).toBe(now.toISOString());
+      expect(woke.routines[0]?.recentRuns).toHaveLength(200);
+      expect(woke.routines[0]?.nextRunAt).not.toBe(now.toISOString());
+      expect(woke.routines[1]?.lastRunAt).toBeNull();
+
+      const aged = structuredClone(due);
+      aged.routines[0]!.recentRuns = fill(200, now.getTime() - hour);
+      aged.routines[0]!.lastRunAt = null;
+      const agedAnswer = await convene(aged, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(agedAnswer.messages.at(-1)?.text).toContain("A wake can still run it.");
+      expect(agedAnswer.messages.at(-1)?.text).toContain("A stored run is not a delivery.");
+      expect(agedAnswer.messages.at(-1)?.text).not.toContain("Automation run rate limit exceeded");
+      expect(agedAnswer.messages.at(-1)?.text).not.toContain("No runs yet");
+      expect(agedAnswer.messages.at(-1)?.text).not.toContain("no last run");
+      expect(agedAnswer.messages.at(-1)?.text).not.toContain(aged.routines[0]?.recentRuns[0] ?? "missing-stamp");
+      expect(agedAnswer.routines[0]?.recentRuns).toHaveLength(200);
+      expect(agedAnswer.routines[0]?.lastRunAt).toBeNull();
+
+      const inside = structuredClone(due);
+      inside.routines[0]!.recentRuns = Array.from({ length: 200 }, () => new Date(now.getTime() - hour + 1).toISOString());
+      const insideAnswer = await convene(inside, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(insideAnswer.messages.at(-1)?.text).toContain("Automation run rate limit exceeded.");
+      expect(insideAnswer.routines[0]?.recentRuns).toHaveLength(200);
+      expect(insideAnswer.routines[0]?.nextRunAt).toBe(now.toISOString());
+
+      const desk = structuredClone(due);
+      desk.paused = false;
+      desk.routines[0]!.recentRuns = fill(100);
+      desk.routines[0]!.lastRunAt = null;
+      desk.routines[1]!.recentRuns = fill(200);
+      desk.routines[1]!.nextRunAt = "2026-10-24T06:00:00.000Z";
+      const deskAnswer = await convene(desk, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(deskAnswer.messages.at(-1)?.text).toContain("Automation run rate limit exceeded.");
+      expect(deskAnswer.messages.at(-1)?.text).not.toContain("300 times");
+      expect(deskAnswer.messages.at(-1)?.text).not.toContain("200 times");
+      expect(deskAnswer.routines[0]?.recentRuns).toHaveLength(100);
+      expect(deskAnswer.routines[1]?.recentRuns).toHaveLength(200);
+      expect(deskAnswer.routines[1]?.nextRunAt).toBe("2026-10-24T06:00:00.000Z");
+      expect(deskAnswer.routines[0]?.lastRunAt).toBeNull();
+
+      const heldDesk = structuredClone(desk);
+      heldDesk.paused = true;
+      heldDesk.routines[0]!.recentRuns = fill(10);
+      const deskPaused = await convene(heldDesk, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(deskPaused.messages.at(-1)?.text).toContain("It is not paused.");
+      expect(deskPaused.messages.at(-1)?.text).toContain("Wakes are paused, so a schedule does not run it.");
+      expect(deskPaused.messages.at(-1)?.text).toContain("Run still works.");
+      expect(deskPaused.messages.at(-1)?.text).not.toContain("Automation run rate limit exceeded");
+      expect(deskPaused.paused).toBe(true);
+      expect(deskPaused.routines[0]?.nextRunAt).toBe(now.toISOString());
+      const quietWake = await wakeDue(deskPaused, early);
+      expect(quietWake.routines[0]?.lastRunAt).toBeNull();
+      expect(quietWake.routines[0]?.nextRunAt).toBe(now.toISOString());
+
+      const ahead = structuredClone(due);
+      ahead.routines[0]!.nextRunAt = "2026-10-24T03:15:00.001Z";
+      ahead.routines[0]!.recentRuns = [];
+      ahead.routines[0]!.lastRunAt = null;
+      ahead.paused = false;
+      const barely = await convene(ahead, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(barely.messages.at(-1)?.text).toContain("It next wakes at 2026-10-24T03:15:00.001Z.");
+      expect(barely.messages.at(-1)?.text).toContain("A new schedule waits for its next time.");
+      expect(barely.messages.at(-1)?.text).toContain("No runs yet means nothing has started the routine yet.");
+      expect(barely.messages.at(-1)?.text).not.toContain("It was due");
+      expect(barely.messages.at(-1)?.text).not.toContain("has no runs in the record");
+      expect(barely.routines[0]?.recentRuns).toEqual([]);
+      expect(barely.routines[0]?.lastRunAt).toBeNull();
+
+      const manual = structuredClone(ahead);
+      manual.routines[0]!.cadence = "manual";
+      manual.routines[0]!.nextRunAt = null;
+      manual.routines[0]!.paused = false;
+      const byHand = await convene(manual, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(byHand.messages.at(-1)?.text).toContain("It wakes only when you run it.");
+      expect(byHand.messages.at(-1)?.text).toContain("It has no next time in the record.");
+      expect(byHand.messages.at(-1)?.text).toContain("A schedule has not started it.");
+      expect(byHand.messages.at(-1)?.text).not.toContain("A new schedule waits");
+      expect(byHand.routines[0]?.cadence).toBe("manual");
+      expect(byHand.routines[0]?.nextRunAt).toBeNull();
+
+      const listed = await convene(byHand, "What runs does the Launch note routine have?", undefined, early);
+      expect(listed.messages.at(-1)?.text).toContain("has no runs in the record");
+      expect(listed.messages.at(-1)?.text).not.toContain("has not started from this question");
+      const ran = await convene(listed, "When did the Launch note routine last run?", undefined, early);
+      expect(ran.messages.at(-1)?.text).toContain("has no last run in the record");
+      const delivered = await convene(ran, "What did the Launch note routine deliver?", undefined, early);
+      expect(delivered.messages.at(-1)?.text).toContain("has no delivery in the record");
+      expect(delivered.routines[0]?.recentRuns).toEqual([]);
+      expect(delivered.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(delivered.routines[1]?.heldBack).toEqual(["pay"]);
+    });
+  });
+
+  it("ORIEL-F92 leaves a missing name, a duplicate, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T03:15:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), "Why hasn't the Launch note routine run?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineQuietMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_quiet")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = null;
+    const alone = await convene(state, "Why hasn't the Launch note routine run?", undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(
+      routineQuietCopy("Launch note", alone.routines[0]!, false, false, now.toISOString(), false),
+    );
+    expect(alone.messages.at(-1)?.text).toContain("A stored run is not a delivery.");
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine");
+    expect(alone.messages.at(-1)?.text).not.toContain("2026-10-24T03:00:00.000Z");
+    expect(alone.messages.at(-1)?.text).not.toContain("No runs yet");
+    expect(alone.routines).toHaveLength(1);
+    expect(alone.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(alone.goals).toHaveLength(1);
+
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state.routines[1]!.recentRuns = ["2026-10-24T01:00:00.000Z"];
+    state.routines[1]!.lastRunAt = "2026-10-24T01:00:00.000Z";
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "daily", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+
+    const asked = await convene(state, "PLEASE, why hasn't the “Launch note” routine run?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineQuietAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).not.toContain("2026-10-24");
+    expect(asked.messages.at(-1)?.text).not.toContain("It is paused");
+    expect(asked.messages.at(-1)?.text).not.toContain("Email Maya");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[1]?.recentRuns).toEqual(["2026-10-24T01:00:00.000Z"]);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+
+    for (const text of [
+      "Please why hasn't the Launch note routine run.",
+      "Why hasn't the Launch note routine run??",
+      "why hasn't the launch note routine run",
+      "Why has not the Launch note routine run?",
+    ]) {
+      const again = await convene(state, text, undefined, early);
+      const shown = text.includes("Launch note") ? "Launch note" : "launch note";
+      expect(again.messages.at(-1)?.text).toBe(routineQuietAmbiguousCopy(shown));
+      expect(again.routines[0]?.heldBack).toEqual(["send"]);
+      expect(again.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+      expect(again.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(again.routines[1]?.lastRunAt).toBe("2026-10-24T01:00:00.000Z");
+      expect(again.goals).toHaveLength(goals);
+    }
+
+    const one = await convene(state, 'Why hasn\'t the "Market check" routine run?', undefined, early);
+    expect(one.messages.at(-1)?.text).toContain("“Market check” has not started from this question.");
+    expect(one.messages.at(-1)?.text).toContain("It wakes daily.");
+    expect(one.messages.at(-1)?.text).toContain("No runs yet means nothing has started the routine yet.");
+    expect(one.messages.at(-1)?.text).not.toContain("2026-10-24T03:00:00.000Z");
+    expect(one.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(one.routines[0]?.heldBack).toEqual(["send"]);
+    expect(one.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(one.routines[2]?.instruction).toBe("Summarize the launch risks");
+
+    const near = await convene(state, "Why hasn't the Launch notes routine run?", undefined, early);
+    expect(near.goals).toHaveLength(goals);
+    expect(near.messages.at(-1)?.text).toBe(routineQuietMissCopy("Launch notes"));
+    expect(near.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(near.routines[0]?.paused).toBe(true);
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(near.routines[2]?.nextRunAt).toBe(marketNext);
+
+    const widened = structuredClone(state);
+    const aside = await convene(widened, "Why hasn't the Launch note routine run and email Maya", undefined, early);
+    expect(aside.goals).toHaveLength(goals + 1);
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[0]?.paused).toBe(true);
+    expect(aside.routines[1]?.recentRuns).toEqual(["2026-10-24T01:00:00.000Z"]);
+    expect(aside.messages.at(-1)?.text).not.toContain("has not started from this question");
+    expect(aside.messages.at(-1)?.text).not.toContain("No runs yet");
+
+    for (const text of [
+      "Why hasn't the routine run?",
+      "Why hasn't the Launch note routines run?",
+      "Why hasn't the Launch note routine run yet?",
+      "Why didn't the Launch note routine run?",
+      "Don't ask why the Launch note routine hasn't run",
+    ]) {
+      const ordinary = await convene(state, text, undefined, early);
+      expect(ordinary.goals).toHaveLength(goals + 1);
+      expect(ordinary.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+      expect(ordinary.routines[0]?.paused).toBe(true);
+      expect(ordinary.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("has not started from this question");
+      expect(ordinary.messages.at(-1)?.text).not.toContain("More than one routine has that name");
+    }
+
+    const kept = structuredClone(state);
+    await expect(convene(kept, "Why hasn't the Launch note routine run without asking", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "Please why hasn't the Market check routine run always allow", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "Why hasn't the Launch note routine run and allow for this site", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.routines[1]?.lastRunAt).toBe("2026-10-24T01:00:00.000Z");
+    expect(kept.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(kept.goals).toHaveLength(goals);
+    await expect(convene(kept, "Why hasn't the Market check routine run?", "goal_missing", early)).rejects.toThrow(
+      /not in the record/,
+    );
+    expect(kept.goals).toHaveLength(goals);
+    expect(kept.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(kept.routines[2]?.nextRunAt).toBe(marketNext);
   });
 });
 
