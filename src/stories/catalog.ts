@@ -511,6 +511,12 @@ export const constraints: Constraint[] = [
     text: "saying which routines are enabled names each routine that is not paused once, in the order it was saved, says it is enabled, and leaves a paused routine out of the answer",
     proof: "Which routines are enabled names only the ones that are not paused, or says no routine is enabled. A desk pause does not disable one. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "list-active",
+    short: "Name active routines",
+    text: "saying which routines are active names each routine that is not paused once, in the order it was saved, says it is active, and leaves a paused routine out of the answer",
+    proof: "Which routines are active names only the ones that are not paused, or says no routine is active. A desk pause does not inactivate one. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

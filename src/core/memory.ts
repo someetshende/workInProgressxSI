@@ -194,6 +194,19 @@ export function loosensEnabledRead(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ACTIVE_READ = /^(?:please,?\s+)?which routines are active$/i;
+
+export function isActiveRead(text: string): boolean {
+  return ACTIVE_READ.test(tidySentence(text));
+}
+
+export function loosensActiveRead(text: string): boolean {
+  const value = tidySentence(text);
+  if (isActiveRead(text)) return false;
+  if (!/^(?:please,?\s+)?which routines are active\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_PAUSED_ASK = /^(?:please,?\s+)?is the (.+) routine paused$/i;
 
 export function routinePausedAskName(text: string): string | null {

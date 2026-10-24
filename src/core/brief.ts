@@ -173,6 +173,13 @@ export function enabledRoutinesCopy(routines: Routine[]): string {
   return `Enabled routines. ${lines} ${SCHEDULE_TAIL}`;
 }
 
+export function activeRoutinesCopy(routines: Routine[]): string {
+  const active = routines.filter((routine) => routine.paused !== true);
+  if (!active.length) return `No routine is active. A wake does not run a routine that is not active. ${SCHEDULE_TAIL}`;
+  const lines = active.map((routine) => `${quotedRoutine(routine.name)} is active.`).join(" ");
+  return `Active routines. ${lines} ${SCHEDULE_TAIL}`;
+}
+
 export function routinePausedAskCopy(name: string, paused: boolean, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

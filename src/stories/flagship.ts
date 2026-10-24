@@ -1866,6 +1866,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F99",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which routines are active",
+      title: "Name each active routine and do not change the pause",
+      story:
+        "As a chief of staff, I want Oriel to name each active routine, so that I can check the phone switch without pausing, resuming, or running one.",
+      acceptance: [
+        "Saying which routines are active names each routine that is not paused, once, in the order it was saved, and says it is active.",
+        "A paused routine is left out. If none are active, it says no routine is active. A desk-wide pause does not count as inactive.",
+        "The cadence, the next time, the instruction, the pause, the last run, and the stored runs stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
