@@ -462,7 +462,7 @@ function renderRail() {
       el("p", {
         class: "rule-note",
         "data-testid": "schedule-hint",
-        text: "Ask what is scheduled, or when one routine wakes. Asking does not run a routine.",
+        text: "Ask what is scheduled, when one routine wakes, or what one routine does. Asking does not run a routine.",
       }),
     );
     for (const routine of state.routines) {

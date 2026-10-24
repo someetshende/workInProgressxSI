@@ -185,3 +185,21 @@ export function loosensRoutineWake(text: string): boolean {
   if (!/^(?:please,?\s+)?when does the .+ routine wake\b/i.test(value)) return false;
   return ROUTINE_LOOSEN.test(value);
 }
+
+const ROUTINE_DO = /^(?:please,?\s+)?what does the (.+) routine do$/i;
+
+export function routineDoName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DO.exec(value);
+  if (!match) return null;
+  const name = (match[1] ?? "").trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ").trim();
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDo(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDoName(text)) return false;
+  if (!/^(?:please,?\s+)?what does the .+ routine do\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}

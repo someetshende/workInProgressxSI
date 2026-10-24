@@ -391,6 +391,12 @@ export const constraints: Constraint[] = [
     text: "saying when one named routine wakes names its cadence and, when it is not manual, its next time, and does not run it or change its timing",
     proof: "When does the Launch note routine wake names that cadence and next time. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "what-routine",
+    short: "What one does",
+    text: "saying what one named routine does names its instruction and does not run it, change that instruction, or change its timing",
+    proof: "What does the Launch note routine do names that instruction. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

@@ -15695,6 +15695,299 @@ describe("ORIEL-F78", () => {
   });
 });
 
+describe("ORIEL-F79", () => {
+  it("ORIEL-F79 names one routine's instruction and does not run it or change it", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      expect(state.goals[0]?.brief.seatReads.map((note) => note.seat)).not.toContain("muse");
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      expect(state.approvals[0]?.status).toBe("approved");
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await runRoutine(state, state.routines[0]?.id ?? "", early);
+      const instruction = state.routines[0]?.instruction;
+      expect(instruction).toBe("Email the client the launch note");
+      const runHold = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      expect(runHold).toBeTruthy();
+
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      const marketNext = state.routines[1]?.nextRunAt;
+      expect(marketNext).toBe("2026-10-24T12:00:00.000Z");
+      state.routines[0]!.nextRunAt = "2026-10-23T12:00:00.000Z";
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[1]!.heldBack = ["pay"];
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeGoals = state.goals.length;
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+      const openBefore = state.approvals.filter((approval) => approval.status === "open").length;
+      const asked =
+        "“Launch note” does this: “Email the client the launch note”. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+
+      state = await convene(state, "Please, what does the Launch note routine do?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(openBefore);
+      expect(state.approvals[0]?.status).toBe("approved");
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(asked);
+      expect(state.messages.at(-1)?.text).not.toContain("Compare the market landscape");
+      expect(state.messages.at(-1)?.text).not.toContain("It next wakes");
+      expect(state.messages.at(-1)?.text).not.toContain(marketNext ?? "no-market-time");
+      expect(state.messages.at(-1)?.text).not.toContain("I sent");
+      expect(state.messages.at(-1)?.text).not.toContain("No charge was made.");
+      expect(state.events.some((event) => event.type === "routine_do")).toBe(true);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const blank = structuredClone(routinesBefore);
+      const blankState = structuredClone(state);
+      blankState.routines = blank;
+      blankState.routines[1]!.nextRunAt = null;
+      const missingTime = await convene(blankState, "What does the Market check routine do?", undefined, early);
+      expect(missingTime.messages.at(-1)?.text).toBe(
+        "“Market check” does this: “Compare the market landscape”. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+      );
+      expect(missingTime.routines[1]?.nextRunAt).toBeNull();
+      expect(missingTime.routines[1]?.cadence).toBe("daily");
+      expect(missingTime.routines[1]?.instruction).toBe("Compare the market landscape");
+      expect(missingTime.routines[0]?.nextRunAt).toBe("2026-10-23T12:00:00.000Z");
+      expect(missingTime.routines[0]?.instruction).toBe(instruction);
+      expect(missingTime.goals).toHaveLength(beforeGoals);
+
+      const woke = await wakeDue(state, { ...deps, now: () => new Date("2026-10-23T12:30:00.000Z") });
+      expect(woke.goals).toHaveLength(beforeGoals + 1);
+      expect(woke.routines[0]?.lastRunAt).toBe("2026-10-23T12:30:00.000Z");
+      expect(woke.routines[0]?.cadence).toBe("hourly");
+      expect(woke.routines[0]?.heldBack).toEqual(["send"]);
+      expect(woke.routines[0]?.instruction).toBe(instruction);
+      expect(woke.routines[0]?.nextRunAt).toBe("2026-10-23T13:30:00.000Z");
+      expect(woke.routines[1]?.lastRunAt).toBeNull();
+      expect(woke.routines[1]?.cadence).toBe("daily");
+      expect(woke.routines[1]?.instruction).toBe("Compare the market landscape");
+      expect(woke.routines[1]?.nextRunAt).toBe(marketNext);
+      expect(woke.routines[1]?.heldBack).toEqual(["pay"]);
+      expect(woke.approvals.filter((approval) => approval.status === "open")).toHaveLength(openBefore);
+      expect(woke.approvals[0]?.status).toBe("approved");
+      expect(woke.messages.some((message) => message.text === asked)).toBe(true);
+      expect(woke.handoffRules).toEqual(rulesBefore);
+    });
+  });
+
+  it("ORIEL-F79 leaves a missing name, a duplicate, and a widened sentence alone", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const none = await convene(initialState(), "What does the Launch note routine do?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(
+      "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(none.events.some((event) => event.type === "routine_do")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    expect(launchNext).toBe("2026-10-23T13:00:00.000Z");
+    const only =
+      "“Launch note” does this: “Email Maya the launch update”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+    const alone = await convene(state, "What does the Launch note routine do?", undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(only);
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine");
+    expect(alone.routines).toHaveLength(1);
+    expect(alone.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(alone.goals).toHaveLength(1);
+
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    const secondId = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, secondId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    const thirdId = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, thirdId, "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    expect(marketNext).toBe("2026-10-23T13:00:00.000Z");
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    const ambiguous =
+      "More than one routine has that name, “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+    const marketLine =
+      "“Market check” does this: “Summarize the launch risks”. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+
+    const asked = await convene(state, "PLEASE, what does the “Launch note” routine do?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.routines[0]?.cadence).toBe("hourly");
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(asked.routines[1]?.cadence).toBe("daily");
+    expect(asked.routines[1]?.instruction).toBe("Email Noah the other note");
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.cadence).toBe("hourly");
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(asked.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+    expect(asked.approvals.find((approval) => approval.goalId === secondId && approval.status === "open")?.kind).toBe("send");
+    expect(asked.messages.at(-1)?.text).toBe(ambiguous);
+    expect(asked.messages.at(-1)?.text).not.toContain("Email Maya");
+    expect(asked.messages.at(-1)?.text).not.toContain("does this");
+    expect(asked.messages.at(-1)?.text).not.toContain("I sent");
+
+    for (const text of [
+      "Please what does the Launch note routine do.",
+      "What does the Launch note routine do??",
+      "what does the launch note routine do",
+    ]) {
+      const again = await convene(state, text, undefined, early);
+      const shown = text.includes("Launch note") ? "Launch note" : "launch note";
+      expect(again.messages.at(-1)?.text).toBe(
+        `More than one routine has that name, “${shown}”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.`,
+      );
+      expect(again.routines[0]?.heldBack).toEqual(["send"]);
+      expect(again.routines[0]?.instruction).toBe("Email Maya the launch update");
+      expect(again.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(again.routines[1]?.nextRunAt).toBe(secondNext);
+      expect(again.routines[2]?.nextRunAt).toBe(marketNext);
+      expect(again.goals).toHaveLength(goals);
+    }
+
+    const one = await convene(state, 'What does the "Market check" routine do?', undefined, early);
+    expect(one.messages.at(-1)?.text).toBe(marketLine);
+    expect(one.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(one.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(one.routines[1]?.cadence).toBe("daily");
+    expect(one.routines[2]?.instruction).toBe("Summarize the launch risks");
+    expect(one.routines[2]?.heldBack).toEqual([]);
+    expect(one.goals).toHaveLength(goals);
+
+    const near = await convene(state, "What does the Launch notes routine do?", undefined, early);
+    expect(near.goals).toHaveLength(goals);
+    expect(near.messages.at(-1)?.text).toBe(
+      "There is no such routine as “Launch notes”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(near.routines[0]?.cadence).toBe("hourly");
+    expect(near.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(near.routines[0]?.instruction).toBe("Email Maya the launch update");
+
+    const ruled = setHandoffRule(state, "delete", true, early, "shared project files");
+    const handed = await convene(ruled, "What is handed to me?", undefined, early);
+    expect(handed.messages.at(-1)?.text).toContain("shared project files");
+    expect(handed.messages.at(-1)?.text).not.toContain("does this");
+    expect(handed.routines[0]?.nextRunAt).toBe(launchNext);
+    const still = await convene(handed, "What does the Market check routine do?", undefined, early);
+    expect(still.handoffRules).toEqual(handed.handoffRules);
+    expect(still.messages.at(-1)?.text).toBe(marketLine);
+    const listed = await convene(still, "What is scheduled?", undefined, early);
+    expect(listed.messages.at(-1)?.text).toBe(
+      "Scheduled. “Launch note” is hourly. “Launch note” is daily. “Market check” is hourly. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(listed.routines[0]?.instruction).toBe("Email Maya the launch update");
+    const when = await convene(listed, "When does the Market check routine wake?", undefined, early);
+    expect(when.messages.at(-1)?.text).toBe(
+      `“Market check” is hourly. It next wakes at ${marketNext}. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.`,
+    );
+    expect(when.routines[2]?.instruction).toBe("Summarize the launch risks");
+    expect(when.messages.at(-1)?.text).not.toContain("does this");
+
+    const widenedBase = structuredClone(state);
+    widenedBase.routines[0]!.heldBack = ["send"];
+    const aside = await convene(widenedBase, "What does the Launch note routine do and email Maya", undefined, early);
+    expect(aside.goals).toHaveLength(goals + 1);
+    expect(aside.routines[0]?.cadence).toBe("hourly");
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(aside.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(aside.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(aside.messages.at(-1)?.text).not.toContain("Nothing was run and nothing was changed.");
+
+    const bare = await convene(state, "What does the routine do?", undefined, early);
+    expect(bare.goals).toHaveLength(goals + 1);
+    expect(bare.routines).toHaveLength(3);
+    expect(bare.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(bare.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(bare.messages.at(-1)?.text).not.toContain("There is no such routine");
+
+    const plural = await convene(state, "What does the Launch note routines do?", undefined, early);
+    expect(plural.goals).toHaveLength(goals + 1);
+    expect(plural.routines[1]?.cadence).toBe("daily");
+    expect(plural.routines[1]?.instruction).toBe("Email Noah the other note");
+    expect(plural.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(plural.messages.at(-1)?.text).not.toContain("More than one routine has that name");
+
+    const paused = await convene(setPaused(state, true, early), "What does the Market check routine do?", undefined, early);
+    expect(paused.paused).toBe(true);
+    expect(paused.goals).toHaveLength(goals);
+    expect(paused.routines[0]?.heldBack).toEqual(["send"]);
+    expect(paused.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(paused.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(paused.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(paused.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(paused.routines[2]?.instruction).toBe("Summarize the launch risks");
+    expect(paused.messages.at(-1)?.text).toBe(marketLine);
+
+    const kept = structuredClone(state);
+    await expect(convene(kept, "What does the Launch note routine do without asking", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Please what does the Market check routine do always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "What does the Launch note routine do and allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.cadence).toBe("hourly");
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(kept.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(kept.routines[2]?.nextRunAt).toBe(marketNext);
+    await expect(convene(kept, "What does the Market check routine do?", "goal_missing", early)).rejects.toThrow(/not in the record/);
+    expect(kept.goals).toHaveLength(goals);
+    expect(kept.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    const stopped = await convene(state, "Stop the Market check routine", undefined, early);
+    expect(stopped.routines[2]?.cadence).toBe("manual");
+    expect(stopped.routines[2]?.nextRunAt).toBeNull();
+    expect(stopped.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(stopped.routines[0]?.heldBack).toEqual(["send"]);
+    expect(stopped.routines[2]?.instruction).toBe("Summarize the launch risks");
+    const afterStop = await convene(stopped, "What does the Market check routine do?", undefined, early);
+    expect(afterStop.messages.at(-1)?.text).toBe(
+      "“Market check” does this: “Summarize the launch risks”. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(afterStop.messages.at(-1)?.text).not.toContain("wakes only when you run it");
+    expect(afterStop.routines[2]?.cadence).toBe("manual");
+    expect(afterStop.routines[2]?.nextRunAt).toBeNull();
+    expect(afterStop.routines[2]?.instruction).toBe("Summarize the launch risks");
+    expect(afterStop.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(afterStop.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(afterStop.goals).toHaveLength(goals);
+
+    const blanked = structuredClone(stopped);
+    blanked.routines[2]!.instruction = "   ";
+    const emptyInstruction = await convene(blanked, "What does the Market check routine do?", undefined, early);
+    expect(emptyInstruction.messages.at(-1)?.text).toBe(
+      "“Market check” has no instruction in the record. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(emptyInstruction.routines[2]?.instruction).toBe("   ");
+    expect(emptyInstruction.routines[2]?.cadence).toBe("manual");
+  });
+});
+
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [
