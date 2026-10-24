@@ -2455,6 +2455,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F130",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine started with the least destructive step",
+      title: "Say that one routine has no least-destructive step and do not take a destructive step",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no least-destructive step in the record, so that I can check the work without taking a destructive step.",
+      acceptance: [
+        "Saying whether the Launch note routine started with the least destructive step says that one routine has no least-destructive step in the record.",
+        "Asking does not take a destructive step, does not disconnect the app, and does not retry.",
+        "A stored run is not a least-destructive step. A disconnected app is not one. The disconnected-app answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

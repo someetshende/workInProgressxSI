@@ -796,6 +796,24 @@ export function loosensRoutineDisconnectedApp(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_LEAST_DESTRUCTIVE = /^(?:please,?\s+)?did the (.+) routine start with the least destructive step$/i;
+
+export function routineLeastDestructiveName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_LEAST_DESTRUCTIVE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineLeastDestructive(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineLeastDestructiveName(text)) return false;
+  if (!/^(?:please,?\s+)?did the .+ routine start with the least destructive step\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
