@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -13576,6 +13576,187 @@ describe("Oriel server", () => {
     const gone = await turn("Is @bot quiet for the Launch note routine?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Is @bot quiet for the Launch note routine without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+
+  it("ORIEL-F127 says one routine has no support note and does not contact support", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Is a support note ready for the Launch note routine?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineSupportNoteMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether a support note is ready for one named routine");
+    expect(missing.body.trust).toContain("has no support note in the record");
+    expect(missing.body.trust).toContain("Asking does not contact support");
+    expect(missing.body.trust).toContain("does not send a version");
+    expect(missing.body.trust).toContain("does not send an operating system");
+    expect(missing.body.trust).toContain("does not send an error message");
+    expect(missing.body.trust).toContain("does not send a request id");
+    expect(missing.body.trust).toContain("does not send a conversation id");
+    expect(missing.body.trust).toContain("does not include a password");
+    expect(missing.body.trust).toContain("does not include a one-time code");
+    expect(missing.body.trust).toContain("does not include a private key");
+    expect(missing.body.trust).toContain("does not include a secret value");
+    expect(missing.body.trust).toContain("does not post on X");
+    expect(missing.body.trust).toContain("does not tag @bot");
+    expect(missing.body.trust).toContain("does not finish the sign-in");
+    expect(missing.body.trust).toContain("does not check for an app update");
+    expect(missing.body.trust).toContain("does not take over the computer");
+    expect(missing.body.trust).toContain("does not type a password");
+    expect(missing.body.trust).toContain("does not assign the routine to Grok Bot, Dots, or Muse");
+    expect(missing.body.trust).toContain("the quiet-bot answer");
+    expect(missing.body.trust).toContain("A stored run is not a support note");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a support note");
+    expect(missing.body.trust).toContain("A failure is not a support note");
+    expect(missing.body.trust).toContain("A usage pause is not a support note");
+    expect(missing.body.trust).toContain("A source channel is not a support note");
+    expect(missing.body.trust).toContain("A source repository is not a support note");
+    expect(missing.body.trust).toContain("A matching rule is not a support note");
+    expect(missing.body.trust).toContain("An ask-first rule is not a support note");
+    expect(missing.body.trust).toContain("An allow-automatically rule is not a support note");
+    expect(missing.body.trust).toContain("A team rule is not a support note");
+    expect(missing.body.trust).toContain("A locked team rule is not a support note");
+    expect(missing.body.trust).toContain("A local-computer refusal is not a support note");
+    expect(missing.body.trust).toContain("A cloud-computer refusal is not a support note");
+    expect(missing.body.trust).toContain("A reachable computer is not a support note");
+    expect(missing.body.trust).toContain("A stuck state is not a support note");
+    expect(missing.body.trust).toContain("A login wait is not a support note");
+    expect(missing.body.trust).toContain("A plugin authentication is not a support note");
+    expect(missing.body.trust).toContain("A readable attachment is not a support note");
+    expect(missing.body.trust).toContain("A blocked approval is not a support note");
+    expect(missing.body.trust).toContain("A computer setup is not a support note");
+    expect(missing.body.trust).toContain("An app update is not a support note");
+    expect(missing.body.trust).toContain("An open sign-in is not a support note");
+    expect(missing.body.trust).toContain("A quiet bot is not a support note");
+    expect(missing.body.trust).toContain("A required plugin is not a support note");
+    expect(missing.body.trust).toContain("A source system is not a support note");
+    expect(missing.body.trust).toContain("The short reply says Asking does not contact support");
+    expect(missing.body.trust).toContain("The quiet-bot reply still says Asking does not post on X");
+    expect(missing.body.trust).toContain("The open-sign-in reply still says Asking does not finish the sign-in");
+    expect(missing.body.trust).toContain("The app-update reply still says Asking does not check for an app update");
+    expect(missing.body.trust).toContain("The login reply still says Asking does not take over the computer");
+    expect(missing.body.trust).toContain("The row says No support note");
+    expect(missing.body.trust).toContain("does not say there is no support note");
+    expect(missing.body.trust).toContain("does not name a support note");
+    expect(missing.body.trust).toContain("A recorded failure is not an allow-automatically rule");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a support note");
+    expect("has no support note".includes("has no quiet bot")).toBe(false);
+    expect("has no quiet bot".includes("has no support note")).toBe(false);
+    expect("has no support note".includes("has no open sign-in")).toBe(false);
+    expect("has no open sign-in".includes("has no support note")).toBe(false);
+    expect("has no support note".includes("has no app update")).toBe(false);
+    expect("has no app update".includes("has no support note")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineBotQuietCopy("Launch note", true)).toContain("Asking does not post on X.");
+    expect(routineBotQuietCopy("Launch note", true)).not.toContain("has no support note");
+    expect(routineOpenSignInCopy("Launch note", true)).toContain("Asking does not finish the sign-in.");
+    expect(routineOpenSignInCopy("Launch note", true)).not.toContain("has no support note");
+    expect(routineAppUpdateCopy("Launch note", true)).toContain("Asking does not check for an app update.");
+    expect(routineAppUpdateCopy("Launch note", true)).not.toContain("has no support note");
+    expect(routineLoginWaitCopy("Launch note", true)).toContain("Asking does not take over the computer.");
+    expect(routineLoginWaitCopy("Launch note", true)).not.toContain("has no support note");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, is a support note ready for the Launch note routine?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineSupportNoteCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no support note in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not contact support.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no quiet bot");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not post on X.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toContain("verification code");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Is a support note ready for the Launch note routine?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no support note in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Is a support note ready for the Launch note routine?");
+    expect(asked.body.messages.at(-1).text).toBe(routineSupportNoteCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const quietLeft = await turn("Is @bot quiet for the Launch note routine?");
+    expect(quietLeft.body.messages.at(-1).text).toContain("“Launch note” has no quiet bot in the record.");
+    expect(quietLeft.body.messages.at(-1).text).toContain("Asking does not post on X.");
+    expect(quietLeft.body.messages.at(-1).text).not.toContain("has no support note");
+
+    const signinLeft = await turn("Is sign-in still open for the Launch note routine?");
+    expect(signinLeft.body.messages.at(-1).text).toContain("“Launch note” has no open sign-in in the record.");
+    expect(signinLeft.body.messages.at(-1).text).toContain("Asking does not finish the sign-in.");
+    expect(signinLeft.body.messages.at(-1).text).not.toContain("has no support note");
+
+    const updateLeft = await turn("Is an app update waiting for the Launch note routine?");
+    expect(updateLeft.body.messages.at(-1).text).toContain("“Launch note” has no app update in the record.");
+    expect(updateLeft.body.messages.at(-1).text).toContain("Asking does not check for an app update.");
+    expect(updateLeft.body.messages.at(-1).text).not.toContain("has no support note");
+
+    const loginLeft = await turn("Is the Launch note routine waiting on a login?");
+    expect(loginLeft.body.messages.at(-1).text).toContain("“Launch note” has no login wait in the record.");
+    expect(loginLeft.body.messages.at(-1).text).toContain("Asking does not take over the computer.");
+    expect(loginLeft.body.messages.at(-1).text).not.toContain("has no support note");
+
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("support note");
+    expect(why.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const gone = await turn("Is a support note ready for the Launch note routine?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Is a support note ready for the Launch note routine without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);

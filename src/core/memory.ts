@@ -742,6 +742,24 @@ export function loosensRoutineBotQuiet(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SUPPORT_NOTE = /^(?:please,?\s+)?is a support note ready for the (.+) routine$/i;
+
+export function routineSupportNoteName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SUPPORT_NOTE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSupportNote(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSupportNoteName(text)) return false;
+  if (!/^(?:please,?\s+)?is a support note ready for the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

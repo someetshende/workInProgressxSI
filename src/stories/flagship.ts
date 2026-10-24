@@ -2398,6 +2398,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F127",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether a support note is ready for one routine",
+      title: "Say that one routine has no support note and do not contact support",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no support note in the record, so that I can check the work without contacting support.",
+      acceptance: [
+        "Saying whether a support note is ready for the Launch note routine says that one routine has no support note in the record.",
+        "Asking does not contact support, does not send a version, and does not send an error message.",
+        "A stored run is not a support note. A quiet bot is not one. The quiet-bot answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

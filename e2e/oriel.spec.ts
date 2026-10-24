@@ -13719,6 +13719,221 @@ test("ORIEL-F126 whether @bot is quiet for one routine does not post on X", asyn
   await page.screenshot({ path: "test-results/oriel-routine-bot-quiet.png" });
 });
 
+
+test("ORIEL-F127 whether a support note is ready for one routine does not contact support", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Is a support note ready for the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether a support note is ready for one routine says that routine has no support note in the record.",
+  );
+  await expect(page.locator("[data-testid^='support-note-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='support-note-']").nth(0)).toHaveText("No support note");
+  await expect(page.locator("[data-testid^='bot-quiet-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bot-quiet-']").nth(0)).toHaveText("No quiet bot");
+  await expect(page.locator("[data-testid^='signin-open-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='signin-open-']").nth(0)).toHaveText("No open sign-in");
+  await expect(page.locator("[data-testid^='app-update-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-update-']").nth(0)).toHaveText("No app update");
+  await expect(page.locator("[data-testid^='setup-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='setup-computer-']").nth(0)).toHaveText("No computer setup");
+  await expect(page.locator("[data-testid^='blocked-approval-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='blocked-approval-']").nth(0)).toHaveText("No blocked approval");
+  await expect(page.locator("[data-testid^='readable-attachment-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='readable-attachment-']").nth(0)).toHaveText("No readable attachment");
+  await expect(page.locator("[data-testid^='auth-plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+  await expect(page.locator("[data-testid^='login-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='login-wait-']").nth(0)).toHaveText("No login wait");
+  await expect(page.locator("[data-testid^='plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='stuck-state-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stuck-state-']").nth(0)).toHaveText("No stuck state");
+  await expect(page.locator("[data-testid^='reachable-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reachable-computer-']").nth(0)).toHaveText("No reachable computer");
+  await expect(page.locator("[data-testid^='cloud-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='cloud-computer-']").nth(0)).toHaveText("No cloud-computer refusal");
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+  await expect(page.locator("[data-testid^='locked-team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-rule-']").nth(0)).toHaveText("No team rule");
+  await expect(page.locator("[data-testid^='allow-automatically-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='allow-automatically-']").nth(0)).toHaveText("No allow-automatically rule");
+  await expect(page.locator("[data-testid^='ask-first-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ask-first-']").nth(0)).toHaveText("No ask-first rule");
+  await expect(page.locator("[data-testid^='matching-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='matching-rule-']").nth(0)).toHaveText("No matching rule");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='sign-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='open-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='quiet-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='bot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  const noteFollowsQuiet = await page.evaluate(() => {
+    const quiet = document.querySelector("[data-testid^='bot-quiet-']");
+    const note = document.querySelector("[data-testid^='support-note-']");
+    if (!quiet || !note || quiet.parentElement !== note.parentElement) return false;
+    return quiet.compareDocumentPosition(note) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(noteFollowsQuiet).toBe(true);
+  const noteIds = await page.locator("[data-testid^='support-note-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("support-note-"))).toBe(true);
+  expect(noteIds.some((id) => id.startsWith("sign-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("open-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("app-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("update-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("login-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("wait-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("bot-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("quiet-"))).toBe(false);
+  const ruleIds = await page.locator("[data-testid^='rule-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(ruleIds).toEqual(expect.arrayContaining(["rule-send", "rule-pay", "rule-delete", "rule-post"]));
+  expect(ruleIds.some((id) => id.startsWith("support-note"))).toBe(false);
+  expect(ruleIds.some((id) => id.startsWith("bot-quiet"))).toBe(false);
+  expect(ruleIds.some((id) => id === "rule-send" || id === "rule-pay" || id === "rule-delete" || id === "rule-post")).toBe(true);
+
+  await page.getByTestId("composer").fill("Is a support note ready for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no support note in the record.");
+  await expect(clear).toContainText("Asking does not contact support.");
+  await expect(clear).not.toContainText("has no quiet bot");
+  await expect(clear).not.toContainText("has no open sign-in");
+  await expect(clear).not.toContainText("has no app update");
+  await expect(clear).not.toContainText("has no login wait");
+  await expect(clear).not.toContainText("Asking does not post on X.");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("verification code");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Is a support note ready for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no support note in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Is a support note ready for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no support note in the record.");
+  await expect(pausedAsk).toContainText("Asking does not contact support.");
+  await expect(pausedAsk).not.toContainText("password");
+  await expect(pausedAsk).not.toContainText("verification code");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Is @bot quiet for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const quietLeft = page.locator("#thread .turn").last();
+  await expect(quietLeft).toContainText("“Draft the weekly close but do not send it” has no quiet bot in the record.");
+  await expect(quietLeft).toContainText("Asking does not post on X.");
+  await expect(quietLeft).not.toContainText("has no support note");
+
+  await page.getByTestId("composer").fill("Is sign-in still open for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const signinLeft = page.locator("#thread .turn").last();
+  await expect(signinLeft).toContainText("“Draft the weekly close but do not send it” has no open sign-in in the record.");
+  await expect(signinLeft).toContainText("Asking does not finish the sign-in.");
+  await expect(signinLeft).not.toContainText("has no support note");
+
+  await page.getByTestId("composer").fill("Is an app update waiting for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const updateLeft = page.locator("#thread .turn").last();
+  await expect(updateLeft).toContainText("“Draft the weekly close but do not send it” has no app update in the record.");
+  await expect(updateLeft).toContainText("Asking does not check for an app update.");
+  await expect(updateLeft).not.toContainText("has no support note");
+
+  await page.getByTestId("composer").fill("Is the computer for the Draft the weekly close but do not send it routine still setting up?");
+  await page.getByTestId("send").click();
+  const setupLeft = page.locator("#thread .turn").last();
+  await expect(setupLeft).toContainText("“Draft the weekly close but do not send it” has no computer setup in the record.");
+  await expect(setupLeft).not.toContainText("has no support note");
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine waiting on a login?");
+  await page.getByTestId("send").click();
+  const loginLeft = page.locator("#thread .turn").last();
+  await expect(loginLeft).toContainText("has no login wait");
+  await expect(loginLeft).toContainText("Asking does not take over the computer.");
+  await expect(loginLeft).not.toContainText("has no support note");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("support note");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='support-note-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='support-note-']").nth(0)).toHaveText("No support note");
+  await expect(page.locator("[data-testid^='bot-quiet-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bot-quiet-']").nth(0)).toHaveText("No quiet bot");
+  await expect(page.locator("[data-testid^='signin-open-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='signin-open-']").nth(0)).toHaveText("No open sign-in");
+  await expect(page.locator("[data-testid^='app-update-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-update-']").nth(0)).toHaveText("No app update");
+  await expect(page.locator("[data-testid^='sign-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='open-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='quiet-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='bot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-support-note.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
