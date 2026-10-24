@@ -625,6 +625,12 @@ export const constraints: Constraint[] = [
     text: "saying whether one named routine can reach its computer says that routine has no reachable computer in the record and does not recover a computer or update the computer or reset the computer or turn cloud access on or turn local access on or connect a computer or connect a plugin or lock a team rule or edit a team rule or delete a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or start a test run or pause account access or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, a source repository, a matching rule, an ask-first rule, an allow-automatically rule, a team rule, a locked team rule, a local-computer refusal, a cloud-computer refusal, or a source system as a reachable computer",
     proof: "Can the Launch note routine reach its computer says there is no reachable computer. Asking does not recover a computer. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-stuck-state",
+    short: "Ask whether one routine is stuck",
+    text: "saying whether one named routine is stuck says that routine has no stuck state in the record and does not open the computer or send a redirect or stop the routine or recover a computer or update the computer or reset the computer or turn cloud access on or turn local access on or connect a computer or connect a plugin or lock a team rule or edit a team rule or delete a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or start a test run or pause account access or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, a source repository, a matching rule, an ask-first rule, an allow-automatically rule, a team rule, a locked team rule, a local-computer refusal, a cloud-computer refusal, a reachable computer, or a source system as a stuck state",
+    proof: "Is the Launch note routine stuck says there is no stuck state. Asking does not open the computer. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

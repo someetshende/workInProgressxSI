@@ -2227,6 +2227,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F118",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine is stuck",
+      title: "Say that one routine has no stuck state and do not open the computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no stuck state in the record, so that I can check the work without opening the computer.",
+      acceptance: [
+        "Saying whether the Launch note routine is stuck says that one routine has no stuck state in the record.",
+        "Asking does not open the computer, does not send a redirect, and does not stop the routine.",
+        "A stored run is not a stuck state. A reachable computer is not one. The reachable-computer answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

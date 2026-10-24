@@ -471,6 +471,20 @@ export function routineReachableComputerAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineStuckStateCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no stuck state in the record. Asking does not open the computer.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineStuckStateMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineStuckStateAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineWakeCopy(name: string, cadence: Cadence, nextRunAt: string | null, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
