@@ -2436,6 +2436,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F129",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether the app is disconnected for one routine",
+      title: "Say that one routine has no disconnected app and do not disconnect the app",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no disconnected app in the record, so that I can check the work without disconnecting the app.",
+      acceptance: [
+        "Saying whether the app is disconnected for the Launch note routine says that one routine has no disconnected app in the record.",
+        "Asking does not disconnect the app, does not retry, and does not restart the app.",
+        "A stored run is not a disconnected app. A retry result is not one. The retry-result answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

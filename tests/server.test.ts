@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -13968,6 +13968,199 @@ describe("Oriel server", () => {
     const gone = await turn("Did a retry change the result for the Launch note routine?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Did a retry change the result for the Launch note routine without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+
+  it("ORIEL-F129 says one routine has no disconnected app and does not disconnect the app", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Is the app disconnected for the Launch note routine?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineDisconnectedAppMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether the app is disconnected for one named routine");
+    expect(missing.body.trust).toContain("has no disconnected app in the record");
+    expect(missing.body.trust).toContain("Asking does not disconnect the app");
+    expect(missing.body.trust).toContain("does not retry");
+    expect(missing.body.trust).toContain("does not restart the app");
+    expect(missing.body.trust).toContain("does not update the computer");
+    expect(missing.body.trust).toContain("does not contact support");
+    expect(missing.body.trust).toContain("does not send a version");
+    expect(missing.body.trust).toContain("does not send an operating system");
+    expect(missing.body.trust).toContain("does not send an error message");
+    expect(missing.body.trust).toContain("does not send a request id");
+    expect(missing.body.trust).toContain("does not send a conversation id");
+    expect(missing.body.trust).toContain("does not include a password");
+    expect(missing.body.trust).toContain("does not include a one-time code");
+    expect(missing.body.trust).toContain("does not include a private key");
+    expect(missing.body.trust).toContain("does not include a secret value");
+    expect(missing.body.trust).toContain("does not post on X");
+    expect(missing.body.trust).toContain("does not tag @bot");
+    expect(missing.body.trust).toContain("does not finish the sign-in");
+    expect(missing.body.trust).toContain("does not check for an app update");
+    expect(missing.body.trust).toContain("does not take over the computer");
+    expect(missing.body.trust).toContain("does not type a password");
+    expect(missing.body.trust).toContain("does not assign the routine to Grok Bot, Dots, or Muse");
+    expect(missing.body.trust).toContain("the retry-result answer");
+    expect(missing.body.trust).toContain("The retry-result reply still says Asking does not retry");
+    expect(missing.body.trust).toContain("The support-note reply still says Asking does not contact support");
+    expect(missing.body.trust).toContain("The computer-setup reply still says Asking does not restart the app");
+    expect(missing.body.trust).toContain("The app-update reply still says Asking does not check for an app update");
+    expect(missing.body.trust).toContain("A retry result is not a disconnected app");
+    expect(missing.body.trust).toContain("A support note is not a disconnected app");
+    expect(missing.body.trust).toContain("A computer setup is not a disconnected app");
+    expect(missing.body.trust).toContain("An app update is not a disconnected app");
+    expect(missing.body.trust).toContain("A stored run is not a disconnected app");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a disconnected app");
+    expect(missing.body.trust).toContain("A failure is not a disconnected app");
+    expect(missing.body.trust).toContain("A usage pause is not a disconnected app");
+    expect(missing.body.trust).toContain("A source channel is not a disconnected app");
+    expect(missing.body.trust).toContain("A source repository is not a disconnected app");
+    expect(missing.body.trust).toContain("A matching rule is not a disconnected app");
+    expect(missing.body.trust).toContain("An ask-first rule is not a disconnected app");
+    expect(missing.body.trust).toContain("An allow-automatically rule is not a disconnected app");
+    expect(missing.body.trust).toContain("A team rule is not a disconnected app");
+    expect(missing.body.trust).toContain("A locked team rule is not a disconnected app");
+    expect(missing.body.trust).toContain("A local-computer refusal is not a disconnected app");
+    expect(missing.body.trust).toContain("A cloud-computer refusal is not a disconnected app");
+    expect(missing.body.trust).toContain("A reachable computer is not a disconnected app");
+    expect(missing.body.trust).toContain("A stuck state is not a disconnected app");
+    expect(missing.body.trust).toContain("A login wait is not a disconnected app");
+    expect(missing.body.trust).toContain("A plugin authentication is not a disconnected app");
+    expect(missing.body.trust).toContain("A readable attachment is not a disconnected app");
+    expect(missing.body.trust).toContain("A blocked approval is not a disconnected app");
+    expect(missing.body.trust).toContain("An open sign-in is not a disconnected app");
+    expect(missing.body.trust).toContain("A quiet bot is not a disconnected app");
+    expect(missing.body.trust).toContain("A required plugin is not a disconnected app");
+    expect(missing.body.trust).toContain("A source system is not a disconnected app");
+    expect(missing.body.trust).toContain("The short reply says Asking does not disconnect the app");
+    expect(missing.body.trust).toContain("The row says No disconnected app");
+    expect(missing.body.trust).toContain("does not say there is no disconnected app");
+    expect(missing.body.trust).toContain("does not name a disconnected app");
+    expect(missing.body.trust).toContain("A recorded failure is not an allow-automatically rule");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a disconnected app");
+    expect("has no disconnected app".includes("has no retry result")).toBe(false);
+    expect("has no retry result".includes("has no disconnected app")).toBe(false);
+    expect("has no disconnected app".includes("has no support note")).toBe(false);
+    expect("has no support note".includes("has no disconnected app")).toBe(false);
+    expect("has no disconnected app".includes("has no app update")).toBe(false);
+    expect("has no app update".includes("has no disconnected app")).toBe(false);
+    expect("has no disconnected app".includes("has no computer setup")).toBe(false);
+    expect("has no computer setup".includes("has no disconnected app")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineRetryResultCopy("Launch note", true)).toContain("Asking does not retry.");
+    expect(routineRetryResultCopy("Launch note", true)).not.toContain("has no disconnected app");
+    expect(routineSupportNoteCopy("Launch note", true)).toContain("Asking does not contact support.");
+    expect(routineSupportNoteCopy("Launch note", true)).not.toContain("has no disconnected app");
+    expect(routineComputerSetupCopy("Launch note", true)).toContain("Asking does not restart the app.");
+    expect(routineComputerSetupCopy("Launch note", true)).not.toContain("has no disconnected app");
+    expect(routineAppUpdateCopy("Launch note", true)).toContain("Asking does not check for an app update.");
+    expect(routineAppUpdateCopy("Launch note", true)).not.toContain("has no disconnected app");
+    expect(routineDisconnectedAppCopy("Launch note", true)).not.toContain("has no retry result");
+    expect(routineDisconnectedAppCopy("Launch note", true)).not.toContain("Asking does not retry.");
+    expect(routineDisconnectedAppCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineDisconnectedAppCopy("Launch note", true)).not.toContain("verification code");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, is the app disconnected for the Launch note routine?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineDisconnectedAppCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no disconnected app in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not disconnect the app.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no retry result");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not retry.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toContain("verification code");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Is the app disconnected for the Launch note routine?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no disconnected app in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Is the app disconnected for the Launch note routine?");
+    expect(asked.body.messages.at(-1).text).toBe(routineDisconnectedAppCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const retryLeft = await turn("Did a retry change the result for the Launch note routine?");
+    expect(retryLeft.body.messages.at(-1).text).toContain("“Launch note” has no retry result in the record.");
+    expect(retryLeft.body.messages.at(-1).text).toContain("Asking does not retry.");
+    expect(retryLeft.body.messages.at(-1).text).not.toContain("has no disconnected app");
+
+    const noteLeft = await turn("Is a support note ready for the Launch note routine?");
+    expect(noteLeft.body.messages.at(-1).text).toContain("“Launch note” has no support note in the record.");
+    expect(noteLeft.body.messages.at(-1).text).toContain("Asking does not contact support.");
+    expect(noteLeft.body.messages.at(-1).text).not.toContain("has no disconnected app");
+
+    const updateLeft = await turn("Is an app update waiting for the Launch note routine?");
+    expect(updateLeft.body.messages.at(-1).text).toContain("“Launch note” has no app update in the record.");
+    expect(updateLeft.body.messages.at(-1).text).toContain("Asking does not check for an app update.");
+    expect(updateLeft.body.messages.at(-1).text).not.toContain("has no disconnected app");
+
+    const setupLeft = await turn("Is the computer for the Launch note routine still setting up?");
+    expect(setupLeft.body.messages.at(-1).text).toContain("“Launch note” has no computer setup in the record.");
+    expect(setupLeft.body.messages.at(-1).text).toContain("Asking does not restart the app.");
+    expect(setupLeft.body.messages.at(-1).text).not.toContain("has no disconnected app");
+
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("disconnected app");
+    expect(why.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const gone = await turn("Is the app disconnected for the Launch note routine?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Is the app disconnected for the Launch note routine without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
