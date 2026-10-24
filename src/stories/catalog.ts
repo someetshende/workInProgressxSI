@@ -535,6 +535,12 @@ export const constraints: Constraint[] = [
     text: "saying what time zone one named routine is using says that routine has no time zone in the record, leaves the next time at the instant already stored, and does not set a zone or treat a desk-wide pause as a zone",
     proof: "What time zone is the Launch note routine using says there is no time zone. The next time stays. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-owner",
+    short: "Ask which bot owns one",
+    text: "saying which bot owns one named routine says that routine has no owning bot in the record and does not assign it to Grok Bot, Dots, or Muse or treat a desk-wide pause as an owner",
+    proof: "Which bot owns the Launch note routine says there is no owning bot. Asking does not assign one. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

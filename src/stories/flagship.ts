@@ -1942,6 +1942,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F103",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which bot owns one routine",
+      title: "Say that one routine has no owning bot and do not assign one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no owning bot in the record, so that I can check the troubleshooting step without assigning Grok Bot, Dots, or Muse.",
+      acceptance: [
+        "Saying which bot owns the Launch note routine says that one routine has no owning bot in the record.",
+        "Asking does not assign it to Grok Bot, Dots, or Muse, and it does not run the routine or change the cadence, the next time, the instruction, the pause, the last run, or the stored runs.",
+        "A desk-wide pause does not invent an owner. The time-zone answer stays. Two routines with the same name are left unchanged. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

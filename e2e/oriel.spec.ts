@@ -8773,6 +8773,105 @@ test("ORIEL-F102 what time zone is the routine using leaves the next time", asyn
   await page.screenshot({ path: "test-results/oriel-routine-zone.png" });
 });
 
+test("ORIEL-F103 which bot owns the routine does not assign one", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Which bot owns the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking which bot owns one routine says that routine has no owning bot in the record.",
+  );
+  await expect(page.locator("[data-testid^='owner-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='owner-']").nth(0)).toHaveText("No owning bot");
+  await expect(page.locator("[data-testid^='zone-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='zone-']").nth(0)).toHaveText("No time zone");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+
+  await page.getByTestId("composer").fill("Which bot owns the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no owning bot in the record.");
+  await expect(clear).toContainText("Asking does not assign one.");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  await expect(clear).not.toContainText("Summarize the launch risks");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+  await expect(page.locator("[data-testid^='owner-']").nth(0)).toHaveText("No owning bot");
+  await expect(page.locator("[data-testid^='zone-']").nth(0)).toHaveText("No time zone");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Which bot owns the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no owning bot in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='owner-']")).toHaveCount(2);
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Which bot owns the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no owning bot in the record.");
+  await expect(pausedAsk).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='owner-']").nth(0)).toHaveText("No owning bot");
+
+  await page.getByTestId("composer").fill("What time zone is the Draft the weekly close but do not send it routine using?");
+  await page.getByTestId("send").click();
+  const zone = page.locator("#thread .turn").last();
+  await expect(zone).toContainText("“Draft the weekly close but do not send it” has no time zone in the record.");
+  await expect(zone).not.toContainText("owning bot");
+  await expect(page.locator("[data-testid^='zone-']").nth(0)).toHaveText("No time zone");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine disabled?");
+  await page.getByTestId("send").click();
+  const disabled = page.locator("#thread .turn").last();
+  await expect(disabled).toContainText("“Draft the weekly close but do not send it” is disabled. A wake does not run it.");
+  await expect(disabled).not.toContainText("owning bot");
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-owner.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
