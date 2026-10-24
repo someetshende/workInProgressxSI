@@ -2246,6 +2246,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F119",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine is waiting on a login",
+      title: "Say that one routine has no login wait and do not take over the computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no login wait in the record, so that I can check the work without taking over the computer.",
+      acceptance: [
+        "Saying whether the Launch note routine is waiting on a login says that one routine has no login wait in the record.",
+        "Asking does not take over the computer, does not type a password, and does not paste a code.",
+        "A stored run is not a login wait. A stuck state is not one. The stuck-state answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
