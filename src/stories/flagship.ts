@@ -2531,6 +2531,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F134",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether the computer image for one routine keeps logins",
+      title: "Say that one routine has no kept-file and leave the saved files in place",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no kept-file in the record, so that I can check the work without moving the saved files.",
+      acceptance: [
+        "Saying whether the computer image for the Launch note routine keeps logins says that one routine has no kept-file in the record.",
+        "Asking leaves the saved files in place, does not update the computer, and does not remove an installed app.",
+        "A stored run is not a kept-file. A kept conversation is not one. The kept-conversation answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
