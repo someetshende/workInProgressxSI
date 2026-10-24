@@ -237,6 +237,7 @@ aside {
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
+.rule-note.active { color: var(--signal); }
 .rules { display: flex; flex-wrap: wrap; gap: 6px; }
 .rule {
   background: transparent;

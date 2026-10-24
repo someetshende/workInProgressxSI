@@ -493,6 +493,12 @@ export const constraints: Constraint[] = [
     text: "saying is and one routine's name and paused names whether that one routine is paused, says a wake does not run it when it is, says it is not paused when it is not, and does not treat a desk-wide pause as that routine being paused",
     proof: "Is the Launch note routine paused names that one pause or says it is not paused. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-active",
+    short: "Ask if one is active",
+    text: "saying is and one routine's name and active names whether that one routine is active, says it is not active and a wake does not run it when it is paused, says it is active when it is not paused, and does not treat a desk-wide pause as that routine being inactive",
+    proof: "Is the Launch note routine active names that one as active or says it is not active. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
