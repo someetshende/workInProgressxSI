@@ -2265,6 +2265,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F120",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether the plugin for one routine is authenticated",
+      title: "Say that one routine has no plugin authentication and do not authenticate a plugin",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no plugin authentication in the record, so that I can check the work without authenticating a plugin.",
+      acceptance: [
+        "Saying whether the plugin for the Launch note routine is authenticated says that one routine has no plugin authentication in the record.",
+        "Asking does not authenticate a plugin, does not install a plugin, and does not reconnect a plugin.",
+        "A stored run is not a plugin authentication. A login wait is not one. The login-wait answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
