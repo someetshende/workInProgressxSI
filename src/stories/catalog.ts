@@ -613,6 +613,12 @@ export const constraints: Constraint[] = [
     text: "saying can the team rule for one named routine be edited says that routine has no team rule to edit in the record and does not edit a team rule or delete a team rule or lock a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or treat a stored run or a desk-wide pause or a recorded failure or a source channel or a source repository or a matching rule or an ask-first rule or an allow-automatically rule or a team rule or a locked team rule as a team rule to edit",
     proof: "Can the team rule for the Launch note routine be edited says there is no team rule to edit. Asking does not edit a team rule. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-team-rule-delete",
+    short: "Ask if the team rule can be deleted",
+    text: "saying can the team rule for one named routine be deleted says that routine has no team rule to delete in the record and does not delete a team rule or edit a team rule or lock a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or treat a stored run or a desk-wide pause or a recorded failure or a source channel or a source repository or a matching rule or an ask-first rule or an allow-automatically rule or a team rule or a locked team rule or a team rule to edit as a team rule to delete",
+    proof: "Can the team rule for the Launch note routine be deleted says there is no team rule to delete. Asking does not delete a team rule. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
