@@ -2778,6 +2778,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F147",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine makes secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat",
+      title: "Say that one routine has no shared kit and do not spread that kit across teammate chats",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no shared kit in the record, so that I can check the work without spreading that kit across teammate chats.",
+      acceptance: [
+        "Saying whether the Launch note routine makes secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat says that one routine has no shared kit in the record.",
+        "Asking does not spread that kit across teammate chats, does not add a secret, and does not share a file.",
+        "A stored run is not a shared kit. An asked meter is not one. The asked-meter answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

@@ -1103,6 +1103,24 @@ export function loosensRoutineAskedMeter(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SHARED_KIT = /^(?:please,?\s+)?does the (.+) routine make secrets, apps, and files the owner or a manager adds to a team bot available in every teammate's chat$/i;
+
+export function routineSharedKitName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SHARED_KIT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSharedKit(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSharedKitName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine make secrets, apps, and files the owner or a manager adds to a team bot available in every teammate's chat\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

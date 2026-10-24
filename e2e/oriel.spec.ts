@@ -17334,6 +17334,129 @@ test("ORIEL-F146 whether one routine uses that member's connected accounts after
   await page.screenshot({ path: "test-results/oriel-routine-asked-meter.png" });
 });
 
+test("ORIEL-F147 whether one routine makes an owner or Manager kit available in every teammate's chat does not spread that kit", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine make secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine makes secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat says that routine has no shared kit in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine uses that member's connected accounts after asking and that member's Grok Bot usage says that routine has no asked meter in the record.",
+  );
+  await expect(page.locator("[data-testid^='shared-kit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='shared-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kit-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='asked-meter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='asked-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='meter-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='direct-desk-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shared-kit-']").nth(0)).toHaveText("No shared kit");
+  const followsMeter = await page.evaluate(() => {
+    const meter = document.querySelector("[data-testid^='asked-meter-']");
+    const kit = document.querySelector("[data-testid^='shared-kit-']");
+    if (!meter || !kit || meter.parentElement !== kit.parentElement) return false;
+    return meter.compareDocumentPosition(kit) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsMeter).toBe(true);
+  const noteIds = await page.locator("[data-testid^='shared-kit-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("shared-kit-"))).toBe(true);
+  for (const prefix of ["asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "kit-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine make secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no shared kit in the record.");
+  await expect(clear).toContainText("Asking does not spread that kit across teammate chats.");
+  await expect(clear).not.toContainText("has no asked meter");
+  await expect(clear).not.toContainText("has no direct desk");
+  await expect(clear).not.toContainText("Asking does not use that member's connected accounts.");
+  await expect(clear).not.toContainText("Asking does not add a secret.");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine make secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no shared kit in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine make secrets, apps, and files the owner or a Manager adds to a Team Bot available in every teammate's chat?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no shared kit in the record.");
+  await expect(pausedAsk).toContainText("Asking does not spread that kit across teammate chats.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine use that member's connected accounts after asking and that member's Grok Bot usage?");
+  await page.getByTestId("send").click();
+  const meterLeft = page.locator("#thread .turn").last();
+  await expect(meterLeft).toContainText("has no asked meter");
+  await expect(meterLeft).toContainText("Asking does not use that member's connected accounts.");
+  await expect(meterLeft).not.toContainText("has no shared kit");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("shared kit");
+  await expect(why).not.toContainText("asked meter");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='shared-kit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='kit-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='asked-meter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-shared-kit.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
