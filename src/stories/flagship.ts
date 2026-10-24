@@ -2208,6 +2208,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F117",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine can reach its computer",
+      title: "Say that one routine has no reachable computer and do not recover one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no reachable computer in the record, so that I can check the computer without recovering it.",
+      acceptance: [
+        "Saying whether the Launch note routine can reach its computer says that one routine has no reachable computer in the record.",
+        "Asking does not recover a computer, does not update the computer, and does not reset the computer.",
+        "A stored run is not a reachable computer. A cloud-computer refusal is not one. The cloud-computer answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

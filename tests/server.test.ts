@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -11377,6 +11377,226 @@ describe("Oriel server", () => {
     expect(still.messages.at(-1).text).toContain("A wake does not run it.");
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
+
+  it("ORIEL-F117 says one routine has no reachable computer and does not recover a computer", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Can the Launch note routine reach its computer?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineReachableComputerMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether one named routine can reach its computer");
+    expect(missing.body.trust).toContain("has no reachable computer in the record");
+    expect(missing.body.trust).toContain("Asking does not recover a computer");
+    expect(missing.body.trust).toContain("does not connect a computer");
+    expect(missing.body.trust).toContain("does not connect a plugin");
+    expect(missing.body.trust).toContain("does not lock a team rule");
+    expect(missing.body.trust).toContain("does not edit a team rule");
+    expect(missing.body.trust).toContain("does not delete a team rule");
+    expect(missing.body.trust).toContain("does not save an ask-first rule");
+    expect(missing.body.trust).toContain("does not turn on allow automatically");
+    expect(missing.body.trust).toContain("does not turn on an allow-automatically rule");
+    expect(missing.body.trust).toContain("does not confirm a matching rule");
+    expect(missing.body.trust).toContain("does not confirm a repository");
+    expect(missing.body.trust).toContain("does not connect a channel");
+    expect(missing.body.trust).toContain("does not start a test run");
+    expect(missing.body.trust).toContain("A stored run is not a reachable computer");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a reachable computer");
+    expect(missing.body.trust).toContain("A failure is not a reachable computer");
+    expect(missing.body.trust).toContain("A usage pause is not a reachable computer");
+    expect(missing.body.trust).toContain("A source channel is not a reachable computer");
+    expect(missing.body.trust).toContain("A source repository is not a reachable computer");
+    expect(missing.body.trust).toContain("A matching rule is not a reachable computer");
+    expect(missing.body.trust).toContain("An ask-first rule is not a reachable computer");
+    expect(missing.body.trust).toContain("An allow-automatically rule is not a reachable computer");
+    expect(missing.body.trust).toContain("A team rule is not a reachable computer");
+    expect(missing.body.trust).toContain("A locked team rule is not a reachable computer");
+    expect(missing.body.trust).toContain("A source system is not a reachable computer");
+    expect(missing.body.trust).toContain("The short reply says Asking does not recover a computer");
+    expect(missing.body.trust).toContain("The source reply still says Asking does not connect a computer");
+    expect(missing.body.trust).toContain("The cloud reply still says Asking does not turn cloud access on");
+    expect(missing.body.trust).toContain("A cloud-computer refusal is not a reachable computer");
+    expect(missing.body.trust).toContain("A local-computer refusal is not a reachable computer");
+    expect(missing.body.trust).toContain("A failure is not a reachable computer");
+    expect(missing.body.trust).toContain("does not update the computer");
+    expect(missing.body.trust).toContain("does not reset the computer");
+    expect(missing.body.trust).toContain("the cloud-computer answer stay");
+    expect(missing.body.trust).toContain("does not turn local access on");
+    expect(missing.body.trust).toContain("does not turn cloud access on");
+    expect("has no reachable computer".includes("has no cloud-computer refusal")).toBe(false);
+    expect("has no cloud-computer refusal".includes("has no reachable computer")).toBe(false);
+    expect("has no reachable computer".includes("has no local-computer refusal")).toBe(false);
+    expect(missing.body.trust).toContain("The row says No reachable computer");
+    expect(missing.body.trust).toContain("the locked-team-rule answer stay");
+    expect(missing.body.trust).toContain("does not pause account access");
+    expect(missing.body.trust).toContain("does not pause the routine");
+    expect(missing.body.trust).toContain("does not say there is no reachable computer");
+    expect(missing.body.trust).toContain("does not name a reachable computer");
+    expect(missing.body.trust).toContain("A recorded failure is not an allow-automatically rule");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a reachable computer");
+    expect("has no reachable computer".includes("has no source system")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, can the Launch note routine reach its computer?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineReachableComputerCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no reachable computer in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not recover a computer.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no source system");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not connect a computer.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).not.toBe(true);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Can the Launch note routine reach its computer?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no reachable computer in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain(next);
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Can the Launch note routine reach its computer?");
+    expect(asked.body.messages.at(-1).text).toBe(routineReachableComputerCopy("Launch note", true));
+    expect(asked.body.messages.at(-1).text).toContain("“Launch note” has no reachable computer in the record.");
+    expect(asked.body.messages.at(-1).text).not.toContain(next);
+    expect(asked.body.messages.at(-1).text).not.toContain("Market check");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(asked.body.goals).toHaveLength(2);
+
+    const cloud = await turn("Is cloud computer work refused for the Launch note routine?");
+    expect(cloud.status).toBe(200);
+    expect(cloud.body.messages.at(-1).text).toBe(routineCloudComputerCopy("Launch note", true));
+    expect(cloud.body.messages.at(-1).text).toContain("“Launch note” has no cloud-computer refusal in the record.");
+    expect(cloud.body.messages.at(-1).text).toContain("Asking does not turn cloud access on.");
+    expect(cloud.body.messages.at(-1).text).not.toContain("has no reachable computer");
+    expect(cloud.body.messages.at(-1).text).not.toContain("recover a computer");
+    expect(cloud.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const local = await turn("Is local computer work refused for the Launch note routine?");
+    expect(local.status).toBe(200);
+    expect(local.body.messages.at(-1).text).toBe(routineLocalComputerCopy("Launch note", true));
+    expect(local.body.messages.at(-1).text).toContain("“Launch note” has no local-computer refusal in the record.");
+    expect(local.body.messages.at(-1).text).toContain("Asking does not turn local access on.");
+    expect(local.body.messages.at(-1).text).not.toContain("has no reachable computer");
+    expect(local.body.messages.at(-1).text).not.toContain("reachable computer");
+    expect(local.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const source = await turn("Can the Launch note routine reach its source?");
+    expect(source.status).toBe(200);
+    expect(source.body.messages.at(-1).text).toBe(routineSourceCopy("Launch note", true));
+    expect(source.body.messages.at(-1).text).toContain("“Launch note” has no source system in the record.");
+    expect(source.body.messages.at(-1).text).toContain("Asking does not connect a computer.");
+    expect(source.body.messages.at(-1).text).not.toContain("has no reachable computer");
+    expect(source.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const locked = await turn("Is the team rule for the Launch note routine locked?");
+    expect(locked.status).toBe(200);
+    expect(locked.body.messages.at(-1).text).toBe(routineLockedTeamRuleCopy("Launch note", true));
+    expect(locked.body.messages.at(-1).text).toContain("“Launch note” has no locked team rule in the record.");
+    expect(locked.body.messages.at(-1).text).not.toContain("has no reachable computer");
+    expect(locked.body.messages.at(-1).text).not.toContain("reachable computer");
+    expect(locked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const team = await turn("Which team rule blocks the Launch note routine?");
+    expect(team.body.messages.at(-1).text).toBe(routineTeamRuleCopy("Launch note", true));
+    expect(team.body.messages.at(-1).text).toContain("“Launch note” has no team rule in the record.");
+    expect(team.body.messages.at(-1).text).not.toContain("has no reachable computer");
+
+    const allow = await turn("Which allow-automatically rule covers the Launch note routine?");
+    expect(allow.body.messages.at(-1).text).toContain("“Launch note” has no allow-automatically rule in the record.");
+    expect(allow.body.messages.at(-1).text).not.toContain("reachable computer");
+
+    const askFirst = await turn("Which ask-first rule blocks the Launch note routine?");
+    expect(askFirst.body.messages.at(-1).text).toContain("“Launch note” has no ask-first rule in the record.");
+    expect(askFirst.body.messages.at(-1).text).not.toContain("reachable computer");
+
+    const matching = await turn("Which matching rule starts the Launch note routine?");
+    expect(matching.body.messages.at(-1).text).toContain("“Launch note” has no matching rule in the record.");
+    expect(matching.body.messages.at(-1).text).not.toContain("reachable computer");
+
+    const repository = await turn("Which repository starts the Launch note routine?");
+    expect(repository.body.messages.at(-1).text).toContain("“Launch note” has no source repository in the record.");
+    expect(repository.body.messages.at(-1).text).not.toContain("has no reachable computer");
+
+    const channel = await turn("Which channel starts the Launch note routine?");
+    expect(channel.body.messages.at(-1).text).toContain("“Launch note” has no source channel in the record.");
+    expect(channel.body.messages.at(-1).text).not.toContain("has no reachable computer");
+
+    const failed = await turn("What failure does the Launch note routine show?");
+    expect(failed.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(failed.body.messages.at(-1).text).not.toContain("reachable computer");
+
+    const usage = await turn("Has usage been paused for the Launch note routine?");
+    expect(usage.body.messages.at(-1).text).toContain("“Launch note” has no usage pause in the record.");
+    expect(usage.body.messages.at(-1).text).not.toContain("has no reachable computer");
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const quiet = await turn("Why hasn't the Launch note routine run?");
+    expect(quiet.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(quiet.body.messages.at(-1).text).not.toContain("reachable computer");
+    expect(quiet.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const gone = await turn("Can the Launch note routine reach its computer?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Can the Launch note routine reach its computer without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
 
   it("rejects an empty turn", async () => {
     const server = await boot();

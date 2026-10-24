@@ -562,6 +562,24 @@ export function loosensRoutineCloudComputer(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_REACHABLE_COMPUTER = /^(?:please,?\s+)?can the (.+) routine reach its computer$/i;
+
+export function routineReachableComputerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_REACHABLE_COMPUTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineReachableComputer(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineReachableComputerName(text)) return false;
+  if (!/^(?:please,?\s+)?can the .+ routine reach its computer\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
