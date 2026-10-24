@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -9096,6 +9096,113 @@ describe("Oriel server", () => {
     const missing = await turn("Which routines are active?", { goalId: "goal_missing" });
     expect(missing.status).toBe(404);
     const refused = await turn("Which routines are active without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").paused).not.toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(still.messages.at(-1).text).toContain("“Launch note” is paused.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F100 names each disabled routine and leaves the pauses", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const empty = await turn("Which routines are disabled?");
+    expect(empty.status).toBe(200);
+    expect(empty.body.goals).toHaveLength(0);
+    expect(empty.body.routines).toHaveLength(0);
+    expect(empty.body.messages.at(-1).text).toBe(disabledRoutinesCopy([]));
+    expect(empty.body.messages.at(-1).text).toContain("No routine is disabled.");
+    expect(empty.body.trust).toContain("Asking which routines are disabled");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+    const noneDisabled = await turn("Please, which routines are disabled?", { goalId, skillId: "missing-skill" });
+    expect(noneDisabled.status).toBe(200);
+    expect(noneDisabled.body.messages.at(-1).text).toBe(disabledRoutinesCopy(noneDisabled.body.routines));
+    expect(noneDisabled.body.messages.at(-1).text).toContain("No routine is disabled.");
+    expect(noneDisabled.body.messages.at(-1).text).not.toContain("Launch note");
+    expect(noneDisabled.body.routines.every((routine: { paused: boolean }) => routine.paused !== true)).toBe(true);
+    expect(noneDisabled.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    const deskBody = await desk.json();
+    expect(deskBody.paused).toBe(true);
+    const duringDesk = await turn("Which routines are disabled?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("No routine is disabled.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Launch note");
+    expect(duringDesk.body.routines.every((routine: { paused: boolean }) => routine.paused !== true)).toBe(true);
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Market check").paused).not.toBe(true);
+    const listed = await turn("Which routines are disabled?");
+    expect(listed.body.messages.at(-1).text).toBe(disabledRoutinesCopy(listed.body.routines));
+    expect(listed.body.messages.at(-1).text).toContain("“Launch note” is disabled.");
+    expect(listed.body.messages.at(-1).text).not.toContain("Market check");
+    expect(listed.body.messages.at(-1).text).not.toContain("I sent");
+    expect(listed.body.messages.at(-1).text).not.toContain("is paused");
+    expect(listed.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(listed.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(listed.body.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBeNull();
+    expect(listed.body.goals).toHaveLength(2);
+
+    const oneAsk = await turn("Is the Launch note routine enabled?");
+    expect(oneAsk.body.messages.at(-1).text).toContain("“Launch note” is not enabled. A wake does not run it.");
+    const activeAsk = await turn("Is the Market check routine active?");
+    expect(activeAsk.body.messages.at(-1).text).toContain("“Market check” is active.");
+    const pausedAsk = await turn("Is the Launch note routine paused?");
+    expect(pausedAsk.body.messages.at(-1).text).toContain("“Launch note” is paused. A wake does not run it.");
+    const activeList = await turn("Which routines are active?");
+    expect(activeList.body.messages.at(-1).text).toContain("“Market check” is active.");
+    expect(activeList.body.messages.at(-1).text).not.toContain("Launch note");
+    expect(activeList.body.messages.at(-1).text).not.toContain("Disabled routines.");
+    const enabledList = await turn("Which routines are enabled?");
+    expect(enabledList.body.messages.at(-1).text).toContain("“Market check” is enabled.");
+    expect(enabledList.body.messages.at(-1).text).not.toContain("Launch note");
+    const pausedList = await turn("Which routines are paused?");
+    expect(pausedList.body.messages.at(-1).text).toContain("“Launch note” is paused. A wake does not run it.");
+    expect(pausedList.body.messages.at(-1).text).not.toContain("Market check");
+    expect(pausedList.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(pausedList.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const missing = await turn("Which routines are disabled?", { goalId: "goal_missing" });
+    expect(missing.status).toBe(404);
+    const refused = await turn("Which routines are disabled without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
