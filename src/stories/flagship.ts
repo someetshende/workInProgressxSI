@@ -2303,6 +2303,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F122",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether the approval for one routine is blocked",
+      title: "Say that one routine has no blocked approval and do not reject an approval",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no blocked approval in the record, so that I can check the work without rejecting an approval.",
+      acceptance: [
+        "Saying whether the approval for the Launch note routine is blocked says that one routine has no blocked approval in the record.",
+        "Asking does not reject an approval, does not cancel an approval, and does not send a replacement instruction.",
+        "A stored run is not a blocked approval. A readable attachment is not one. The readable-attachment answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
