@@ -7000,6 +7000,76 @@ test("ORIEL-F81 what one routine delivered says there is no delivery and runs no
   await page.screenshot({ path: "test-results/oriel-routine-deliver.png" });
 });
 
+test("ORIEL-F82 run one named routine leaves the schedule and is not a delivery", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Run the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+  );
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstLast = page.locator("[data-testid^='last-run-']").nth(0);
+  const firstDelivery = page.locator("[data-testid^='delivery-']").nth(0);
+  await expect(firstLast).toHaveText("Has not run");
+  await expect(firstDelivery).toHaveText("No delivery");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondLast = page.locator("[data-testid^='last-run-']").nth(1);
+  const secondDelivery = page.locator("[data-testid^='delivery-']").nth(1);
+  await expect(secondLast).toHaveText("Has not run");
+  await expect(secondDelivery).toHaveText("No delivery");
+  await expect(page.getByTestId("schedule-hint")).toContainText("Say run and the routine's name to run that one.");
+  const nextTitle = await secondCadence.getAttribute("title");
+  expect(nextTitle).toContain("Next wake");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Run the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "Ran “Draft the weekly close but do not send it”. The instruction stays in the record. The cadence and the next time stay. Another routine keeps its instruction, its cadence, and its next time.",
+  );
+  await expect(page.getByTestId("thread")).toContainText("A last run is not a delivery. Nothing was sent or spent.");
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(3);
+  await expect(firstLast).not.toHaveText("Has not run");
+  const shown = await firstLast.innerText();
+  await expect(secondLast).toHaveText("Has not run");
+  await expect(firstDelivery).toHaveText("No delivery");
+  await expect(secondDelivery).toHaveText("No delivery");
+  await expect(firstCadence).toHaveText("Daily");
+  await expect(secondCadence).toHaveText("Hourly");
+  expect(await secondCadence.getAttribute("title")).toBe(nextTitle);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.getByTestId("composer").fill("What did the Draft the weekly close but do not send it routine deliver?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "“Draft the weekly close but do not send it” has no delivery in the record. A last run does not confirm the result. Another routine is unchanged.",
+  );
+  await expect(firstLast).toHaveText(shown);
+  await expect(secondLast).toHaveText("Has not run");
+  await expect(firstDelivery).toHaveText("No delivery");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-routine-run.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

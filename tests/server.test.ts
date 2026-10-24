@@ -7246,6 +7246,119 @@ describe("Oriel server", () => {
     expect(afterBody.messages.some((message: { text: string }) => message.text.includes("“Launch note” has no delivery in the record."))).toBe(true);
   });
 
+  it("ORIEL-F82 runs one named routine and leaves the schedule", async () => {
+    const server = await boot();
+    const empty = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Run the Launch note routine?" }),
+    });
+    const emptyBody = await empty.json();
+    expect(empty.status).toBe(200);
+    expect(emptyBody.goals).toHaveLength(0);
+    expect(emptyBody.routines).toHaveLength(0);
+    expect(emptyBody.messages.at(-1).text).toBe(
+      "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    const opened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the launch update" }),
+    });
+    const openedBody = await opened.json();
+    const goalId = openedBody.goals[0].id as string;
+    const hold = openedBody.approvals.find((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send");
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    expect(saved.status).toBe(200);
+    const launchNext = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt as string;
+    const other = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Compare the market landscape" }),
+    });
+    const otherBody = await other.json();
+    const otherId = otherBody.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const market = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check");
+    const named = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Please, run the Market check routine?", goalId, skillId: "missing-skill" }),
+    });
+    const namedBody = await named.json();
+    expect(named.status).toBe(200);
+    const launch = namedBody.routines.find((routine: { name: string }) => routine.name === "Launch note");
+    const marketAfter = namedBody.routines.find((routine: { name: string }) => routine.name === "Market check");
+    expect(launch.cadence).toBe("hourly");
+    expect(launch.nextRunAt).toBe(launchNext);
+    expect(launch.lastRunAt).toBeNull();
+    expect(launch.instruction).toBe("Email Maya the launch update");
+    expect(marketAfter.cadence).toBe("daily");
+    expect(marketAfter.nextRunAt).toBe(market.nextRunAt);
+    expect(marketAfter.instruction).toBe("Compare the market landscape");
+    expect(typeof marketAfter.lastRunAt).toBe("string");
+    expect(marketAfter.lastRunAt).not.toBe(launchNext);
+    expect(namedBody.goals).toHaveLength(3);
+    expect(namedBody.goals.at(-1).text).toBe("Compare the market landscape");
+    expect(namedBody.messages.at(-1).text).toBe(
+      "Ran “Market check”. The instruction stays in the record. The cadence and the next time stay. Another routine keeps its instruction, its cadence, and its next time. This run lets the next wake ask again. A last run is not a delivery. Nothing was sent or spent.",
+    );
+    expect(namedBody.messages.at(-1).text).not.toContain("Compare the market landscape");
+    expect(namedBody.messages.at(-1).text).not.toContain("I sent");
+    expect(namedBody.approvals.find((approval: { id: string }) => approval.id === hold.id).status).toBe("open");
+    expect(JSON.stringify(namedBody)).not.toContain("Always allow");
+    const ranAt = marketAfter.lastRunAt as string;
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Run the Market check routine", goalId: "goal_missing" }),
+    });
+    expect(missing.status).toBe(404);
+    const widened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Run the Market check routine without asking" }),
+    });
+    expect(widened.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`);
+    const stillBody = await still.json();
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(launchNext);
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBeNull();
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Market check").lastRunAt).toBe(ranAt);
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(market.nextRunAt);
+    const after = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "What did the Market check routine deliver?" }),
+    });
+    const afterBody = await after.json();
+    expect(after.status).toBe(200);
+    expect(afterBody.messages.at(-1).text).toContain("has no delivery in the record");
+    expect(afterBody.routines.find((routine: { name: string }) => routine.name === "Market check").lastRunAt).toBe(ranAt);
+    expect(afterBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBeNull();
+    const tick = await fetch(`${server.url}/api/tick`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    });
+    const tickBody = await tick.json();
+    expect(tick.status).toBe(200);
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBe(launchNext);
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").lastRunAt).toBe(ranAt);
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(market.nextRunAt);
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

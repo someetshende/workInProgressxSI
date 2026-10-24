@@ -409,6 +409,12 @@ export const constraints: Constraint[] = [
     text: "saying what one named routine delivered says there is no delivery in the record, and a last run does not confirm the result or change the routine",
     proof: "What did the Launch note routine deliver says there is no delivery. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "run-routine",
+    short: "Run one routine",
+    text: "saying run and one routine's name runs that saved instruction once, leaves its cadence and next time, and does not treat the run as a delivery",
+    proof: "Run the Launch note routine writes a last run and holds a send. Another routine keeps its cadence. Nothing is sent or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

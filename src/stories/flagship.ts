@@ -1543,6 +1543,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F82",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Run one routine",
+      title: "Run one named routine and leave the schedule",
+      story:
+        "As a chief of staff, I want Oriel to run one saved routine when I name it, so that the work happens once and the schedule stays where I left it.",
+      acceptance: [
+        "Saying run the Launch note routine runs that one routine, writes its last run, and leaves its cadence, next time, and instruction.",
+        "Another routine keeps its instruction, cadence, and next time. A last run is not a delivery. A send still waits on a hold.",
+        "Running does not send mail or move money, does not approve an open hold, and does not take always-allow.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

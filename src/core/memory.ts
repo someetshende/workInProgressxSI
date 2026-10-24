@@ -239,3 +239,21 @@ export function loosensRoutineDeliver(text: string): boolean {
   if (!/^(?:please,?\s+)?what did the .+ routine deliver\b/i.test(value)) return false;
   return ROUTINE_LOOSEN.test(value);
 }
+
+const ROUTINE_RUN = /^(?:please,?\s+)?run the (.+) routine$/i;
+
+export function routineRunName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_RUN.exec(value);
+  if (!match) return null;
+  const name = (match[1] ?? "").trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ").trim();
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRun(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRunName(text)) return false;
+  if (!/^(?:please,?\s+)?run the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}

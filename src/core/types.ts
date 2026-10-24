@@ -223,6 +223,8 @@ export type Deps = {
   holdWindowMs?: number;
   /** Set by a wake so a denied kind is not raised again until the person sends a message. */
   wakeFrom?: string;
+  /** Set while a routine is already running, so its instruction is not read as another spoken run. */
+  running?: boolean;
 };
 
 export type SeatChoice = {
