@@ -2322,6 +2322,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F123",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether the computer for one routine is still setting up",
+      title: "Say that one routine has no computer setup and do not restart the app",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no computer setup in the record, so that I can check the work without restarting the app.",
+      acceptance: [
+        "Saying whether the computer for the Launch note routine is still setting up says that one routine has no computer setup in the record.",
+        "Asking does not restart the app, does not check for an app update, and does not update the computer.",
+        "A stored run is not a computer setup. A blocked approval is not one. The blocked-approval answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

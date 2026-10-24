@@ -670,6 +670,24 @@ export function loosensRoutineBlockedApproval(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_COMPUTER_SETUP = /^(?:please,?\s+)?is the computer for the (.+) routine still setting up$/i;
+
+export function routineComputerSetupName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_COMPUTER_SETUP.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineComputerSetup(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineComputerSetupName(text)) return false;
+  if (!/^(?:please,?\s+)?is the computer for the .+ routine still setting up\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
