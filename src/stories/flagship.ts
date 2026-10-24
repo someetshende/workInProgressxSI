@@ -1999,6 +1999,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F106",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether usage has been paused for one routine",
+      title: "Say that one routine has no usage pause and do not pause account access",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no usage pause in the record, so that I can check the troubleshooting step without pausing account access.",
+      acceptance: [
+        "Saying has usage been paused for the Launch note routine says that one routine has no usage pause in the record.",
+        "Asking does not pause account access, does not pause the routine, does not connect a computer or a plugin, and does not assign Grok Bot, Dots, or Muse.",
+        "A desk-wide pause does not invent a usage pause. The source answer and the plugin answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
