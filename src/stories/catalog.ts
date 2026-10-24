@@ -379,6 +379,12 @@ export const constraints: Constraint[] = [
     text: "saying stop the named routine sets that one routine to manual, leaves its instruction, and does not change another routine",
     proof: "Stop the Launch note routine keeps that instruction and stops its wake. Another routine keeps its cadence. Nothing is sent or spent.",
   },
+  {
+    id: "list-schedule",
+    short: "List the schedule",
+    text: "saying what is scheduled names each saved routine once, in the order it was saved, with its cadence, and does not run one",
+    proof: "What is scheduled names each routine and its cadence. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

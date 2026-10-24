@@ -458,6 +458,13 @@ function renderRail() {
 
   if (state.routines.length) {
     rail.append(el("p", { class: "label", text: "Routines" }));
+    rail.append(
+      el("p", {
+        class: "rule-note",
+        "data-testid": "schedule-hint",
+        text: "Ask what is scheduled. Asking does not run a routine.",
+      }),
+    );
     for (const routine of state.routines) {
       const cadence = routine.cadence === "daily" || routine.cadence === "hourly" ? routine.cadence : "manual";
       const label = cadence === "daily" ? "Daily" : cadence === "hourly" ? "Hourly" : "Manual";

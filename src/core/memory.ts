@@ -154,3 +154,16 @@ export function loosensStopRoutine(text: string): boolean {
   if (!/^(?:please\s+)?stop the .+ routine\b/i.test(value)) return false;
   return ROUTINE_LOOSEN.test(value);
 }
+
+const SCHEDULE_READ = /^(?:please,?\s+)?what(?:['’]s| is) scheduled$/i;
+
+export function isScheduleRead(text: string): boolean {
+  return SCHEDULE_READ.test(tidySentence(text));
+}
+
+export function loosensScheduleRead(text: string): boolean {
+  const value = tidySentence(text);
+  if (isScheduleRead(text)) return false;
+  if (!/^(?:please,?\s+)?what(?:['’]s| is) scheduled\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}

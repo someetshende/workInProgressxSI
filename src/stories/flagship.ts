@@ -1448,6 +1448,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F77",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "List the schedule",
+      title: "List each saved routine and leave it alone",
+      story:
+        "As a chief of staff, I want Oriel to name each saved routine and its cadence, so that I can see the schedule without running anything.",
+      acceptance: [
+        "Saying what is scheduled names each saved routine once, in the order it was saved, with its cadence.",
+        "The instruction, the cadence, the next time, and a completed action stay as they are, and nothing is run.",
+        "Asking does not send mail or move money, does not approve a hold, and does not call a bridge.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {

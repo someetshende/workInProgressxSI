@@ -6663,6 +6663,100 @@ describe("Oriel server", () => {
     expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Market check").cadence).toBe("daily");
   });
 
+  it("ORIEL-F77 names the schedule and leaves the routines", async () => {
+    const server = await boot();
+    const empty = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "What is scheduled?" }),
+    });
+    const emptyBody = await empty.json();
+    expect(empty.status).toBe(200);
+    expect(emptyBody.goals).toHaveLength(0);
+    expect(emptyBody.routines).toHaveLength(0);
+    expect(emptyBody.messages.at(-1).text).toBe(
+      "Nothing is scheduled. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    const opened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the launch update" }),
+    });
+    const openedBody = await opened.json();
+    const goalId = openedBody.goals[0].id as string;
+    const hold = openedBody.approvals.find((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send");
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    expect(saved.status).toBe(200);
+    const other = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Compare the market landscape" }),
+    });
+    const otherBody = await other.json();
+    const otherId = otherBody.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const market = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check");
+    const listed = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Please what's scheduled?", goalId, skillId: "missing-skill" }),
+    });
+    const listedBody = await listed.json();
+    expect(listed.status).toBe(200);
+    const launch = listedBody.routines.find((routine: { name: string }) => routine.name === "Launch note");
+    const marketAfter = listedBody.routines.find((routine: { name: string }) => routine.name === "Market check");
+    expect(launch.cadence).toBe("hourly");
+    expect(launch.lastRunAt).toBeNull();
+    expect(launch.instruction).toBe("Email Maya the launch update");
+    expect(marketAfter.cadence).toBe("daily");
+    expect(marketAfter.nextRunAt).toBe(market.nextRunAt);
+    expect(marketAfter.lastRunAt).toBeNull();
+    expect(listedBody.messages.at(-1).text).toBe(
+      "Scheduled. “Launch note” is hourly. “Market check” is daily. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(listedBody.messages.at(-1).text).not.toContain("I sent");
+    expect(listedBody.approvals.find((approval: { id: string }) => approval.id === hold.id).status).toBe("open");
+    expect(listedBody.goals).toHaveLength(2);
+    expect(JSON.stringify(listedBody)).not.toContain("Always allow");
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "What is scheduled?", goalId: "goal_missing" }),
+    });
+    expect(missing.status).toBe(404);
+    const widened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "What is scheduled without asking" }),
+    });
+    expect(widened.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`);
+    const stillBody = await still.json();
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(market.nextRunAt);
+    const tick = await fetch(`${server.url}/api/tick`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    });
+    const tickBody = await tick.json();
+    expect(tick.status).toBe(200);
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBeTruthy();
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").lastRunAt).toBeNull();
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(market.nextRunAt);
+    expect(tickBody.messages.some((message: { text: string }) => message.text.includes("“Launch note” is hourly."))).toBe(true);
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

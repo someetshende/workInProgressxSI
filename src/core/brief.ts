@@ -4,7 +4,7 @@ import { DISPLAY, phrase } from "./doctrine.js";
 import { TRUST } from "./doctrine.js";
 import { peopleIn } from "./memory.js";
 import { isForwardRequest, type SlackAskKind } from "./policy.js";
-import type { ApprovalKind, Brief, Goal, HandoffAction, LedgerEvent, Policy, SeatChoice, SeatNote } from "./types.js";
+import type { ApprovalKind, Brief, Cadence, Goal, HandoffAction, LedgerEvent, Policy, Routine, SeatChoice, SeatNote } from "./types.js";
 
 const KIND_HELD: Record<ApprovalKind, string> = {
   send: "I held the send for your approval.",
@@ -140,6 +140,22 @@ export function stopRoutineMissCopy(name: string): string {
 
 export function stopRoutineAmbiguousCopy(name: string): string {
   return `More than one routine is named ${quotedRoutine(name)}. Nothing was changed. A completed action stays completed. Nothing was sent or spent.`;
+}
+
+const SCHEDULE_TAIL =
+  "Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+
+function scheduleClause(name: string, cadence: Cadence): string {
+  const quoted = quotedRoutine(name);
+  if (cadence === "hourly") return `${quoted} is hourly.`;
+  if (cadence === "daily") return `${quoted} is daily.`;
+  return `${quoted} is manual and wakes only when you run it.`;
+}
+
+export function scheduleReadCopy(routines: Routine[]): string {
+  if (!routines.length) return `Nothing is scheduled. ${SCHEDULE_TAIL}`;
+  const lines = routines.map((routine) => scheduleClause(routine.name, routine.cadence)).join(" ");
+  return `Scheduled. ${lines} ${SCHEDULE_TAIL}`;
 }
 
 export function stayedSentence(kinds: ApprovalKind[]): string {

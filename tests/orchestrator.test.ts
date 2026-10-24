@@ -15234,6 +15234,216 @@ describe("ORIEL-F76", () => {
   });
 });
 
+describe("ORIEL-F77", () => {
+  it("ORIEL-F77 names each routine in save order and does not run one", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      expect(state.goals[0]?.brief.seatReads.map((note) => note.seat)).not.toContain("muse");
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      expect(state.approvals[0]?.status).toBe("approved");
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await runRoutine(state, state.routines[0]?.id ?? "", early);
+      const ranAt = state.routines[0]?.lastRunAt;
+      const instruction = state.routines[0]?.instruction;
+      expect(instruction).toBe("Email the client the launch note");
+      expect(ranAt).toBe("2026-10-23T12:00:00.000Z");
+      const runHold = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      expect(runHold).toBeTruthy();
+
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      const marketNext = state.routines[1]?.nextRunAt;
+      expect(marketNext).toBe("2026-10-24T12:00:00.000Z");
+      state.routines[0]!.nextRunAt = "2026-10-23T12:00:00.000Z";
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[1]!.heldBack = ["pay"];
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeStop = state.goals.length;
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+      const openBefore = state.approvals.filter((approval) => approval.status === "open").length;
+
+      state = await convene(state, "Please, what is scheduled?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.approvals.filter((approval) => approval.status === "open")).toHaveLength(openBefore);
+      expect(state.approvals[0]?.status).toBe("approved");
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(
+        "Scheduled. “Launch note” is hourly. “Market check” is daily. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+      );
+      expect(state.messages.at(-1)?.text).not.toContain("client");
+      expect(state.messages.at(-1)?.text).not.toContain("I sent");
+      expect(state.messages.at(-1)?.text).not.toContain("No charge was made.");
+      expect(state.events.some((event) => event.type === "schedule_read")).toBe(true);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const woke = await wakeDue(state, { ...deps, now: () => new Date("2026-10-23T12:30:00.000Z") });
+      expect(woke.goals).toHaveLength(beforeStop + 1);
+      expect(woke.routines[0]?.lastRunAt).toBe("2026-10-23T12:30:00.000Z");
+      expect(woke.routines[0]?.cadence).toBe("hourly");
+      expect(woke.routines[0]?.heldBack).toEqual(["send"]);
+      expect(woke.routines[0]?.instruction).toBe(instruction);
+      expect(woke.routines[0]?.nextRunAt).toBe("2026-10-23T13:30:00.000Z");
+      expect(woke.routines[1]?.lastRunAt).toBeNull();
+      expect(woke.routines[1]?.cadence).toBe("daily");
+      expect(woke.routines[1]?.nextRunAt).toBe(marketNext);
+      expect(woke.routines[1]?.heldBack).toEqual(["pay"]);
+      expect(woke.approvals.filter((approval) => approval.status === "open")).toHaveLength(openBefore);
+      expect(woke.approvals[0]?.status).toBe("approved");
+      expect(woke.messages.some((message) => message.text.includes("“Launch note” is hourly."))).toBe(true);
+      expect(woke.handoffRules).toEqual(rulesBefore);
+    });
+  });
+
+  it("ORIEL-F77 leaves a missing goal, a widened sentence, and a paused desk alone", async () => {
+    const early: Deps = { ...deps, now: () => new Date("2026-10-23T12:00:00.000Z") };
+    const none = await convene(initialState(), "What is scheduled?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(
+      "Nothing is scheduled. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(none.events.some((event) => event.type === "schedule_read")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    const secondId = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, secondId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    const thirdId = state.goals.at(-1)?.id ?? "";
+    state = saveRoutine(state, thirdId, "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    const listed =
+      "Scheduled. “Launch note” is hourly. “Launch note” is daily. “Market check” is hourly. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
+
+    state.routines[0]!.heldBack = ["send"];
+    const asked = await convene(state, "PLEASE what's SCHEDULED?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.routines[0]?.cadence).toBe("hourly");
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.instruction).toBe("Email Maya the launch update");
+    expect(asked.routines[1]?.cadence).toBe("daily");
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.cadence).toBe("hourly");
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(asked.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+    expect(asked.approvals.find((approval) => approval.goalId === secondId && approval.status === "open")?.kind).toBe("send");
+    expect(asked.messages.at(-1)?.text).toBe(listed);
+    expect(asked.messages.at(-1)?.text).not.toContain("I sent");
+
+    for (const text of ["Please, what is scheduled.", "What is scheduled??", "What’s scheduled"]) {
+      const again = await convene(state, text, undefined, early);
+      expect(again.messages.at(-1)?.text).toBe(listed);
+      expect(again.routines[0]?.heldBack).toEqual(["send"]);
+      expect(again.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(again.routines[2]?.nextRunAt).toBe(marketNext);
+      expect(again.goals).toHaveLength(goals);
+    }
+
+    const ruled = setHandoffRule(state, "delete", true, early, "shared project files");
+    const handed = await convene(ruled, "What is handed to me?", undefined, early);
+    expect(handed.messages.at(-1)?.text).toContain("shared project files");
+    expect(handed.messages.at(-1)?.text).not.toContain("Scheduled.");
+    expect(handed.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(handed.routines[1]?.cadence).toBe("daily");
+    const still = await convene(handed, "What is scheduled?", undefined, early);
+    expect(still.handoffRules).toEqual(handed.handoffRules);
+    expect(still.messages.at(-1)?.text).toBe(listed);
+    expect(still.routines[2]?.instruction).toBe("Summarize the launch risks");
+
+    const widenedBase = structuredClone(state);
+    widenedBase.routines[0]!.heldBack = ["send"];
+    const aside = await convene(widenedBase, "What is scheduled and email Maya", undefined, early);
+    expect(aside.goals).toHaveLength(goals + 1);
+    expect(aside.routines[0]?.cadence).toBe("hourly");
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(aside.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(aside.approvals.filter((approval) => approval.status === "open" && approval.kind === "send").length).toBeGreaterThan(0);
+    expect(aside.messages.at(-1)?.text).not.toContain("Nothing was run and nothing was changed.");
+
+    const other = await convene(state, "What is the schedule?", undefined, early);
+    expect(other.goals).toHaveLength(goals + 1);
+    expect(other.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(other.routines[1]?.cadence).toBe("daily");
+    expect(other.messages.at(-1)?.text.startsWith("Scheduled.")).toBe(false);
+    expect(other.messages.at(-1)?.text.startsWith("Nothing is scheduled.")).toBe(false);
+
+    const tomorrow = await convene(state, "What's scheduled for tomorrow", undefined, early);
+    expect(tomorrow.goals).toHaveLength(goals + 1);
+    expect(tomorrow.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(tomorrow.messages.at(-1)?.text).not.toContain("Nothing was run and nothing was changed.");
+
+    const paused = await convene(setPaused(state, true, early), "What is scheduled?", undefined, early);
+    expect(paused.paused).toBe(true);
+    expect(paused.goals).toHaveLength(goals);
+    expect(paused.routines[0]?.heldBack).toEqual(["send"]);
+    expect(paused.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(paused.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(paused.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(paused.messages.at(-1)?.text).toBe(listed);
+
+    const kept = structuredClone(state);
+    await expect(convene(kept, "What is scheduled without asking", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Please what's scheduled always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "What is scheduled and allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.cadence).toBe("hourly");
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(kept.routines[2]?.nextRunAt).toBe(marketNext);
+    await expect(convene(kept, "What is scheduled?", "goal_missing", early)).rejects.toThrow(/not in the record/);
+    expect(kept.goals).toHaveLength(goals);
+    expect(kept.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    const stopped = await convene(state, "Stop the Market check routine", undefined, early);
+    expect(stopped.routines[2]?.cadence).toBe("manual");
+    expect(stopped.routines[2]?.nextRunAt).toBeNull();
+    expect(stopped.routines[2]?.instruction).toBe("Summarize the launch risks");
+    expect(stopped.routines[0]?.cadence).toBe("hourly");
+    expect(stopped.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(stopped.routines[0]?.heldBack).toEqual(["send"]);
+    expect(stopped.routines[1]?.cadence).toBe("daily");
+    expect(stopped.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(stopped.goals).toHaveLength(goals);
+    const afterStop = await convene(stopped, "What is scheduled?", undefined, early);
+    expect(afterStop.messages.at(-1)?.text).toBe(
+      "Scheduled. “Launch note” is hourly. “Launch note” is daily. “Market check” is manual and wakes only when you run it. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(afterStop.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(afterStop.routines[2]?.cadence).toBe("manual");
+  });
+});
+
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [

@@ -6695,6 +6695,54 @@ test("ORIEL-F76 stop one named routine leaves the other manual control", async (
   await page.screenshot({ path: "test-results/oriel-stop-routine.png" });
 });
 
+test("ORIEL-F77 what is scheduled names each routine and runs none", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("schedule-hint")).toHaveCount(0);
+  await page.getByTestId("composer").fill("What is scheduled?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "Nothing is scheduled. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+  );
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  await expect(page.getByTestId("schedule-hint")).toContainText("Ask what is scheduled. Asking does not run a routine.");
+  const goal = page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])").nth(0);
+  await goal.click();
+  await expect(page.getByTestId("composer-context")).toContainText("Continuing");
+  await page.getByTestId("composer").fill("Please what's scheduled?");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "Scheduled. “Draft the weekly close but do not send it” is daily. “Summarize the launch risks” is hourly. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+  );
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(firstCadence).toHaveText("Daily");
+  await expect(secondCadence).toHaveText("Hourly");
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-schedule.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");
