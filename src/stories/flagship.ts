@@ -2170,6 +2170,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F115",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether the team rule for one routine can be edited",
+      title: "Say that one routine has no team rule to edit and do not edit one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no team rule to edit in the record, so that I can check an edit without editing, deleting, or locking a team rule.",
+      acceptance: [
+        "Saying can the team rule for the Launch note routine be edited says that one routine has no team rule to edit in the record.",
+        "Asking does not edit a team rule, does not delete a team rule, and does not lock a team rule.",
+        "A stored run is not a team rule to edit. A locked team rule is not one. The locked-team-rule answer and the team-rule answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

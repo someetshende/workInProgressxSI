@@ -526,6 +526,24 @@ export function loosensRoutineLockedTeamRule(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_TEAM_RULE_EDIT = /^(?:please,?\s+)?can the team rule for the (.+) routine be edited$/i;
+
+export function routineTeamRuleEditName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TEAM_RULE_EDIT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTeamRuleEdit(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTeamRuleEditName(text)) return false;
+  if (!/^(?:please,?\s+)?can the team rule for the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
