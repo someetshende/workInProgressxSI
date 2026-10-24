@@ -559,6 +559,12 @@ export const constraints: Constraint[] = [
     text: "saying is usage paused for one named routine says that routine has no usage pause in the record and does not pause account access or pause that routine or treat a desk-wide pause as a usage pause",
     proof: "Is usage paused for the Launch note routine says there is no usage pause. Asking does not pause account access. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-failure",
+    short: "Ask if one failed",
+    text: "saying did one named routine fail says that routine has no failure in the record and does not start a test run or treat a stored run or a desk-wide pause as a failure",
+    proof: "Did the Launch note routine fail says there is no failure. Asking does not start a test run. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

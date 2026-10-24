@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -23847,6 +23847,301 @@ describe("ORIEL-F106", () => {
     expect(plugin.routines[0]?.paused).toBe(true);
     expect(plugin.routines[0]?.nextRunAt).toBe(launchNext);
     expect(plugin.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+  });
+});
+
+describe("ORIEL-F107", () => {
+  it("ORIEL-F107 says one routine has no failure and does not start a test run", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T04:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+
+      state = await convene(state, "Please, did the Launch note routine fail?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(routineFailureCopy("Launch note", true));
+      expect(state.messages.at(-1)?.text).toContain("“Launch note” has no failure in the record.");
+      expect(state.messages.at(-1)?.text).toContain("Asking does not start a test run.");
+      expect(state.messages.at(-1)?.text).toContain("Another routine is unchanged.");
+      expect(state.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(state.messages.at(-1)?.text).not.toContain("Dots");
+      expect(state.messages.at(-1)?.text).not.toContain("Muse");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T02:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-23T11:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T05:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("Market check");
+      expect(state.messages.at(-1)?.text).not.toContain("Email the client");
+      expect(state.messages.at(-1)?.text).not.toContain("Wakes are paused");
+      expect(state.messages.at(-1)?.text).not.toContain("time zone");
+      expect(state.messages.at(-1)?.text).not.toContain("owning bot");
+      expect(state.messages.at(-1)?.text).not.toContain("required plugin");
+      expect(state.messages.at(-1)?.text).not.toContain("source system");
+      expect(state.events.some((event) => event.type === "routine_failure")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_ran")).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const openDesk = structuredClone(state);
+      openDesk.paused = false;
+      const still = await wakeDue(openDesk, early);
+      expect(still.routines[0]?.paused).toBe(true);
+      expect(still.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(still.routines[0]?.lastRunAt).toBe("2026-10-23T11:00:00.000Z");
+      expect(still.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(still.events.some((event) => event.type === "routine_ran")).toBe(false);
+
+      const market = await convene(state, "Did the Market check routine fail?", undefined, early);
+      expect(market.messages.at(-1)?.text).toBe(routineFailureCopy("Market check", true));
+      expect(market.messages.at(-1)?.text).toContain("“Market check” has no failure in the record.");
+      expect(market.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(market.messages.at(-1)?.text).not.toContain("2026-10-24T05:00:00.000Z");
+      expect(market.routines[1]?.paused).not.toBe(true);
+      expect(market.routines[0]?.paused).toBe(true);
+      expect(market.paused).toBe(true);
+      expect(market.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(market.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(market.routines[0]?.heldBack).toEqual(["send"]);
+      expect(market.routines[0]?.instruction).toBe(routinesBefore[0]?.instruction);
+      expect(market.routines[0]?.recentRuns).toEqual(["2026-10-23T11:00:00.000Z"]);
+
+      const source = await convene(market, "Can the Launch note routine reach its source?", undefined, early);
+      expect(source.messages.at(-1)?.text).toBe(routineSourceCopy("Launch note", true));
+      expect(source.messages.at(-1)?.text).toContain("“Launch note” has no source system in the record.");
+      expect(source.messages.at(-1)?.text).not.toContain("usage pause");
+      expect(source.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(source.routines[0]?.paused).toBe(true);
+
+      const plugin = await convene(source, "Which plugins does the Launch note routine need?", undefined, early);
+      expect(plugin.messages.at(-1)?.text).toBe(routinePluginCopy("Launch note", true));
+      expect(plugin.messages.at(-1)?.text).toContain("“Launch note” has no required plugin in the record.");
+      expect(plugin.messages.at(-1)?.text).not.toContain("usage pause");
+      expect(plugin.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(plugin.routines[0]?.paused).toBe(true);
+
+      const usage = await convene(plugin, "Is usage paused for the Launch note routine?", undefined, early);
+      expect(usage.messages.at(-1)?.text).toBe(routineUsageCopy("Launch note", true));
+      expect(usage.messages.at(-1)?.text).toContain("“Launch note” has no usage pause in the record.");
+      expect(usage.messages.at(-1)?.text).not.toContain("has no failure");
+      expect(usage.routines[0]?.recentRuns).toEqual(["2026-10-23T11:00:00.000Z"]);
+      expect(usage.events.some((event) => event.type === "routine_ran")).toBe(false);
+    });
+  });
+
+  it("ORIEL-F107 leaves two names, a desk pause, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T07:00:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), "Did the Launch note routine fail?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineFailureMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_failure")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    const launchInstruction = state.routines[0]?.instruction;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state.routines[1]!.recentRuns = ["2026-10-24T01:00:00.000Z"];
+    state.routines[1]!.lastRunAt = "2026-10-24T01:00:00.000Z";
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = true;
+
+    const asked = await convene(state, "PLEASE, did the Launch note routine fail?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineFailureAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).toContain("More than one routine has that name");
+    expect(asked.messages.at(-1)?.text).not.toContain("has no failure");
+    expect(asked.messages.at(-1)?.text).not.toContain("Asking does not start a test run.");
+    expect(asked.messages.at(-1)?.text).not.toContain("Market check");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.instruction).toBe(launchInstruction);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(asked.routines[1]?.paused).toBe(true);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.paused).not.toBe(true);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(asked.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    for (const text of [
+      "Please, did the Launch note routine fail.",
+      "Did the Launch note routine fail??",
+    ]) {
+      const again = await convene(state, text, undefined, early);
+      expect(again.messages.at(-1)?.text).toBe(routineFailureAmbiguousCopy("Launch note"));
+      expect(again.routines[0]?.heldBack).toEqual(["send"]);
+      expect(again.routines[0]?.paused).toBe(true);
+      expect(again.routines[1]?.paused).toBe(true);
+      expect(again.routines[2]?.nextRunAt).toBe(marketNext);
+      expect(again.goals).toHaveLength(goals);
+    }
+    const lower = await convene(state, "did the launch note routine fail", undefined, early);
+    expect(lower.messages.at(-1)?.text).toBe(routineFailureAmbiguousCopy("launch note"));
+    expect(lower.messages.at(-1)?.text).not.toContain("has no failure");
+    expect(lower.routines[0]?.paused).toBe(true);
+    expect(lower.routines[1]?.paused).toBe(true);
+    expect(lower.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(lower.goals).toHaveLength(goals);
+
+    const one = structuredClone(state);
+    one.routines.splice(1, 1);
+    const named = await convene(one, 'Did the "Launch note" routine fail?', undefined, early);
+    expect(named.messages.at(-1)?.text).toBe(routineFailureCopy("Launch note", true));
+    expect(named.messages.at(-1)?.text).toContain("“Launch note” has no failure in the record.");
+    expect(named.messages.at(-1)?.text).not.toContain("Grok Bot");
+    expect(named.messages.at(-1)?.text).not.toContain(String(launchNext));
+    expect(named.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(named.routines[1]?.nextRunAt).toBe(marketNext);
+    expect(named.routines[0]?.paused).toBe(true);
+    expect(named.routines[1]?.paused).not.toBe(true);
+    expect(named.routines[0]?.cadence).toBe("hourly");
+    expect(named.routines[0]?.lastRunAt).toBe("2026-10-24T03:00:00.000Z");
+
+    const quoted = await convene(one, "Did the “Launch note” routine fail?", undefined, early);
+    expect(quoted.messages.at(-1)?.text).toBe(routineFailureCopy("Launch note", true));
+    expect(quoted.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(quoted.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const marketAsk = await convene(setPaused(one, true, early), "Did the Market check routine fail?", undefined, early);
+    expect(marketAsk.paused).toBe(true);
+    expect(marketAsk.messages.at(-1)?.text).toBe(routineFailureCopy("Market check", true));
+    expect(marketAsk.messages.at(-1)?.text).toContain("“Market check” has no failure in the record.");
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+    expect(marketAsk.messages.at(-1)?.text).not.toContain(String(marketNext));
+    expect(marketAsk.routines[0]?.paused).toBe(true);
+    expect(marketAsk.routines[1]?.paused).not.toBe(true);
+    expect(marketAsk.routines[1]?.nextRunAt).toBe(marketNext);
+
+    const solo = structuredClone(one);
+    solo.routines.splice(1, 1);
+    const alone = await convene(solo, "Did the Launch note routine fail?", undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(routineFailureCopy("Launch note", false));
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+    expect(alone.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(alone.routines[0]?.paused).toBe(true);
+    expect(alone.routines).toHaveLength(1);
+
+    const widened = structuredClone(one);
+    const aside = await convene(widened, "Did the Launch note routine fail and email Maya", undefined, early);
+    expect(aside.goals.length).toBeGreaterThan(one.goals.length);
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[0]?.paused).toBe(true);
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[1]?.nextRunAt).toBe(marketNext);
+    expect(aside.messages.at(-1)?.text).not.toContain("has no failure");
+    expect(aside.messages.at(-1)?.text).not.toContain("Asking does not start a test run.");
+
+    const near = await convene(one, "Did the Launch notes routine fail?", undefined, early);
+    expect(near.goals).toHaveLength(one.goals.length);
+    expect(near.messages.at(-1)?.text).toBe(routineFailureMissCopy("Launch notes"));
+    expect(near.routines[0]?.paused).toBe(true);
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(near.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(near.routines[1]?.nextRunAt).toBe(marketNext);
+
+    for (const text of [
+      "Did the routine fail?",
+      "Did the Launch note routines fail?",
+      "Did the Launch note routine fail yet?",
+      "Don't ask if the Launch note routine failed",
+    ]) {
+      const ordinary = await convene(one, text, undefined, early);
+      expect(ordinary.goals.length).toBeGreaterThan(one.goals.length);
+      expect(ordinary.routines[0]?.paused).toBe(true);
+      expect(ordinary.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(ordinary.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("has no failure");
+      expect(ordinary.messages.at(-1)?.text).not.toContain("There is no such routine");
+    }
+
+    const kept = structuredClone(one);
+    await expect(convene(kept, "Did the Launch note routine fail without asking", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "Please did the Launch note routine fail always allow", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(
+      convene(kept, "Did the Launch note routine fail and allow for this site", undefined, early),
+    ).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(kept.routines[1]?.nextRunAt).toBe(marketNext);
+    expect(kept.goals).toHaveLength(one.goals.length);
+    await expect(convene(kept, "Did the Launch note routine fail?", "goal_missing", early)).rejects.toThrow(
+      /not in the record/,
+    );
+    expect(kept.goals).toHaveLength(one.goals.length);
+    expect(kept.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const source = await convene(one, "Can the Launch note routine reach its source?", undefined, early);
+    expect(source.messages.at(-1)?.text).toContain("“Launch note” has no source system in the record.");
+    expect(source.messages.at(-1)?.text).not.toContain("usage pause");
+    expect(source.routines[0]?.nextRunAt).toBe(launchNext);
+    const plugin = await convene(one, "Which plugins does the Launch note routine need?", undefined, early);
+    expect(plugin.messages.at(-1)?.text).toContain("“Launch note” has no required plugin in the record.");
+    expect(plugin.messages.at(-1)?.text).not.toContain("usage pause");
+    expect(plugin.routines[0]?.paused).toBe(true);
+    expect(plugin.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(plugin.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const usage = await convene(one, "Is usage paused for the Launch note routine?", undefined, early);
+    expect(usage.messages.at(-1)?.text).toContain("“Launch note” has no usage pause in the record.");
+    expect(usage.messages.at(-1)?.text).not.toContain("has no failure");
+    expect(usage.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(usage.routines[0]?.paused).toBe(true);
+    expect(usage.routines[0]?.nextRunAt).toBe(launchNext);
   });
 });
 
