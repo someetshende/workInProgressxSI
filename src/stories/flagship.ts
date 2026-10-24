@@ -2721,6 +2721,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F144",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine uses one computer of its own in Slack channels, threads, group DMs, and group chats",
+      title: "Say that one routine has no group computer and do not give the group its own computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no group computer in the record, so that I can check the work without giving the group its own computer.",
+      acceptance: [
+        "Saying whether the Launch note routine uses one computer of its own in Slack channels, threads, group DMs, and group chats says that one routine has no group computer in the record.",
+        "Asking does not give the group its own computer, does not assign a channel computer, and does not lend the group a machine.",
+        "A stored run is not a group computer. A team bench is not one. The team-bench answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

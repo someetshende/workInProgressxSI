@@ -1048,6 +1048,24 @@ export function loosensRoutineTeamBench(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_GROUP_COMPUTER = /^(?:please,?\s+)?does the (.+) routine use one computer of its own in slack channels, threads, group dms, and group chats$/i;
+
+export function routineGroupComputerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_GROUP_COMPUTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineGroupComputer(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineGroupComputerName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine use one computer of its own in slack channels, threads, group dms, and group chats\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
