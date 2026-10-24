@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -15320,6 +15320,174 @@ describe("Oriel server", () => {
     const gone = await turn("Does a normal recovery for the Launch note routine replace uncommitted state?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Does a normal recovery for the Launch note routine replace uncommitted state without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+
+  it("ORIEL-F137 says one routine has no work surface and does not merge the screens", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Is a screen for the Launch note routine a separate security boundary?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineWorkSurfaceMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether a screen for one named routine is a separate security boundary");
+    expect(missing.body.trust).toContain("has no work surface in the record");
+    expect(missing.body.trust).toContain("Asking does not merge the screens");
+    expect(missing.body.trust).toContain("does not change a security boundary");
+    expect(missing.body.trust).toContain("does not delete a temporary directory");
+    expect(missing.body.trust).toContain("does not recover a computer");
+    expect(missing.body.trust).toContain("does not refresh the software");
+    expect(missing.body.trust).toContain("does not install an app");
+    expect(missing.body.trust).toContain("does not update the computer");
+    expect(missing.body.trust).toContain("does not remove an installed app");
+    expect(missing.body.trust).toContain("does not remove a package");
+    expect(missing.body.trust).toContain("does not move the saved files");
+    expect(missing.body.trust).toContain("does not move the saved chat");
+    expect(missing.body.trust).toContain("does not rebuild the computer");
+    expect(missing.body.trust).toContain("does not reset the computer");
+    expect(missing.body.trust).toContain("does not redirect the screen");
+    expect(missing.body.trust).toContain("does not open the computer");
+    expect(missing.body.trust).toContain("does not take a destructive step");
+    expect(missing.body.trust).toContain("The short reply says Asking does not merge the screens");
+    expect(missing.body.trust).toContain("The scratch-folder reply still says Asking does not delete a temporary directory");
+    expect(missing.body.trust).toContain("The row says No work surface");
+    expect(missing.body.trust).toContain("The row test id is work-surface-");
+    expect(missing.body.trust).toContain("does not say there is no work surface");
+    expect(missing.body.trust).toContain("does not name a work surface");
+    expect(missing.body.trust).toContain("A failure is not a work surface");
+    expect(missing.body.trust).toContain("A scratch folder is not a work surface");
+    expect(missing.body.trust).toContain("A software refresh is not a work surface");
+    expect(missing.body.trust).toContain("A kept-file is not a work surface");
+    expect(missing.body.trust).toContain("An app update is not a work surface");
+    expect(missing.body.trust).toContain("A computer setup is not a work surface");
+    expect(missing.body.trust).toContain("A login wait is not a work surface");
+    expect(missing.body.trust).toContain("A stored run is not a work surface");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a work surface");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a work surface");
+    expect("has no work surface".includes("has no scratch folder")).toBe(false);
+    expect("has no scratch folder".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no software refresh")).toBe(false);
+    expect("has no software refresh".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no kept-file")).toBe(false);
+    expect("has no kept-file".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no kept conversation")).toBe(false);
+    expect("has no kept conversation".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no finish-before-rebuild")).toBe(false);
+    expect("has no finish-before-rebuild".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no active screen task")).toBe(false);
+    expect("has no active screen task".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no app update")).toBe(false);
+    expect("has no app update".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no computer setup")).toBe(false);
+    expect("has no computer setup".includes("has no work surface")).toBe(false);
+    expect("has no work surface".includes("has no login wait")).toBe(false);
+    expect("has no login wait".includes("has no work surface")).toBe(false);
+    expect("Asking does not merge the screens.".includes("Asking does not delete a temporary directory.")).toBe(false);
+    expect("Asking does not delete a temporary directory.".includes("Asking does not merge the screens.")).toBe(false);
+    expect("Asking does not merge the screens.".includes("Asking does not refresh the software.")).toBe(false);
+    expect("Asking does not refresh the software.".includes("Asking does not merge the screens.")).toBe(false);
+    expect("Asking does not merge the screens.".includes("Asking leaves the saved files in place.")).toBe(false);
+    expect("Asking leaves the saved files in place.".includes("Asking does not merge the screens.")).toBe(false);
+    expect("Asking does not merge the screens.".includes("Asking does not redirect the screen.")).toBe(false);
+    expect("Asking does not redirect the screen.".includes("Asking does not merge the screens.")).toBe(false);
+    expect("Asking does not merge the screens.".includes("Asking does not recover a computer.")).toBe(false);
+    expect("Asking does not recover a computer.".includes("Asking does not merge the screens.")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineWorkSurfaceCopy("Launch note", true)).toContain("Asking does not merge the screens.");
+    expect(routineWorkSurfaceCopy("Launch note", true)).not.toContain("security");
+    expect(routineWorkSurfaceCopy("Launch note", true)).not.toContain("boundary");
+    expect(routineWorkSurfaceCopy("Launch note", true)).not.toContain("separate");
+    expect(routineWorkSurfaceCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineScratchFolderCopy("Launch note", true)).not.toContain("has no work surface");
+    expect(routineScratchFolderCopy("Launch note", true)).toContain("Asking does not delete a temporary directory.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, is a screen for the Launch note routine a separate security boundary?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineWorkSurfaceCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no work surface in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not merge the screens.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no scratch folder");
+    expect(clear.body.messages.at(-1).text).not.toContain("security");
+    expect(clear.body.messages.at(-1).text).not.toContain("boundary");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Is a screen for the Launch note routine a separate security boundary?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no work surface in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Is a screen for the Launch note routine a separate security boundary?");
+    expect(asked.body.messages.at(-1).text).toBe(routineWorkSurfaceCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const scratchLeft = await turn("Does a normal recovery for the Launch note routine replace uncommitted state?");
+    expect(scratchLeft.body.messages.at(-1).text).toContain("has no scratch folder");
+    expect(scratchLeft.body.messages.at(-1).text).toContain("Asking does not delete a temporary directory.");
+    expect(scratchLeft.body.messages.at(-1).text).not.toContain("has no work surface");
+    const updateLeft = await turn("Is an app update waiting for the Launch note routine?");
+    expect(updateLeft.body.messages.at(-1).text).toContain("has no app update");
+    expect(updateLeft.body.messages.at(-1).text).not.toContain("has no work surface");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("work surface");
+    expect(why.body.messages.at(-1).text).not.toContain("security boundary");
+
+    const gone = await turn("Is a screen for the Launch note routine a separate security boundary?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Is a screen for the Launch note routine a separate security boundary without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);

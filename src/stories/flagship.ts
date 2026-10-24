@@ -2588,6 +2588,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F137",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether a screen for one routine is a separate security boundary",
+      title: "Say that one routine has no work surface and do not merge the screens",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no work surface in the record, so that I can check the work without merging the screens.",
+      acceptance: [
+        "Saying whether a screen for the Launch note routine is a separate security boundary says that one routine has no work surface in the record.",
+        "Asking does not merge the screens, does not change a security boundary, and does not delete a temporary directory.",
+        "A stored run is not a work surface. A scratch folder is not one. The scratch-folder answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
