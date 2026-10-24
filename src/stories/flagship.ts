@@ -2094,6 +2094,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F111",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which ask-first rule blocks one routine",
+      title: "Say that one routine has no ask-first rule and do not save one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no ask-first rule in the record, so that I can check an approval block without saving an ask-first rule.",
+      acceptance: [
+        "Saying which ask-first rule blocks the Launch note routine says that one routine has no ask-first rule in the record.",
+        "Asking does not save an ask-first rule, does not turn on allow automatically, and does not confirm a matching rule.",
+        "A stored run is not an ask-first rule. A usage pause is not an ask-first rule. A matching rule is not an ask-first rule. The matching-rule answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
