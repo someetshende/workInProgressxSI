@@ -2379,6 +2379,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F126",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether @bot is quiet for one routine",
+      title: "Say that one routine has no quiet bot and do not post on X",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no quiet bot in the record, so that I can check the work without posting on X.",
+      acceptance: [
+        "Saying whether @bot is quiet for the Launch note routine says that one routine has no quiet bot in the record.",
+        "Asking does not post on X, does not tag @bot, and does not tag @grok.",
+        "A stored run is not a quiet bot. An open sign-in is not one. The open-sign-in answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
