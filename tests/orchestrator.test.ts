@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -25720,6 +25720,349 @@ describe("ORIEL-F112", () => {
     expect(channel.messages.at(-1)?.text).toContain("“Launch note” has no source channel in the record.");
     expect(channel.messages.at(-1)?.text).toContain("Asking does not connect a channel.");
     expect(channel.messages.at(-1)?.text).not.toContain("has no allow-automatically rule");
+    expect(channel.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(channel.routines[0]?.paused).toBe(true);
+    expect(channel.routines[0]?.nextRunAt).toBe(launchNext);
+  });
+});
+
+describe("ORIEL-F113", () => {
+  it("ORIEL-F113 says one routine has no team rule and does not lock one", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T04:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+
+      state = await convene(state, "Please, which team rule blocks the Launch note routine?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(routineTeamRuleCopy("Launch note", true));
+      expect(state.messages.at(-1)?.text).toContain("“Launch note” has no team rule in the record.");
+      expect(state.messages.at(-1)?.text).toContain("Asking does not lock a team rule.");
+      expect(state.messages.at(-1)?.text).not.toContain("has no ask-first rule");
+      expect(state.messages.at(-1)?.text).not.toContain("has no allow-automatically rule");
+      expect(state.messages.at(-1)?.text).not.toContain("source repository");
+      expect(state.messages.at(-1)?.text).not.toContain("source channel");
+      expect(state.messages.at(-1)?.text).not.toContain("has no failure");
+      expect(state.messages.at(-1)?.text).toContain("Another routine is unchanged.");
+      expect(state.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(state.messages.at(-1)?.text).not.toContain("Dots");
+      expect(state.messages.at(-1)?.text).not.toContain("Muse");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T02:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-23T11:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T05:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("Market check");
+      expect(state.messages.at(-1)?.text).not.toContain("Email the client");
+      expect(state.messages.at(-1)?.text).not.toContain("Wakes are paused");
+      expect(state.messages.at(-1)?.text).not.toContain("time zone");
+      expect(state.messages.at(-1)?.text).not.toContain("owning bot");
+      expect(state.messages.at(-1)?.text).not.toContain("required plugin");
+      expect(state.messages.at(-1)?.text).not.toContain("source system");
+      expect(state.events.some((event) => event.type === "routine_team_rule")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_ran")).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+      expect(JSON.stringify(toPublic(state, 0))).toContain("does not lock a team rule");
+      expect(JSON.stringify(toPublic(state, 0))).toContain("allow automatically");
+
+      const openDesk = structuredClone(state);
+      openDesk.paused = false;
+      const still = await wakeDue(openDesk, early);
+      expect(still.routines[0]?.paused).toBe(true);
+      expect(still.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(still.routines[0]?.lastRunAt).toBe("2026-10-23T11:00:00.000Z");
+      expect(still.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(still.events.some((event) => event.type === "routine_ran")).toBe(false);
+
+      const market = await convene(state, "Which team rule blocks the Market check routine?", undefined, early);
+      expect(market.messages.at(-1)?.text).toBe(routineTeamRuleCopy("Market check", true));
+      expect(market.messages.at(-1)?.text).toContain("“Market check” has no team rule in the record.");
+      expect(market.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(market.messages.at(-1)?.text).not.toContain("2026-10-24T05:00:00.000Z");
+      expect(market.routines[1]?.paused).not.toBe(true);
+      expect(market.routines[0]?.paused).toBe(true);
+      expect(market.paused).toBe(true);
+      expect(market.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(market.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(market.routines[0]?.heldBack).toEqual(["send"]);
+      expect(market.routines[0]?.instruction).toBe(routinesBefore[0]?.instruction);
+      expect(market.routines[0]?.recentRuns).toEqual(["2026-10-23T11:00:00.000Z"]);
+
+      const allowAuto = await convene(market, "Which allow-automatically rule covers the Launch note routine?", undefined, early);
+      expect(allowAuto.messages.at(-1)?.text).toBe(routineAllowAutoCopy("Launch note", true));
+      expect(allowAuto.messages.at(-1)?.text).toContain("“Launch note” has no allow-automatically rule in the record.");
+      expect(allowAuto.messages.at(-1)?.text).toContain("Asking does not turn one on.");
+      expect(allowAuto.messages.at(-1)?.text).not.toContain("team rule");
+      expect(allowAuto.routines[0]?.paused).toBe(true);
+      expect(allowAuto.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+
+      const askFirst = await convene(allowAuto, "Which ask-first rule blocks the Launch note routine?", undefined, early);
+      expect(askFirst.messages.at(-1)?.text).toBe(routineAskFirstCopy("Launch note", true));
+      expect(askFirst.messages.at(-1)?.text).toContain("“Launch note” has no ask-first rule in the record.");
+      expect(askFirst.messages.at(-1)?.text).not.toContain("team rule");
+      expect(askFirst.routines[0]?.paused).toBe(true);
+      expect(askFirst.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+
+      const matching = await convene(askFirst, "Which matching rule starts the Launch note routine?", undefined, early);
+      expect(matching.messages.at(-1)?.text).toBe(routineMatchingCopy("Launch note", true));
+      expect(matching.messages.at(-1)?.text).toContain("“Launch note” has no matching rule in the record.");
+      expect(matching.messages.at(-1)?.text).not.toContain("team rule");
+      expect(matching.routines[0]?.paused).toBe(true);
+      expect(matching.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+
+      const repository = await convene(matching, "Which repository starts the Launch note routine?", undefined, early);
+      expect(repository.messages.at(-1)?.text).toBe(routineRepositoryCopy("Launch note", true));
+      expect(repository.messages.at(-1)?.text).toContain("“Launch note” has no source repository in the record.");
+      expect(repository.messages.at(-1)?.text).not.toContain("has no team rule");
+      expect(repository.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(repository.routines[0]?.paused).toBe(true);
+
+      const channel = await convene(repository, "Which channel starts the Launch note routine?", undefined, early);
+      expect(channel.messages.at(-1)?.text).toBe(routineChannelCopy("Launch note", true));
+      expect(channel.messages.at(-1)?.text).toContain("“Launch note” has no source channel in the record.");
+      expect(channel.messages.at(-1)?.text).not.toContain("has no team rule");
+      expect(channel.routines[0]?.recentRuns).toEqual(["2026-10-23T11:00:00.000Z"]);
+      expect(channel.routines[0]?.paused).toBe(true);
+
+      const failed = await convene(channel, "Did the Launch note routine fail?", undefined, early);
+      expect(failed.messages.at(-1)?.text).toBe(routineFailureCopy("Launch note", true));
+      expect(failed.messages.at(-1)?.text).toContain("“Launch note” has no failure in the record.");
+      expect(failed.messages.at(-1)?.text).not.toContain("team rule");
+      expect(failed.routines[0]?.recentRuns).toEqual(["2026-10-23T11:00:00.000Z"]);
+      expect(failed.events.some((event) => event.type === "routine_ran")).toBe(false);
+
+      const usage = await convene(failed, "Is usage paused for the Launch note routine?", undefined, early);
+      expect(usage.messages.at(-1)?.text).toBe(routineUsageCopy("Launch note", true));
+      expect(usage.messages.at(-1)?.text).toContain("“Launch note” has no usage pause in the record.");
+      expect(usage.messages.at(-1)?.text).not.toContain("has no team rule");
+      expect(usage.routines[0]?.paused).toBe(true);
+      expect(usage.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+    });
+  });
+
+  it("ORIEL-F113 leaves two names, a desk pause, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T07:00:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), "Which team rule blocks the Launch note routine?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineTeamRuleMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_team_rule")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    const launchInstruction = state.routines[0]?.instruction;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state.routines[1]!.recentRuns = ["2026-10-24T01:00:00.000Z"];
+    state.routines[1]!.lastRunAt = "2026-10-24T01:00:00.000Z";
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = true;
+
+    const asked = await convene(state, "PLEASE, which team rule blocks the Launch note routine?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineTeamRuleAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).toContain("More than one routine has that name");
+    expect(asked.messages.at(-1)?.text).not.toContain("has no team rule");
+    expect(asked.messages.at(-1)?.text).not.toContain("Asking does not lock a team rule.");
+    expect(asked.messages.at(-1)?.text).not.toContain("Market check");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.instruction).toBe(launchInstruction);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(asked.routines[1]?.paused).toBe(true);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.paused).not.toBe(true);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(asked.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    for (const text of [
+      "Please, which team rule blocks the Launch note routine.",
+      "Which team rule blocks the Launch note routine??",
+    ]) {
+      const again = await convene(state, text, undefined, early);
+      expect(again.messages.at(-1)?.text).toBe(routineTeamRuleAmbiguousCopy("Launch note"));
+      expect(again.routines[0]?.heldBack).toEqual(["send"]);
+      expect(again.routines[0]?.paused).toBe(true);
+      expect(again.routines[1]?.paused).toBe(true);
+      expect(again.routines[2]?.nextRunAt).toBe(marketNext);
+      expect(again.goals).toHaveLength(goals);
+    }
+    const lower = await convene(state, "which team rule blocks the launch note routine", undefined, early);
+    expect(lower.messages.at(-1)?.text).toBe(routineTeamRuleAmbiguousCopy("launch note"));
+    expect(lower.messages.at(-1)?.text).not.toContain("has no team rule");
+    expect(lower.routines[0]?.paused).toBe(true);
+    expect(lower.routines[1]?.paused).toBe(true);
+    expect(lower.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(lower.goals).toHaveLength(goals);
+
+    const one = structuredClone(state);
+    one.routines.splice(1, 1);
+    const named = await convene(one, 'Which team rule blocks the "Launch note" routine?', undefined, early);
+    expect(named.messages.at(-1)?.text).toBe(routineTeamRuleCopy("Launch note", true));
+    expect(named.messages.at(-1)?.text).toContain("“Launch note” has no team rule in the record.");
+    expect(named.messages.at(-1)?.text).not.toContain("Grok Bot");
+    expect(named.messages.at(-1)?.text).not.toContain(String(launchNext));
+    expect(named.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(named.routines[1]?.nextRunAt).toBe(marketNext);
+    expect(named.routines[0]?.paused).toBe(true);
+    expect(named.routines[1]?.paused).not.toBe(true);
+    expect(named.routines[0]?.cadence).toBe("hourly");
+    expect(named.routines[0]?.lastRunAt).toBe("2026-10-24T03:00:00.000Z");
+
+    const quoted = await convene(one, "Which team rule blocks the “Launch note” routine?", undefined, early);
+    expect(quoted.messages.at(-1)?.text).toBe(routineTeamRuleCopy("Launch note", true));
+    expect(quoted.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(quoted.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const marketAsk = await convene(setPaused(one, true, early), "Which team rule blocks the Market check routine?", undefined, early);
+    expect(marketAsk.paused).toBe(true);
+    expect(marketAsk.messages.at(-1)?.text).toBe(routineTeamRuleCopy("Market check", true));
+    expect(marketAsk.messages.at(-1)?.text).toContain("“Market check” has no team rule in the record.");
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+    expect(marketAsk.messages.at(-1)?.text).not.toContain(String(marketNext));
+    expect(marketAsk.routines[0]?.paused).toBe(true);
+    expect(marketAsk.routines[1]?.paused).not.toBe(true);
+    expect(marketAsk.routines[1]?.nextRunAt).toBe(marketNext);
+
+    const solo = structuredClone(one);
+    solo.routines.splice(1, 1);
+    const alone = await convene(solo, "Which team rule blocks the Launch note routine?", undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(routineTeamRuleCopy("Launch note", false));
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+    expect(alone.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(alone.routines[0]?.paused).toBe(true);
+    expect(alone.routines).toHaveLength(1);
+
+    const widened = structuredClone(one);
+    const aside = await convene(widened, "Which team rule blocks the Launch note routine and email Maya", undefined, early);
+    expect(aside.goals.length).toBeGreaterThan(one.goals.length);
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[0]?.paused).toBe(true);
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[1]?.nextRunAt).toBe(marketNext);
+    expect(aside.messages.at(-1)?.text).not.toContain("has no team rule");
+    expect(aside.messages.at(-1)?.text).not.toContain("Asking does not lock a team rule.");
+
+    const near = await convene(one, "Which team rule blocks the Launch notes routine?", undefined, early);
+    expect(near.goals).toHaveLength(one.goals.length);
+    expect(near.messages.at(-1)?.text).toBe(routineTeamRuleMissCopy("Launch notes"));
+    expect(near.routines[0]?.paused).toBe(true);
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(near.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(near.routines[1]?.nextRunAt).toBe(marketNext);
+
+    for (const text of [
+      "Which team rule blocks the routine?",
+      "Which team rules block the Launch note routine?",
+      "Which team rule blocks the Launch note routine yet?",
+      "Don't ask which team rule blocks the Launch note routine",
+    ]) {
+      const ordinary = await convene(one, text, undefined, early);
+      expect(ordinary.goals.length).toBeGreaterThan(one.goals.length);
+      expect(ordinary.routines[0]?.paused).toBe(true);
+      expect(ordinary.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(ordinary.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("has no team rule");
+      expect(ordinary.messages.at(-1)?.text).not.toContain("There is no such routine");
+    }
+
+    const kept = structuredClone(one);
+    await expect(convene(kept, "Which team rule blocks the Launch note routine without asking", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "Please which team rule blocks the Launch note routine always allow", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(
+      convene(kept, "Which team rule blocks the Launch note routine and allow for this site", undefined, early),
+    ).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(kept.routines[1]?.nextRunAt).toBe(marketNext);
+    expect(kept.goals).toHaveLength(one.goals.length);
+    await expect(convene(kept, "Which team rule blocks the Launch note routine?", "goal_missing", early)).rejects.toThrow(
+      /not in the record/,
+    );
+    expect(kept.goals).toHaveLength(one.goals.length);
+    expect(kept.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const allowAuto = await convene(one, "Which allow-automatically rule covers the Launch note routine?", undefined, early);
+    expect(allowAuto.messages.at(-1)?.text).toContain("“Launch note” has no allow-automatically rule in the record.");
+    expect(allowAuto.messages.at(-1)?.text).toContain("Asking does not turn one on.");
+    expect(allowAuto.messages.at(-1)?.text).not.toContain("team rule");
+    expect(allowAuto.routines[0]?.paused).toBe(true);
+    expect(allowAuto.routines[0]?.nextRunAt).toBe(launchNext);
+    const askFirst = await convene(one, "Which ask-first rule blocks the Launch note routine?", undefined, early);
+    expect(askFirst.messages.at(-1)?.text).toContain("“Launch note” has no ask-first rule in the record.");
+    expect(askFirst.messages.at(-1)?.text).toContain("Asking does not save an ask-first rule.");
+    expect(askFirst.messages.at(-1)?.text).not.toContain("team rule");
+    expect(askFirst.routines[0]?.paused).toBe(true);
+    expect(askFirst.routines[0]?.nextRunAt).toBe(launchNext);
+    const matching = await convene(one, "Which matching rule starts the Launch note routine?", undefined, early);
+    expect(matching.messages.at(-1)?.text).toContain("“Launch note” has no matching rule in the record.");
+    expect(matching.messages.at(-1)?.text).toContain("Asking does not confirm a matching rule.");
+    expect(matching.messages.at(-1)?.text).not.toContain("team rule");
+    expect(matching.routines[0]?.paused).toBe(true);
+    expect(matching.routines[0]?.nextRunAt).toBe(launchNext);
+    const repository = await convene(one, "Which repository starts the Launch note routine?", undefined, early);
+    expect(repository.messages.at(-1)?.text).toContain("“Launch note” has no source repository in the record.");
+    expect(repository.messages.at(-1)?.text).not.toContain("has no team rule");
+    expect(repository.routines[0]?.nextRunAt).toBe(launchNext);
+    const channel = await convene(one, "Which channel starts the Launch note routine?", undefined, early);
+    expect(channel.messages.at(-1)?.text).toContain("“Launch note” has no source channel in the record.");
+    expect(channel.messages.at(-1)?.text).toContain("Asking does not connect a channel.");
+    expect(channel.messages.at(-1)?.text).not.toContain("has no team rule");
     expect(channel.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
     expect(channel.routines[0]?.paused).toBe(true);
     expect(channel.routines[0]?.nextRunAt).toBe(launchNext);

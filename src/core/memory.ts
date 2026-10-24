@@ -490,6 +490,24 @@ export function loosensRoutineAllowAuto(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_TEAM_RULE = /^(?:please,?\s+)?which team rule blocks the (.+) routine$/i;
+
+export function routineTeamRuleName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TEAM_RULE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTeamRule(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTeamRuleName(text)) return false;
+  if (!/^(?:please,?\s+)?which team rule blocks the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
