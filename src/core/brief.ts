@@ -210,6 +210,20 @@ export function routineRanAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineDeliveredCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no delivery in the record. A last run does not confirm the result.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineDeliveredMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineDeliveredAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
   const names = kinds.map((kind) => KIND_STAY[kind]);

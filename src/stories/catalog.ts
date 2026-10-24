@@ -403,6 +403,12 @@ export const constraints: Constraint[] = [
     text: "saying when one named routine last ran names that stored time, or says there is no last run, and does not run it or change it",
     proof: "When did the Launch note routine last run names that time. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "what-routine-delivered",
+    short: "What one delivered",
+    text: "saying what one named routine delivered says there is no delivery in the record, and a last run does not confirm the result or change the routine",
+    proof: "What did the Launch note routine deliver says there is no delivery. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

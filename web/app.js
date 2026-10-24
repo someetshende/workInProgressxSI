@@ -462,7 +462,7 @@ function renderRail() {
       el("p", {
         class: "rule-note",
         "data-testid": "schedule-hint",
-        text: "Ask what is scheduled, when one routine wakes, what one routine does, or when one routine last ran. Asking does not run a routine.",
+        text: "Ask what is scheduled, when one routine wakes, what one routine does, or when one routine last ran. Asking does not run a routine. A completed run is not a delivery.",
       }),
     );
     for (const routine of state.routines) {
@@ -497,6 +497,14 @@ function renderRail() {
           class: "rule-note",
           "data-testid": `last-run-${routine.id}`,
           text: routine.lastRunAt ? `Last ran ${routine.lastRunAt}` : "Has not run",
+        }),
+      );
+      rail.append(
+        el("p", {
+          class: "rule-note",
+          "data-testid": `delivery-${routine.id}`,
+          title: "A last run does not confirm the result.",
+          text: "No delivery",
         }),
       );
       const heldBack = heldBackLine(routine.heldBack);

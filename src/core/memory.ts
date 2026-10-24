@@ -221,3 +221,21 @@ export function loosensRoutineRan(text: string): boolean {
   if (!/^(?:please,?\s+)?when did the .+ routine last run\b/i.test(value)) return false;
   return ROUTINE_LOOSEN.test(value);
 }
+
+const ROUTINE_DELIVER = /^(?:please,?\s+)?what did the (.+) routine deliver$/i;
+
+export function routineDeliverName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DELIVER.exec(value);
+  if (!match) return null;
+  const name = (match[1] ?? "").trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ").trim();
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDeliver(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDeliverName(text)) return false;
+  if (!/^(?:please,?\s+)?what did the .+ routine deliver\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}

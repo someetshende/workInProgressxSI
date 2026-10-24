@@ -1524,6 +1524,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F81",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "What one routine delivered",
+      title: "Say that one routine has no delivery and leave it alone",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no delivery in the record, so that a last run is not treated as the result.",
+      acceptance: [
+        "Saying what did the Launch note routine deliver says there is no delivery in the record, and a last run does not confirm the result.",
+        "The instruction, the cadence, the next time, the last run, and every other routine stay as they are, and nothing is run.",
+        "Asking does not send mail or move money, does not approve a hold, does not store a result, and does not call a bridge.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {
