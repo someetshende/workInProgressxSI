@@ -505,6 +505,12 @@ export const constraints: Constraint[] = [
     text: "saying is and one routine's name and enabled names whether that one routine is enabled, says it is not enabled and a wake does not run it when it is paused, says it is enabled when it is not paused, and does not treat a desk-wide pause as that routine being disabled",
     proof: "Is the Launch note routine enabled names that one as enabled or says it is not enabled. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "list-enabled",
+    short: "Name enabled routines",
+    text: "saying which routines are enabled names each routine that is not paused once, in the order it was saved, says it is enabled, and leaves a paused routine out of the answer",
+    proof: "Which routines are enabled names only the ones that are not paused, or says no routine is enabled. A desk pause does not disable one. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

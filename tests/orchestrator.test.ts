@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { deskHourCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { deskHourCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -21334,6 +21334,271 @@ describe("ORIEL-F97", () => {
     expect(activeAsk.messages.at(-1)?.text).not.toContain("is enabled");
     expect(activeAsk.routines[0]?.paused).toBe(true);
     expect(activeAsk.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(activeAsk.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+  });
+});
+
+describe("ORIEL-F98", () => {
+  it("ORIEL-F98 names each enabled routine in save order and does not change one", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T05:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+
+      state = await convene(state, "Please, which routines are enabled?", goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(enabledRoutinesCopy(routinesBefore));
+      expect(state.messages.at(-1)?.text).toContain("“Market check” is enabled.");
+      expect(state.messages.at(-1)?.text).not.toContain("Launch note");
+      expect(state.messages.at(-1)?.text).not.toContain("is not enabled");
+      expect(state.messages.at(-1)?.text).not.toContain("Email the client");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-23T11:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("Wakes are paused");
+      expect(state.messages.at(-1)?.text).not.toContain("Paused routines.");
+      expect(state.events.some((event) => event.type === "enabled_read")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_ran")).toBe(false);
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("bridge-secret-xyz");
+      expect(JSON.stringify(toPublic(state, 0))).not.toContain("Always allow");
+
+      const stillPaused = await convene(state, "Is the Launch note routine paused?", undefined, early);
+      expect(stillPaused.messages.at(-1)?.text).toContain("“Launch note” is paused. A wake does not run it.");
+      expect(stillPaused.messages.at(-1)?.text).not.toContain("is enabled");
+      expect(stillPaused.routines[0]?.paused).toBe(true);
+      expect(stillPaused.routines[0]?.cadence).toBe("hourly");
+      expect(stillPaused.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(stillPaused.paused).toBe(true);
+
+      const stillActive = await convene(stillPaused, "Is the Market check routine active?", undefined, early);
+      expect(stillActive.messages.at(-1)?.text).toContain("“Market check” is active.");
+      expect(stillActive.messages.at(-1)?.text).not.toContain("is not active");
+      expect(stillActive.routines[1]?.paused).not.toBe(true);
+      expect(stillActive.routines[1]?.cadence).toBe("daily");
+      expect(stillActive.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+
+      const oneEnabled = await convene(stillActive, "Is the Launch note routine enabled?", undefined, early);
+      expect(oneEnabled.messages.at(-1)?.text).toContain("“Launch note” is not enabled. A wake does not run it.");
+      expect(oneEnabled.messages.at(-1)?.text).not.toContain("“Launch note” is enabled.");
+      expect(oneEnabled.routines[0]?.paused).toBe(true);
+      expect(oneEnabled.routines[0]?.heldBack).toEqual(["send"]);
+
+      const pausedMarket = await convene(oneEnabled, "Pause the Market check routine", undefined, early);
+      expect(pausedMarket.routines[1]?.paused).toBe(true);
+      expect(pausedMarket.routines[1]?.cadence).toBe("daily");
+      expect(pausedMarket.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(pausedMarket.routines[0]?.paused).toBe(true);
+      expect(pausedMarket.paused).toBe(true);
+      const none = await convene(pausedMarket, "Which routines are enabled?", undefined, early);
+      expect(none.messages.at(-1)?.text).toBe(enabledRoutinesCopy(none.routines));
+      expect(none.messages.at(-1)?.text).toContain("No routine is enabled.");
+      expect(none.messages.at(-1)?.text).not.toContain("Launch note");
+      expect(none.messages.at(-1)?.text).not.toContain("Market check");
+      expect(none.routines[0]?.recentRuns).toEqual(["2026-10-23T11:00:00.000Z"]);
+      expect(none.routines[1]?.heldBack).toEqual(["pay"]);
+      expect(none.routines[0]?.lastRunAt).toBe("2026-10-23T11:00:00.000Z");
+
+      const resumed = await convene(none, "Resume the Launch note routine", undefined, early);
+      expect(resumed.routines[0]?.paused).toBe(false);
+      expect(resumed.routines[0]?.cadence).toBe("hourly");
+      expect(resumed.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      const onlyLaunch = await convene(resumed, "Which routines are enabled?", undefined, early);
+      expect(onlyLaunch.messages.at(-1)?.text).toContain("“Launch note” is enabled.");
+      expect(onlyLaunch.messages.at(-1)?.text).not.toContain("Market check");
+      expect(onlyLaunch.messages.at(-1)?.text).not.toContain("is not enabled");
+      expect(onlyLaunch.routines[0]?.paused).toBe(false);
+      expect(onlyLaunch.routines[1]?.paused).toBe(true);
+      expect(onlyLaunch.paused).toBe(true);
+      const pausedList = await convene(onlyLaunch, "Which routines are paused?", undefined, early);
+      expect(pausedList.messages.at(-1)?.text).toContain("“Market check” is paused. A wake does not run it.");
+      expect(pausedList.messages.at(-1)?.text).not.toContain("Launch note");
+      expect(pausedList.messages.at(-1)?.text).not.toContain("Enabled routines.");
+      expect(pausedList.routines[0]?.paused).toBe(false);
+      expect(pausedList.routines[1]?.paused).toBe(true);
+    });
+  });
+
+  it("ORIEL-F98 leaves an empty desk, a widened sentence, and a desk pause alone", async () => {
+    const now = new Date("2026-10-24T05:30:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), "Which routines are enabled?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.approvals).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(enabledRoutinesCopy([]));
+    expect(none.events.some((event) => event.type === "enabled_read")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state.routines[1]!.recentRuns = ["2026-10-24T01:00:00.000Z"];
+    state.routines[1]!.lastRunAt = "2026-10-24T01:00:00.000Z";
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = false;
+
+    const asked = await convene(state, "PLEASE, which routines are enabled?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(enabledRoutinesCopy(asked.routines));
+    expect(asked.messages.at(-1)?.text).toContain("“Launch note” is enabled. “Market check” is enabled.");
+    expect(asked.messages.at(-1)?.text.indexOf("“Launch note”")).toBeLessThan(
+      asked.messages.at(-1)?.text.indexOf("“Market check”") ?? 0,
+    );
+    expect(asked.messages.at(-1)?.text).not.toContain("Email Maya");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[1]?.recentRuns).toEqual(["2026-10-24T01:00:00.000Z"]);
+    expect(asked.routines[2]?.paused).not.toBe(true);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(asked.approvals.find((approval) => approval.goalId === firstId)?.scope).toBe("task");
+
+    for (const text of ["Please, which routines are enabled.", "Which routines are enabled??", "which routines are enabled"]) {
+      const again = await convene(state, text, undefined, early);
+      expect(again.messages.at(-1)?.text).toBe(enabledRoutinesCopy(state.routines));
+      expect(again.routines[0]?.heldBack).toEqual(["send"]);
+      expect(again.routines[0]?.paused).toBe(true);
+      expect(again.routines[1]?.paused).toBe(false);
+      expect(again.routines[2]?.nextRunAt).toBe(marketNext);
+      expect(again.goals).toHaveLength(goals);
+    }
+
+    const scheduled = await convene(state, "What is scheduled?", undefined, early);
+    expect(scheduled.messages.at(-1)?.text).toContain("“Launch note” is hourly.");
+    expect(scheduled.messages.at(-1)?.text).toContain("“Market check” is hourly.");
+    expect(scheduled.messages.at(-1)?.text).not.toContain("Enabled routines.");
+    expect(scheduled.routines[0]?.paused).toBe(true);
+    expect(scheduled.routines[2]?.paused).not.toBe(true);
+
+    const desk = await convene(setPaused(state, true, early), "Which routines are enabled?", undefined, early);
+    expect(desk.paused).toBe(true);
+    expect(desk.routines[0]?.paused).toBe(true);
+    expect(desk.routines[2]?.paused).not.toBe(true);
+    expect(desk.messages.at(-1)?.text).toBe(enabledRoutinesCopy(state.routines));
+    expect(desk.messages.at(-1)?.text).toContain("“Launch note” is enabled.");
+    expect(desk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+    expect(desk.messages.at(-1)?.text).not.toContain("No routine is enabled.");
+
+    const cleared = structuredClone(state);
+    cleared.routines[0]!.paused = true;
+    cleared.routines[1]!.paused = true;
+    cleared.routines[2]!.paused = true;
+    const quiet = await convene(setPaused(cleared, true, early), "Which routines are enabled?", undefined, early);
+    expect(quiet.paused).toBe(true);
+    expect(quiet.messages.at(-1)?.text).toBe(enabledRoutinesCopy(cleared.routines));
+    expect(quiet.messages.at(-1)?.text).toContain("No routine is enabled.");
+    expect(quiet.routines.every((routine) => routine.paused === true)).toBe(true);
+    expect(quiet.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(quiet.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(quiet.goals).toHaveLength(goals);
+
+    const widened = structuredClone(state);
+    const aside = await convene(widened, "Which routines are enabled and email Maya", undefined, early);
+    expect(aside.goals).toHaveLength(goals + 1);
+    expect(aside.routines[0]?.heldBack).toEqual([]);
+    expect(aside.routines[0]?.paused).toBe(true);
+    expect(aside.routines[1]?.paused).toBe(false);
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(aside.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(aside.messages.at(-1)?.text).not.toContain("Enabled routines.");
+    expect(aside.messages.at(-1)?.text).not.toContain("No routine is enabled.");
+
+    for (const text of [
+      "Which routine is enabled?",
+      "Which routines are enabled now?",
+      "Which of the routines are enabled?",
+      "Don't ask which routines are enabled",
+      "Which routines are not enabled?",
+    ]) {
+      const ordinary = await convene(state, text, undefined, early);
+      expect(ordinary.goals).toHaveLength(goals + 1);
+      expect(ordinary.routines[0]?.paused).toBe(true);
+      expect(ordinary.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(ordinary.routines[1]?.recentRuns).toEqual(["2026-10-24T01:00:00.000Z"]);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("Enabled routines.");
+      expect(ordinary.messages.at(-1)?.text).not.toContain("No routine is enabled.");
+    }
+
+    const kept = structuredClone(state);
+    await expect(convene(kept, "Which routines are enabled without asking", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Please which routines are enabled always allow", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    await expect(convene(kept, "Which routines are enabled and allow for this site", undefined, early)).rejects.toThrow(
+      /without asking/,
+    );
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(kept.routines[1]?.paused).toBe(false);
+    expect(kept.routines[2]?.nextRunAt).toBe(marketNext);
+    expect(kept.goals).toHaveLength(goals);
+    await expect(convene(kept, "Which routines are enabled?", "goal_missing", early)).rejects.toThrow(/not in the record/);
+    expect(kept.goals).toHaveLength(goals);
+    expect(kept.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+    expect(kept.routines[2]?.nextRunAt).toBe(marketNext);
+
+    const stillPaused = await convene(state, "Which routines are paused?", undefined, early);
+    expect(stillPaused.messages.at(-1)?.text).toContain("“Launch note” is paused. A wake does not run it.");
+    expect(stillPaused.messages.at(-1)?.text).not.toContain("Market check");
+    expect(stillPaused.routines[0]?.paused).toBe(true);
+    expect(stillPaused.routines[0]?.nextRunAt).toBe(launchNext);
+    const marketAsk = await convene(stillPaused, "Is the Market check routine enabled?", undefined, early);
+    expect(marketAsk.messages.at(-1)?.text).toContain("“Market check” is enabled.");
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("is not enabled");
+    expect(marketAsk.routines[2]?.nextRunAt).toBe(marketNext);
+    const activeAsk = await convene(marketAsk, "Is the Market check routine active?", undefined, early);
+    expect(activeAsk.messages.at(-1)?.text).toContain("“Market check” is active.");
+    expect(activeAsk.messages.at(-1)?.text).not.toContain("is not active");
+    expect(activeAsk.routines[0]?.paused).toBe(true);
     expect(activeAsk.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
   });
 });

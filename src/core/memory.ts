@@ -181,6 +181,19 @@ export function loosensPausedRead(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ENABLED_READ = /^(?:please,?\s+)?which routines are enabled$/i;
+
+export function isEnabledRead(text: string): boolean {
+  return ENABLED_READ.test(tidySentence(text));
+}
+
+export function loosensEnabledRead(text: string): boolean {
+  const value = tidySentence(text);
+  if (isEnabledRead(text)) return false;
+  if (!/^(?:please,?\s+)?which routines are enabled\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_PAUSED_ASK = /^(?:please,?\s+)?is the (.+) routine paused$/i;
 
 export function routinePausedAskName(text: string): string | null {
