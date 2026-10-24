@@ -2341,6 +2341,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F124",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether an app update is waiting for one routine",
+      title: "Say that one routine has no app update and do not check for an app update",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no app update in the record, so that I can check the work without checking for an app update.",
+      acceptance: [
+        "Saying whether an app update is waiting for the Launch note routine says that one routine has no app update in the record.",
+        "Asking does not check for an app update, does not restart the app, and does not update the computer.",
+        "A stored run is not an app update. A computer setup is not one. The computer-setup answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
