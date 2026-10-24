@@ -9293,6 +9293,125 @@ test("ORIEL-F107 whether one routine failed does not start a test run", async ({
   await page.screenshot({ path: "test-results/oriel-routine-failure.png" });
 });
 
+test("ORIEL-F108 which channel starts one routine does not connect a channel", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Which channel starts the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking which channel starts one routine says that routine has no source channel in the record.",
+  );
+  await expect(page.locator("[data-testid^='usage-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='usage-']").nth(0)).toHaveText("No usage pause");
+  await expect(page.locator("[data-testid^='failure-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='failure-']").nth(0)).toHaveText("No failure");
+  await expect(page.locator("[data-testid^='channel-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='channel-']").nth(0)).toHaveText("No source channel");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='owner-']").nth(0)).toHaveText("No owning bot");
+  await expect(page.locator("[data-testid^='zone-']").nth(0)).toHaveText("No time zone");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+
+  await page.getByTestId("composer").fill("Which channel starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no source channel in the record.");
+  await expect(clear).toContainText("Asking does not connect a channel.");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  await expect(clear).not.toContainText("Summarize the launch risks");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+  await expect(page.locator("[data-testid^='usage-']").nth(0)).toHaveText("No usage pause");
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='channel-']").nth(0)).toHaveText("No source channel");
+  await expect(page.locator("[data-testid^='failure-']").nth(0)).toHaveText("No failure");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Which channel starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no source channel in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='usage-']")).toHaveCount(2);
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Which channel starts the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no source channel in the record.");
+  await expect(pausedAsk).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='usage-']").nth(0)).toHaveText("No usage pause");
+
+  await page.getByTestId("composer").fill("Can the Draft the weekly close but do not send it routine reach its source?");
+  await page.getByTestId("send").click();
+  const source = page.locator("#thread .turn").last();
+  await expect(source).toContainText("“Draft the weekly close but do not send it” has no source system in the record.");
+  await expect(source).not.toContainText("usage pause");
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+
+  await page.getByTestId("composer").fill("Which plugins does the Draft the weekly close but do not send it routine need?");
+  await page.getByTestId("send").click();
+  const plugin = page.locator("#thread .turn").last();
+  await expect(plugin).toContainText("“Draft the weekly close but do not send it” has no required plugin in the record.");
+  await expect(plugin).not.toContainText("usage pause");
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='routine-active-']")).toHaveText("Active");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+
+  await page.getByTestId("composer").fill("Is usage paused for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const usage = page.locator("#thread .turn").last();
+  await expect(usage).toContainText("“Draft the weekly close but do not send it” has no usage pause in the record.");
+  await expect(usage).not.toContainText("has no source channel");
+  await expect(page.locator("[data-testid^='failure-']").nth(0)).toHaveText("No failure");
+  await expect(page.locator("[data-testid^='usage-']").nth(0)).toHaveText("No usage pause");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-channel.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

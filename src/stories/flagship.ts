@@ -2037,6 +2037,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F108",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which channel starts one routine",
+      title: "Say that one routine has no source channel and do not connect one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no source channel in the record, so that I can check an event trigger without connecting a channel.",
+      acceptance: [
+        "Saying which channel starts the Launch note routine says that one routine has no source channel in the record.",
+        "Asking does not connect a channel, does not confirm a repository, and does not start a test run.",
+        "A stored run is not a channel. A recorded failure is not a channel. The failure answer and the usage-pause answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

@@ -565,6 +565,12 @@ export const constraints: Constraint[] = [
     text: "saying did one named routine fail says that routine has no failure in the record and does not start a test run or treat a stored run or a desk-wide pause as a failure",
     proof: "Did the Launch note routine fail says there is no failure. Asking does not start a test run. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-channel",
+    short: "Ask which channel starts one",
+    text: "saying which channel starts one named routine says that routine has no source channel in the record and does not connect a channel or confirm a repository or a matching rule or treat a stored run or a desk-wide pause or a recorded failure as a channel",
+    proof: "Which channel starts the Launch note routine says there is no source channel. Asking does not connect a channel. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
