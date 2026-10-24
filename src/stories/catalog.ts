@@ -577,6 +577,12 @@ export const constraints: Constraint[] = [
     text: "saying which repository starts one named routine says that routine has no source repository in the record and does not confirm a repository or a matching rule or connect a channel or start a test run or treat a stored run, a desk-wide pause, a failure, a usage pause, or a source channel as a repository",
     proof: "Which repository starts the Launch note routine says there is no source repository. Asking does not confirm a repository. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-matching",
+    short: "Ask which matching rule starts one",
+    text: "saying which matching rule starts one named routine says that routine has no matching rule in the record and does not confirm a matching rule or a repository or connect a channel or start a test run or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, or a source repository as a matching rule",
+    proof: "Which matching rule starts the Launch note routine says there is no matching rule. Asking does not confirm a matching rule. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
