@@ -2569,6 +2569,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F136",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether a normal recovery for one routine replaces uncommitted state",
+      title: "Say that one routine has no scratch folder and do not delete a temporary directory",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no scratch folder in the record, so that I can check the work without deleting a temporary directory.",
+      acceptance: [
+        "Saying whether a normal recovery for the Launch note routine replaces uncommitted state says that one routine has no scratch folder in the record.",
+        "Asking does not delete a temporary directory, does not recover a computer, and does not refresh the software.",
+        "A stored run is not a scratch folder. A software refresh is not one. The software-refresh answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

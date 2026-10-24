@@ -904,6 +904,24 @@ export function loosensRoutineSoftwareRefresh(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SCRATCH_FOLDER = /^(?:please,?\s+)?does a normal recovery for the (.+) routine replace uncommitted state$/i;
+
+export function routineScratchFolderName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SCRATCH_FOLDER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineScratchFolder(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineScratchFolderName(text)) return false;
+  if (!/^(?:please,?\s+)?does a normal recovery for the .+ routine replace uncommitted state\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
