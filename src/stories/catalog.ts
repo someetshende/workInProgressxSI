@@ -487,6 +487,12 @@ export const constraints: Constraint[] = [
     text: "saying which routines are paused names each paused routine once, in the order it was saved, says a wake does not run it, and leaves a routine that is not paused out of the answer",
     proof: "Which routines are paused names only the paused ones, or says no routine is paused. A desk pause does not mark one. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-paused",
+    short: "Ask if one is paused",
+    text: "saying is and one routine's name and paused names whether that one routine is paused, says a wake does not run it when it is, says it is not paused when it is not, and does not treat a desk-wide pause as that routine being paused",
+    proof: "Is the Launch note routine paused names that one pause or says it is not paused. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

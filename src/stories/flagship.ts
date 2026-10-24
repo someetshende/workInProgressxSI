@@ -1790,6 +1790,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F95",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Is one routine paused",
+      title: "Say whether one routine is paused and do not change it",
+      story:
+        "As a chief of staff, I want Oriel to say whether one saved routine is paused, so that I can check it before a wake without pausing, resuming, or running it.",
+      acceptance: [
+        "Saying is the Launch note routine paused names whether that one routine is paused, and a wake does not run it when it is.",
+        "If it is not paused, the reply says it is not paused. A desk-wide pause does not count as that routine being paused.",
+        "Asking does not pause, resume, or run it. The cadence, the next time, the instruction, the last run, and the stored runs stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
