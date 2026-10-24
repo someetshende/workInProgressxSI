@@ -1084,6 +1084,25 @@ export function loosensRoutineDirectDesk(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+
+const ROUTINE_ASKED_METER = /^(?:please,?\s+)?does the (.+) routine use that member's connected accounts after asking and that member's grok bot usage$/i;
+
+export function routineAskedMeterName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ASKED_METER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineAskedMeter(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineAskedMeterName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine use that member's connected accounts after asking and that member's grok bot usage\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

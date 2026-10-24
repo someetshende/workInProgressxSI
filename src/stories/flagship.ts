@@ -2759,6 +2759,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F146",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine uses that member's connected accounts after asking and that member's Grok Bot usage",
+      title: "Say that one routine has no asked meter and do not use that member's connected accounts",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no asked meter in the record, so that I can check the work without using that member's connected accounts.",
+      acceptance: [
+        "Saying whether the Launch note routine uses that member's connected accounts after asking and that member's Grok Bot usage says that one routine has no asked meter in the record.",
+        "Asking does not use that member's connected accounts, does not use that member's Grok Bot usage, and does not bill that member's quota.",
+        "A stored run is not an asked meter. A direct desk is not one. The direct-desk answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
