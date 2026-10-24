@@ -2797,6 +2797,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F148",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine keeps each member's chat private, including from the owner and the Bot's Managers",
+      title: "Say that one routine has no sealed chat and do not reveal that member's chat to the owner or a Manager",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no sealed chat in the record, so that I can check the work without revealing that member's chat to the owner or a Manager.",
+      acceptance: [
+        "Saying whether the Launch note routine keeps each member's chat private, including from the owner and the Bot's Managers says that one routine has no sealed chat in the record.",
+        "Asking does not reveal that member's chat to the owner or a Manager, does not display that member's chat to the owner, and does not display that member's chat to a Manager.",
+        "A stored run is not a sealed chat. A shared kit is not one. The shared-kit answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

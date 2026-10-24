@@ -1121,6 +1121,24 @@ export function loosensRoutineSharedKit(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SEALED_CHAT = /^(?:please,?\s+)?does the (.+) routine keep each member's chat private, including from the owner and the bot's managers$/i;
+
+export function routineSealedChatName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SEALED_CHAT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSealedChat(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSealedChatName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine keep each member's chat private, including from the owner and the bot's managers\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
