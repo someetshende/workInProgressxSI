@@ -601,6 +601,12 @@ export const constraints: Constraint[] = [
     text: "saying which team rule blocks one named routine says that routine has no team rule in the record and does not lock a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or start a test run or pause account access or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, a source repository, a matching rule, an ask-first rule, or an allow-automatically rule as a team rule",
     proof: "Which team rule blocks the Launch note routine says there is no team rule. Asking does not lock a team rule. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-locked-team-rule",
+    short: "Ask whether the team rule for one is locked",
+    text: "saying whether the team rule for one named routine is locked says that routine has no locked team rule in the record and does not lock a team rule or edit a team rule or delete a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or start a test run or pause account access or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, a source repository, a matching rule, an ask-first rule, an allow-automatically rule, or a team rule as a locked team rule",
+    proof: "Is the team rule for the Launch note routine locked says there is no locked team rule. Asking does not lock a team rule. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
