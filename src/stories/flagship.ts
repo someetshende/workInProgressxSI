@@ -1980,6 +1980,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F105",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine can reach its source",
+      title: "Say that one routine has no source system and do not connect a computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no source system in the record, so that I can check the troubleshooting step without connecting a computer.",
+      acceptance: [
+        "Saying can the Launch note routine reach its source says that one routine has no source system in the record.",
+        "Asking does not connect a computer, does not connect a plugin, and does not assign Grok Bot, Dots, or Muse.",
+        "A desk-wide pause does not invent a source. The plugin answer and the owning-bot answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

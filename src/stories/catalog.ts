@@ -547,6 +547,12 @@ export const constraints: Constraint[] = [
     text: "saying which plugins one named routine needs says that routine has no required plugin in the record and does not connect a plugin or assign it to Grok Bot, Dots, or Muse or treat a desk-wide pause as a plugin",
     proof: "Which plugins does the Launch note routine need says there is no required plugin. Asking does not connect one. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-source",
+    short: "Ask if one can reach its source",
+    text: "saying can one named routine reach its source says that routine has no source system in the record and does not connect a computer or a plugin or assign it to Grok Bot, Dots, or Muse or treat a desk-wide pause as a source",
+    proof: "Can the Launch note routine reach its source says there is no source system. Asking does not connect a computer. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
