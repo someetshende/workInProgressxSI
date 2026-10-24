@@ -2132,6 +2132,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F113",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which team rule blocks one routine",
+      title: "Say that one routine has no team rule and do not lock one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no team rule in the record, so that I can check an admin block without locking a team rule.",
+      acceptance: [
+        "Saying which team rule blocks the Launch note routine says that one routine has no team rule in the record.",
+        "Asking does not lock a team rule, does not save an ask-first rule, and does not turn on an allow-automatically rule.",
+        "A stored run is not a team rule. An allow-automatically rule is not one. The allow-automatically answer and the ask-first answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

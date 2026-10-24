@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -10620,6 +10620,173 @@ describe("Oriel server", () => {
     const gone = await turn("Which allow-automatically rule covers the Launch note routine?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Which allow-automatically rule covers the Launch note routine without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(still.messages.at(-1).text).toContain("“Launch note” has no usage pause");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F113 says one routine has no team rule and does not lock one", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Which team rule blocks the Launch note routine?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineTeamRuleMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking which team rule blocks one named routine");
+    expect(missing.body.trust).toContain("does not lock a team rule");
+    expect(missing.body.trust).toContain("does not save an ask-first rule");
+    expect(missing.body.trust).toContain("does not turn on allow automatically");
+    expect(missing.body.trust).toContain("does not turn on an allow-automatically rule");
+    expect(missing.body.trust).toContain("does not confirm a matching rule");
+    expect(missing.body.trust).toContain("does not confirm a repository");
+    expect(missing.body.trust).toContain("does not connect a channel");
+    expect(missing.body.trust).toContain("A stored run is not a team rule");
+    expect(missing.body.trust).toContain("A failure is not a team rule");
+    expect(missing.body.trust).toContain("A usage pause is not a team rule");
+    expect(missing.body.trust).toContain("A source channel is not a team rule");
+    expect(missing.body.trust).toContain("A source repository is not a team rule");
+    expect(missing.body.trust).toContain("A matching rule is not a team rule");
+    expect(missing.body.trust).toContain("An ask-first rule is not a team rule");
+    expect(missing.body.trust).toContain("An allow-automatically rule is not a team rule");
+    expect(missing.body.trust).toContain("The row says No team rule");
+    expect(missing.body.trust).toContain("the allow-automatically answer stay");
+    expect(missing.body.trust).toContain("does not pause account access");
+    expect(missing.body.trust).toContain("does not pause the routine");
+    expect(missing.body.trust).toContain("does not name a team rule");
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, which team rule blocks the Launch note routine?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineTeamRuleCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no team rule in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not lock a team rule.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no allow-automatically rule");
+    expect(clear.body.messages.at(-1).text).not.toContain("source repository");
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).not.toBe(true);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Which team rule blocks the Launch note routine?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no team rule in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain(next);
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Which team rule blocks the Launch note routine?");
+    expect(asked.body.messages.at(-1).text).toBe(routineTeamRuleCopy("Launch note", true));
+    expect(asked.body.messages.at(-1).text).toContain("“Launch note” has no team rule in the record.");
+    expect(asked.body.messages.at(-1).text).not.toContain(next);
+    expect(asked.body.messages.at(-1).text).not.toContain("Market check");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+    expect(asked.body.goals).toHaveLength(2);
+
+    const allow = await turn("Which allow-automatically rule covers the Launch note routine?");
+    expect(allow.status).toBe(200);
+    expect(allow.body.messages.at(-1).text).toBe(routineAllowAutoCopy("Launch note", true));
+    expect(allow.body.messages.at(-1).text).toContain("“Launch note” has no allow-automatically rule in the record.");
+    expect(allow.body.messages.at(-1).text).not.toContain("team rule");
+    expect(allow.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const askFirst = await turn("Which ask-first rule blocks the Launch note routine?");
+    expect(askFirst.body.messages.at(-1).text).toBe(routineAskFirstCopy("Launch note", true));
+    expect(askFirst.body.messages.at(-1).text).toContain("“Launch note” has no ask-first rule in the record.");
+    expect(askFirst.body.messages.at(-1).text).not.toContain("team rule");
+    expect(askFirst.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const matching = await turn("Which matching rule starts the Launch note routine?");
+    expect(matching.body.messages.at(-1).text).toBe(routineMatchingCopy("Launch note", true));
+    expect(matching.body.messages.at(-1).text).toContain("“Launch note” has no matching rule in the record.");
+    expect(matching.body.messages.at(-1).text).not.toContain("team rule");
+    expect(matching.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const repository = await turn("Which repository starts the Launch note routine?");
+    expect(repository.body.messages.at(-1).text).toBe(routineRepositoryCopy("Launch note", true));
+    expect(repository.body.messages.at(-1).text).toContain("“Launch note” has no source repository in the record.");
+    expect(repository.body.messages.at(-1).text).not.toContain("has no team rule");
+    expect(repository.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const channel = await turn("Which channel starts the Launch note routine?");
+    expect(channel.status).toBe(200);
+    expect(channel.body.messages.at(-1).text).toBe(routineChannelCopy("Launch note", true));
+    expect(channel.body.messages.at(-1).text).toContain("“Launch note” has no source channel in the record.");
+    expect(channel.body.messages.at(-1).text).not.toContain("has no team rule");
+    expect(channel.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(channel.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const failed = await turn("What failure does the Launch note routine show?");
+    expect(failed.status).toBe(200);
+    expect(failed.body.messages.at(-1).text).toBe(routineFailureCopy("Launch note", true));
+    expect(failed.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(failed.body.messages.at(-1).text).not.toContain("team rule");
+    expect(failed.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(failed.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const usage = await turn("Has usage been paused for the Launch note routine?");
+    expect(usage.status).toBe(200);
+    expect(usage.body.messages.at(-1).text).toBe(routineUsageCopy("Launch note", true));
+    expect(usage.body.messages.at(-1).text).toContain("“Launch note” has no usage pause in the record.");
+    expect(usage.body.messages.at(-1).text).not.toContain("has no team rule");
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const gone = await turn("Which team rule blocks the Launch note routine?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Which team rule blocks the Launch note routine without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
