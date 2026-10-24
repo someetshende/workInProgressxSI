@@ -2056,6 +2056,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F109",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Which repository starts one routine",
+      title: "Say that one routine has no source repository and do not confirm one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no source repository in the record, so that I can check an event trigger without confirming a repository.",
+      acceptance: [
+        "Saying which repository starts the Launch note routine says that one routine has no source repository in the record.",
+        "Asking does not confirm a repository, does not confirm a matching rule, and does not connect a channel.",
+        "A stored run is not a repository. A source channel is not a repository. The channel answer and the failure answer stay. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

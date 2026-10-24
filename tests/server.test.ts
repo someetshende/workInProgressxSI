@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -10094,6 +10094,125 @@ describe("Oriel server", () => {
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
     expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
     expect(still.messages.at(-1).text).toContain("“Launch note” has no failure");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F109 says one routine has no source repository and does not confirm a repository", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Which repository starts the Launch note routine?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineRepositoryMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking which repository starts one named routine");
+    expect(missing.body.trust).toContain("has no source repository in the record");
+    expect(missing.body.trust).toContain("does not name a repository");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, which repository starts the Launch note routine?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineRepositoryCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no source repository in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not confirm a repository.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).not.toBe(true);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Which repository starts the Launch note routine?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no source repository in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain(next);
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Which repository starts the Launch note routine?");
+    expect(asked.body.messages.at(-1).text).toBe(routineRepositoryCopy("Launch note", true));
+    expect(asked.body.messages.at(-1).text).toContain("“Launch note” has no source repository in the record.");
+    expect(asked.body.messages.at(-1).text).not.toContain(next);
+    expect(asked.body.messages.at(-1).text).not.toContain("Market check");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(
+      marketNext,
+    );
+    expect(asked.body.goals).toHaveLength(2);
+
+    const quiet = await turn("Why hasn't the Launch note routine run?");
+    expect(quiet.body.messages.at(-1).text).toContain("It is paused.");
+    expect(quiet.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(quiet.body.messages.at(-1).text).not.toContain("repository");
+    expect(quiet.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+
+    const channel = await turn("Which channel starts the Launch note routine?");
+    expect(channel.body.messages.at(-1).text).toContain("“Launch note” has no source channel in the record.");
+    expect(channel.body.messages.at(-1).text).not.toContain("source repository");
+    expect(channel.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const failure = await turn("What failure does the Launch note routine show?");
+    expect(failure.body.messages.at(-1).text).toBe(routineFailureCopy("Launch note", true));
+    expect(failure.body.messages.at(-1).text).toContain("“Launch note” has no failure in the record.");
+    expect(failure.body.messages.at(-1).text).not.toContain("repository");
+    expect(failure.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const usage = await turn("Has usage been paused for the Launch note routine?");
+    expect(usage.body.messages.at(-1).text).toContain("“Launch note” has no usage pause in the record.");
+    expect(usage.body.messages.at(-1).text).not.toContain("repository");
+    expect(usage.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const gone = await turn("Which repository starts the Launch note routine?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Which repository starts the Launch note routine without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+    expect(still.messages.at(-1).text).toContain("“Launch note” has no usage pause");
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
 
