@@ -2626,6 +2626,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F139",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine keeps its own kernel",
+      title: "Say that one routine has no guest slice and do not boot a microVM",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no guest slice in the record, so that I can check the work without booting a microVM.",
+      acceptance: [
+        "Saying whether the Launch note routine keeps its own kernel says that one routine has no guest slice in the record.",
+        "Asking does not boot a microVM, does not share one computer across users, and does not merge the screens.",
+        "A stored run is not a guest slice. A private host is not one. The private-host answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

@@ -958,6 +958,24 @@ export function loosensRoutinePrivateHost(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_GUEST_SLICE = /^(?:please,?\s+)?does the (.+) routine keep its own kernel$/i;
+
+export function routineGuestSliceName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_GUEST_SLICE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineGuestSlice(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineGuestSliceName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine keep its own kernel\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
