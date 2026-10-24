@@ -255,6 +255,29 @@ export function routineChangeAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+const SAVE_TAIL = "Nothing was run. A last run stays. Nothing was sent or spent.";
+
+export function routineSaveCopy(name: string, instruction: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `Saved. ${quoted} now does this: “${instruction}”. The cadence and the next time stay.${other} ${SAVE_TAIL}`;
+}
+
+export function routineSaveAlreadyCopy(name: string, instruction: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  const shown = instruction.trim().replace(/\s+/g, " ");
+  return `${quoted} already does that: “${shown}”. The instruction was not rewritten. The cadence and the next time stay.${other} ${SAVE_TAIL}`;
+}
+
+export function routineSaveMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineSaveAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
   const names = kinds.map((kind) => KIND_STAY[kind]);

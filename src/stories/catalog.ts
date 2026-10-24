@@ -421,6 +421,12 @@ export const constraints: Constraint[] = [
     text: "saying change and one routine's name quotes the stored instruction and the proposed words, and does not save the change or run the routine",
     proof: "Change the Launch note routine to Summarize the launch risks quotes both and leaves the instruction. Nothing is run, saved, sent, or spent.",
   },
+  {
+    id: "save-routine",
+    short: "Save one routine",
+    text: "saying save and one routine's name writes that instruction, leaves the cadence and the next time, and does not run the routine",
+    proof: "Save the Launch note routine as Summarize the launch risks writes that instruction. A change sentence does not. Nothing is run, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

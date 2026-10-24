@@ -7142,6 +7142,93 @@ test("ORIEL-F83 a proposed routine change is quoted and not saved", async ({ pag
   await page.screenshot({ path: "test-results/oriel-routine-change.png" });
 });
 
+test("ORIEL-F84 saving a routine instruction writes it and does not run it", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Save the Launch note routine as Summarize the launch risks?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText(
+    "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+  );
+  await expect(page.locator("#thread .turn").last()).not.toContainText("Summarize the launch risks");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstInstruction = page.locator("[data-testid^='instruction-']").nth(0);
+  const firstLast = page.locator("[data-testid^='last-run-']").nth(0);
+  const firstDelivery = page.locator("[data-testid^='delivery-']").nth(0);
+  await expect(firstInstruction).toHaveText("Draft the weekly close but do not send it");
+  await expect(firstLast).toHaveText("Has not run");
+  await expect(firstDelivery).toHaveText("No delivery");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondInstruction = page.locator("[data-testid^='instruction-']").nth(1);
+  const secondLast = page.locator("[data-testid^='last-run-']").nth(1);
+  const secondDelivery = page.locator("[data-testid^='delivery-']").nth(1);
+  await expect(secondInstruction).toHaveText("Summarize the launch risks");
+  await expect(secondLast).toHaveText("Has not run");
+  await expect(secondDelivery).toHaveText("No delivery");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Saying save and the routine's name writes that instruction and does not run it.",
+  );
+  const nextTitle = await secondCadence.getAttribute("title");
+  expect(nextTitle).toContain("Next wake");
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Save the Draft the weekly close but do not send it routine as Note the open risks");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("thread")).toContainText(
+    "Saved. “Draft the weekly close but do not send it” now does this: “Note the open risks”. The cadence and the next time stay. Another routine is unchanged.",
+  );
+  await expect(page.getByTestId("thread")).toContainText("Nothing was run. A last run stays. Nothing was sent or spent.");
+  await expect(page.getByTestId("thread")).not.toContainText("I sent");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await expect(firstInstruction).toHaveText("Note the open risks");
+  await expect(secondInstruction).toHaveText("Summarize the launch risks");
+  await expect(firstLast).toHaveText("Has not run");
+  await expect(secondLast).toHaveText("Has not run");
+  await expect(firstDelivery).toHaveText("No delivery");
+  await expect(secondDelivery).toHaveText("No delivery");
+  await expect(firstCadence).toHaveText("Daily");
+  await expect(secondCadence).toHaveText("Hourly");
+  expect(await secondCadence.getAttribute("title")).toBe(nextTitle);
+  await expect(page.getByTestId("approve")).toHaveCount(0);
+  await page.getByTestId("composer").fill("Save the Draft the weekly close but do not send it routine as note the open risks");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText(
+    "“Draft the weekly close but do not send it” already does that: “Note the open risks”. The instruction was not rewritten.",
+  );
+  await expect(firstInstruction).toHaveText("Note the open risks");
+  await page.getByTestId("composer").fill("What does the Draft the weekly close but do not send it routine do?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText(
+    "“Draft the weekly close but do not send it” does this: “Note the open risks”. Another routine is unchanged.",
+  );
+  await expect(page.locator("#thread .turn").last()).not.toContainText("now does this");
+  await page.getByTestId("composer").fill("Change the Draft the weekly close but do not send it routine to Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("The change is not saved");
+  await expect(firstInstruction).toHaveText("Note the open risks");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(2);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/oriel-routine-save.png" });
+});
+
 test("an earlier hold can be released from the return card", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("composer").fill("Email Maya the launch update");

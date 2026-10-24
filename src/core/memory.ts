@@ -280,3 +280,22 @@ export function loosensRoutineChange(text: string): boolean {
   if (!/^(?:please,?\s+)?change the .+ routine to\b/i.test(value)) return false;
   return ROUTINE_LOOSEN.test(value);
 }
+
+const ROUTINE_SAVE = /^(?:please,?\s+)?save the (.+?) routine as (.+)$/i;
+
+export function routineSave(text: string): { name: string; proposal: string } | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SAVE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  const proposal = stripRoutineToken(match[2] ?? "");
+  if (!name || !proposal || ROUTINE_LOOSEN.test(value) || /\band\b/i.test(proposal)) return null;
+  return { name, proposal };
+}
+
+export function loosensRoutineSave(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSave(text)) return false;
+  if (!/^(?:please,?\s+)?save the .+ routine as\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}

@@ -1581,6 +1581,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F84",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Save one routine",
+      title: "Save one routine's instruction and do not run it",
+      story:
+        "As a chief of staff, I want Oriel to save a new instruction on one named routine, so that the next run uses those words and this sentence does not run it.",
+      acceptance: [
+        "Saying save the Launch note routine as Summarize the launch risks writes that instruction and does not run the routine.",
+        "The cadence, the next time, the last run, and every other routine stay, and a send in the new instruction still waits on a later hold.",
+        "Saving does not send mail or move money, does not approve a hold, does not open a hold, and does not call a bridge.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {
