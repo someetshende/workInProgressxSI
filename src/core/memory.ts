@@ -1,0 +1,187 @@
+import type { Memory } from "./types.js";
+
+const STOP = new Set([
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+  "Oriel",
+  "Grok",
+  "Dots",
+  "Muse",
+  "Please",
+  "Thanks",
+  "Thank",
+  "Draft",
+  "Send",
+  "Email",
+  "The",
+  "This",
+  "That",
+  "And",
+  "But",
+]);
+
+function addUnique(list: string[], line: string): void {
+  const clean = line.replace(/\s+/g, " ").trim().replace(/[.,;:]+$/, "");
+  if (!clean) return;
+  if (list.some((item) => item.toLowerCase() === clean.toLowerCase())) return;
+  if (list.some((item) => item.toLowerCase().includes(clean.toLowerCase()))) return;
+  list.push(clean);
+}
+
+const NOT_A_PERSON = new Set(
+  [...STOP].map((word) => word.toLowerCase()).concat(["the", "a", "an", "anyone", "them", "this", "that", "my", "our", "your", "it"]),
+);
+
+export function peopleIn(text: string): string[] {
+  const found: string[] = [];
+  for (const match of text.matchAll(/\b(?:email|e-mail|tell|message|with)\s+([A-Za-z][a-z]{2,})\b/gi)) {
+    const name = match[1];
+    if (!name || NOT_A_PERSON.has(name.toLowerCase())) continue;
+    if (name[0] !== name[0]?.toUpperCase()) continue;
+    addUnique(found, name);
+  }
+  return found;
+}
+
+export function remember(memory: Memory, text: string): Memory {
+  const preferences = [...memory.preferences];
+  const people = [...memory.people];
+  for (const match of text.matchAll(/\bi prefer\s+[^.?!\n]+/gi)) {
+    if (match[0]) addUnique(preferences, match[0]);
+  }
+  for (const match of text.matchAll(/\b(?:don't|do not) ever\s+[^.?!\n]+/gi)) {
+    if (match[0]) addUnique(preferences, match[0]);
+  }
+  for (const match of text.matchAll(/\bremember that\s+([^.?!\n]+)/gi)) {
+    const clause = match[1]?.trim();
+    if (!clause) continue;
+    const covered = preferences.some(
+      (item) => item.toLowerCase().includes(clause.toLowerCase()) || clause.toLowerCase().includes(item.toLowerCase()),
+    );
+    if (!covered) addUnique(preferences, `Remember that ${clause}`);
+  }
+  for (const name of peopleIn(text)) addUnique(people, name);
+  return { preferences, people };
+}
+
+export function isMemoryOnly(text: string): boolean {
+  if (!/^(please\s+)?(remember that|i prefer|don't ever|do not ever)\b/i.test(text)) return false;
+  if (/\b(compare|draft|email|plan|fix|schedule|summarize|research|buy|delete|publish|convene)\b/i.test(text)) {
+    return false;
+  }
+  return text.trim().split(/\s+/).length < 16;
+}
+
+export function isMemoryQuery(text: string): boolean {
+  return /^(what do you remember|what did i ask you to remember|what should you keep|my preferences)\b/i.test(
+    text.trim(),
+  );
+}
+
+export function recall(memory: Memory): string {
+  if (!memory.preferences.length && !memory.people.length) {
+    return "Nothing yet. Tell me what to keep, or ask for the work directly.";
+  }
+  const lines = ["You asked me to keep:"];
+  for (const preference of memory.preferences) lines.push(`- ${preference}`);
+  if (memory.people.length) lines.push(`People named so far: ${memory.people.join(", ")}.`);
+  return lines.join("\n");
+}
+
+export function extractLoops(text: string): string[] {
+  const loops: string[] = [];
+  for (const match of text.matchAll(/\b(?:keep an eye on|follow up on|remind me about)\s+([^.\n]+)/gi)) {
+    const subject = match[1]?.trim().replace(/[.,;:]+$/, "");
+    if (subject) loops.push(`Watch: ${subject}`);
+  }
+  return loops;
+}
+
+export function isBareDecision(text: string): "approve" | "deny" | "task" | null {
+  const value = text.trim();
+  if (/^(please\s+)?allow(?:\s+this)?\s+for\s+this\s+task\??$/i.test(value)) return "task";
+  if (/^(approve|approved|yes release)$/i.test(value)) return "approve";
+  if (/^(deny|denied|not now)$/i.test(value)) return "deny";
+  return null;
+}
+
+export function isStopTask(text: string): boolean {
+  const value = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  return /^(?:please\s+)?stop this task$/i.test(value);
+}
+
+export function loosensStopTask(text: string): boolean {
+  const value = text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+  if (!/^(?:please\s+)?stop this task\b/i.test(value)) return false;
+  return /without asking|always[-\s]?allow|allow automatically|allow for this site|take action without/i.test(value);
+}
+
+const ROUTINE_LOOSEN = /without asking|always[-\s]?allow|allow automatically|allow for this site|take action without/i;
+
+function tidySentence(text: string): string {
+  return text.trim().replace(/[.!?]+$/g, "").replace(/\s+/g, " ");
+}
+
+export function routineStopName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = /^(?:please\s+)?stop the (.+) routine$/i.exec(value);
+  if (!match) return null;
+  const name = (match[1] ?? "").trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ").trim();
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensStopRoutine(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineStopName(text)) return false;
+  if (!/^(?:please\s+)?stop the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
+const SCHEDULE_READ = /^(?:please,?\s+)?what(?:['’]s| is) scheduled$/i;
+
+export function isScheduleRead(text: string): boolean {
+  return SCHEDULE_READ.test(tidySentence(text));
+}
+
+export function loosensScheduleRead(text: string): boolean {
+  const value = tidySentence(text);
+  if (isScheduleRead(text)) return false;
+  if (!/^(?:please,?\s+)?what(?:['’]s| is) scheduled\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
+const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
+
+export function routineWakeName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_WAKE.exec(value);
+  if (!match) return null;
+  const name = (match[1] ?? "").trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ").trim();
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineWake(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineWakeName(text)) return false;
+  if (!/^(?:please,?\s+)?when does the .+ routine wake\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
