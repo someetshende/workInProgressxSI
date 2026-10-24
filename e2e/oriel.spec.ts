@@ -14636,6 +14636,227 @@ test("ORIEL-F130 whether one routine started with the least destructive step doe
   await page.screenshot({ path: "test-results/oriel-routine-least-destructive.png" });
 });
 
+
+test("ORIEL-F131 whether a computer-use task is already active does not redirect the screen", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Is a computer-use task already active for the Launch note routine?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether a computer-use task is already active for one routine says that routine has no active screen task in the record.",
+  );
+  await expect(page.locator("[data-testid^='screen-task-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='screen-task-']").nth(0)).toHaveText("No active screen task");
+  await expect(page.locator("[data-testid^='screen-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='screen-']").nth(0)).toHaveText("No active screen task");
+  await expect(page.locator("[data-testid^='least-destructive-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='least-destructive-']").nth(0)).toHaveText("No least-destructive step");
+  await expect(page.locator("[data-testid^='least-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='least-']").nth(0)).toHaveText("No least-destructive step");
+  await expect(page.locator("[data-testid^='disconnected-app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='disconnected-app-']").nth(0)).toHaveText("No disconnected app");
+  await expect(page.locator("[data-testid^='retry-result-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='retry-result-']").nth(0)).toHaveText("No retry result");
+  await expect(page.locator("[data-testid^='support-note-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='support-note-']").nth(0)).toHaveText("No support note");
+  await expect(page.locator("[data-testid^='bot-quiet-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bot-quiet-']").nth(0)).toHaveText("No quiet bot");
+  await expect(page.locator("[data-testid^='signin-open-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='signin-open-']").nth(0)).toHaveText("No open sign-in");
+  await expect(page.locator("[data-testid^='app-update-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-update-']").nth(0)).toHaveText("No app update");
+  await expect(page.locator("[data-testid^='setup-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='setup-computer-']").nth(0)).toHaveText("No computer setup");
+  await expect(page.locator("[data-testid^='blocked-approval-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='blocked-approval-']").nth(0)).toHaveText("No blocked approval");
+  await expect(page.locator("[data-testid^='readable-attachment-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='readable-attachment-']").nth(0)).toHaveText("No readable attachment");
+  await expect(page.locator("[data-testid^='auth-plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='auth-plugin-']").nth(0)).toHaveText("No plugin authentication");
+  await expect(page.locator("[data-testid^='login-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='login-wait-']").nth(0)).toHaveText("No login wait");
+  await expect(page.locator("[data-testid^='plugin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plugin-']").nth(0)).toHaveText("No required plugin");
+  await expect(page.locator("[data-testid^='stuck-state-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stuck-state-']").nth(0)).toHaveText("No stuck state");
+  await expect(page.locator("[data-testid^='reachable-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reachable-computer-']").nth(0)).toHaveText("No reachable computer");
+  await expect(page.locator("[data-testid^='cloud-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='cloud-computer-']").nth(0)).toHaveText("No cloud-computer refusal");
+  await expect(page.locator("[data-testid^='local-computer-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='local-computer-']").nth(0)).toHaveText("No local-computer refusal");
+  await expect(page.locator("[data-testid^='locked-team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='locked-team-rule-']").nth(0)).toHaveText("No locked team rule");
+  await expect(page.locator("[data-testid^='team-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='team-rule-']").nth(0)).toHaveText("No team rule");
+  await expect(page.locator("[data-testid^='allow-automatically-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='allow-automatically-']").nth(0)).toHaveText("No allow-automatically rule");
+  await expect(page.locator("[data-testid^='ask-first-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ask-first-']").nth(0)).toHaveText("No ask-first rule");
+  await expect(page.locator("[data-testid^='matching-rule-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='matching-rule-']").nth(0)).toHaveText("No matching rule");
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.locator("[data-testid^='sign-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='open-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='update-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='quiet-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='result-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='destructive-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='step-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='task-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='active-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='retry-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='app-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='support-']")).toHaveCount(2);
+  const taskFollowsStep = await page.evaluate(() => {
+    const step = document.querySelector("[data-testid^='least-destructive-']");
+    const task = document.querySelector("[data-testid^='screen-task-']");
+    if (!step || !task || step.parentElement !== task.parentElement) return false;
+    return step.compareDocumentPosition(task) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(taskFollowsStep).toBe(true);
+  const noteIds = await page.locator("[data-testid^='screen-task-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("screen-task-"))).toBe(true);
+  expect(noteIds.some((id) => id.startsWith("task-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("active-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("computer-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("least-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("destructive-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("step-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("stuck-"))).toBe(false);
+  expect(noteIds.some((id) => id.startsWith("state-"))).toBe(false);
+  const ruleIds = await page.locator("[data-testid^='rule-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(ruleIds).toEqual(expect.arrayContaining(["rule-send", "rule-pay", "rule-delete", "rule-post"]));
+  expect(ruleIds.some((id) => id.startsWith("screen-task"))).toBe(false);
+
+  await page.getByTestId("composer").fill("Is a computer-use task already active for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no active screen task in the record.");
+  await expect(clear).toContainText("Asking does not redirect the screen.");
+  await expect(clear).not.toContainText("has no least-destructive step");
+  await expect(clear).not.toContainText("Asking does not take a destructive step.");
+  await expect(clear).not.toContainText("has no stuck state");
+  await expect(clear).not.toContainText("Asking does not open the computer.");
+  await expect(clear).not.toContainText("Asking does not send a redirect.");
+  await expect(clear).not.toContainText("has no disconnected app");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("verification code");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Is a computer-use task already active for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no active screen task in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Is a computer-use task already active for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no active screen task in the record.");
+  await expect(pausedAsk).toContainText("Asking does not redirect the screen.");
+  await expect(pausedAsk).not.toContainText("password");
+  await expect(pausedAsk).not.toContainText("verification code");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Did the Draft the weekly close but do not send it routine start with the least destructive step?");
+  await page.getByTestId("send").click();
+  const stepLeft = page.locator("#thread .turn").last();
+  await expect(stepLeft).toContainText("“Draft the weekly close but do not send it” has no least-destructive step in the record.");
+  await expect(stepLeft).toContainText("Asking does not take a destructive step.");
+  await expect(stepLeft).not.toContainText("has no active screen task");
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine stuck?");
+  await page.getByTestId("send").click();
+  const stuckLeft = page.locator("#thread .turn").last();
+  await expect(stuckLeft).toContainText("“Draft the weekly close but do not send it” has no stuck state in the record.");
+  await expect(stuckLeft).not.toContainText("has no active screen task");
+
+  await page.getByTestId("composer").fill("Is the app disconnected for the Draft the weekly close but do not send it routine?");
+  await page.getByTestId("send").click();
+  const appLeft = page.locator("#thread .turn").last();
+  await expect(appLeft).toContainText("“Draft the weekly close but do not send it” has no disconnected app in the record.");
+  await expect(appLeft).not.toContainText("has no active screen task");
+
+  await page.getByTestId("composer").fill("Is the Draft the weekly close but do not send it routine active?");
+  await page.getByTestId("send").click();
+  const activeLeft = page.locator("#thread .turn").last();
+  await expect(activeLeft).toContainText("is not active");
+  await expect(activeLeft).not.toContainText("has no active screen task");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("active screen task");
+  await expect(why).not.toContainText("computer-use");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+  await expect(page.locator("[data-testid^='screen-task-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='screen-task-']").nth(0)).toHaveText("No active screen task");
+  await expect(page.locator("[data-testid^='screen-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='least-destructive-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='least-destructive-']").nth(0)).toHaveText("No least-destructive step");
+  await expect(page.locator("[data-testid^='least-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='task-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='active-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='destructive-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='step-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='stuck-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='state-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='source-']")).toHaveCount(6);
+  await expect(page.locator("[data-testid^='source-']").nth(0)).toHaveText("No source system");
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-screen-task.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

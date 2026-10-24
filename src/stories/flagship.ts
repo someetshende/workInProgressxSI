@@ -2474,6 +2474,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F131",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether a computer-use task is already active for one routine",
+      title: "Say that one routine has no active screen task and do not redirect the screen",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no active screen task in the record, so that I can check the work without redirecting the screen.",
+      acceptance: [
+        "Saying whether a computer-use task is already active for the Launch note routine says that one routine has no active screen task in the record.",
+        "Asking does not redirect the screen, does not start another screen task, and does not take a destructive step.",
+        "A stored run is not an active screen task. A least-destructive step is not one. The least-destructive answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
