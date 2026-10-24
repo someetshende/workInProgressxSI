@@ -462,7 +462,7 @@ function renderRail() {
       el("p", {
         class: "rule-note",
         "data-testid": "schedule-hint",
-        text: "Ask what is scheduled, when one routine wakes, or what one routine does. Asking does not run a routine.",
+        text: "Ask what is scheduled, when one routine wakes, what one routine does, or when one routine last ran. Asking does not run a routine.",
       }),
     );
     for (const routine of state.routines) {
@@ -491,6 +491,13 @@ function renderRail() {
             onclick: () => post(`/api/routines/${routine.id}`, { cadence: next }),
           }),
         ]),
+      );
+      rail.append(
+        el("p", {
+          class: "rule-note",
+          "data-testid": `last-run-${routine.id}`,
+          text: routine.lastRunAt ? `Last ran ${routine.lastRunAt}` : "Has not run",
+        }),
       );
       const heldBack = heldBackLine(routine.heldBack);
       if (heldBack) {

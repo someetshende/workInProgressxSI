@@ -194,6 +194,22 @@ export function routineDoAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineRanCopy(name: string, lastRunAt: string | null, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  const when = lastRunAt?.trim() ? lastRunAt.trim() : "";
+  const body = when ? `${quoted} last ran at ${when}.` : `${quoted} has no last run in the record.`;
+  return `${body}${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineRanMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineRanAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function stayedSentence(kinds: ApprovalKind[]): string {
   if (!kinds.length) return "";
   const names = kinds.map((kind) => KIND_STAY[kind]);

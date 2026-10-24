@@ -397,6 +397,12 @@ export const constraints: Constraint[] = [
     text: "saying what one named routine does names its instruction and does not run it, change that instruction, or change its timing",
     proof: "What does the Launch note routine do names that instruction. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "when-routine-ran",
+    short: "When one last ran",
+    text: "saying when one named routine last ran names that stored time, or says there is no last run, and does not run it or change it",
+    proof: "When did the Launch note routine last run names that time. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;

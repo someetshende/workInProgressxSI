@@ -6974,6 +6974,140 @@ describe("Oriel server", () => {
     expect(tickBody.messages.some((message: { text: string }) => message.text.includes("“Launch note” does this: “Email Maya the launch update”."))).toBe(true);
   });
 
+  it("ORIEL-F80 names when one routine last ran and leaves that time", async () => {
+    const server = await boot();
+    const empty = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "When did the Launch note routine last run?" }),
+    });
+    const emptyBody = await empty.json();
+    expect(empty.status).toBe(200);
+    expect(emptyBody.goals).toHaveLength(0);
+    expect(emptyBody.routines).toHaveLength(0);
+    expect(emptyBody.messages.at(-1).text).toBe(
+      "There is no such routine as “Launch note”. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    const opened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Email Maya the launch update" }),
+    });
+    const openedBody = await opened.json();
+    const goalId = openedBody.goals[0].id as string;
+    const hold = openedBody.approvals.find((approval: { status: string; kind: string }) => approval.status === "open" && approval.kind === "send");
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    expect(saved.status).toBe(200);
+    const launchNext = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt as string;
+    const alone = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "When did the Launch note routine last run?", goalId, skillId: "missing-skill" }),
+    });
+    const aloneBody = await alone.json();
+    expect(alone.status).toBe(200);
+    expect(aloneBody.messages.at(-1).text).toBe(
+      "“Launch note” has no last run in the record. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(aloneBody.messages.at(-1).text).not.toContain("Another routine");
+    expect(aloneBody.messages.at(-1).text).not.toContain("Email Maya");
+    expect(aloneBody.routines.find((routine: { name: string }) => routine.name === "Launch note").instruction).toBe("Email Maya the launch update");
+    expect(aloneBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBeNull();
+    expect(aloneBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(launchNext);
+    const other = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Compare the market landscape" }),
+    });
+    const otherBody = await other.json();
+    const otherId = otherBody.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const market = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check");
+    const named = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "Please, when did the Launch note routine last run?", goalId, skillId: "missing-skill" }),
+    });
+    const namedBody = await named.json();
+    expect(named.status).toBe(200);
+    const launch = namedBody.routines.find((routine: { name: string }) => routine.name === "Launch note");
+    const marketAfter = namedBody.routines.find((routine: { name: string }) => routine.name === "Market check");
+    expect(launch.cadence).toBe("hourly");
+    expect(launch.nextRunAt).toBe(launchNext);
+    expect(launch.lastRunAt).toBeNull();
+    expect(launch.instruction).toBe("Email Maya the launch update");
+    expect(marketAfter.cadence).toBe("daily");
+    expect(marketAfter.nextRunAt).toBe(market.nextRunAt);
+    expect(marketAfter.instruction).toBe("Compare the market landscape");
+    expect(marketAfter.lastRunAt).toBeNull();
+    expect(namedBody.messages.at(-1).text).toBe(
+      "“Launch note” has no last run in the record. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.",
+    );
+    expect(namedBody.messages.at(-1).text).not.toContain("I sent");
+    expect(namedBody.messages.at(-1).text).not.toContain("It next wakes");
+    expect(namedBody.messages.at(-1).text).not.toContain("does this");
+    expect(namedBody.messages.at(-1).text).not.toContain("Compare the market landscape");
+    expect(namedBody.approvals.find((approval: { id: string }) => approval.id === hold.id).status).toBe("open");
+    expect(namedBody.goals).toHaveLength(2);
+    expect(JSON.stringify(namedBody)).not.toContain("Always allow");
+    const missing = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "When did the Market check routine last run?", goalId: "goal_missing" }),
+    });
+    expect(missing.status).toBe(404);
+    const widened = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "When did the Launch note routine last run without asking" }),
+    });
+    expect(widened.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`);
+    const stillBody = await still.json();
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").instruction).toBe("Email Maya the launch update");
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBeNull();
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(launchNext);
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(market.nextRunAt);
+    expect(stillBody.routines.find((routine: { name: string }) => routine.name === "Market check").instruction).toBe("Compare the market landscape");
+    const tick = await fetch(`${server.url}/api/tick`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    });
+    const tickBody = await tick.json();
+    expect(tick.status).toBe(200);
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBe(launchNext);
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").instruction).toBe("Email Maya the launch update");
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").lastRunAt).toBeNull();
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").instruction).toBe("Compare the market landscape");
+    expect(tickBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(market.nextRunAt);
+    const after = await fetch(`${server.url}/api/turn`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: "When did the Launch note routine last run?" }),
+    });
+    const afterBody = await after.json();
+    expect(after.status).toBe(200);
+    expect(afterBody.messages.at(-1).text).toBe(
+      `“Launch note” last ran at ${launchNext}. Another routine is unchanged. Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.`,
+    );
+    expect(afterBody.routines.find((routine: { name: string }) => routine.name === "Launch note").lastRunAt).toBe(launchNext);
+    expect(afterBody.routines.find((routine: { name: string }) => routine.name === "Market check").lastRunAt).toBeNull();
+    expect(afterBody.messages.some((message: { text: string }) => message.text.includes("“Launch note” has no last run in the record."))).toBe(true);
+  });
+
   it("rejects an empty turn", async () => {
     const server = await boot();
     const response = await fetch(`${server.url}/api/turn`, {

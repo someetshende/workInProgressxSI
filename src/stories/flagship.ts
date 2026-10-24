@@ -1505,6 +1505,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 1,
     },
+    {
+      id: "ORIEL-F80",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "When one routine last ran",
+      title: "Name when one routine last ran and leave it alone",
+      story:
+        "As a chief of staff, I want Oriel to name when one saved routine last ran, so that I can read that time without running it or changing it.",
+      acceptance: [
+        "Saying when did the Launch note routine last run names that routine's stored last run, or says it has no last run in the record, and does not run it.",
+        "The instruction, the cadence, the next time, the last run, and every other routine stay as they are, and nothing is changed.",
+        "Asking does not send mail or move money, does not approve a hold, and does not call a bridge.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 1,
+    },
   ];
 
   return stories.map((story) => {
