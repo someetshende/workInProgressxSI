@@ -544,6 +544,24 @@ export function loosensRoutineLocalComputer(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_CLOUD_COMPUTER = /^(?:please,?\s+)?is cloud computer work refused for the (.+) routine$/i;
+
+export function routineCloudComputerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CLOUD_COMPUTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCloudComputer(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCloudComputerName(text)) return false;
+  if (!/^(?:please,?\s+)?is cloud computer work refused for the .+ routine\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

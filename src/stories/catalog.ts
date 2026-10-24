@@ -613,6 +613,12 @@ export const constraints: Constraint[] = [
     text: "saying whether local computer work is refused for one named routine says that routine has no local-computer refusal in the record and does not turn local access on or connect a computer or connect a plugin or lock a team rule or edit a team rule or delete a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or start a test run or pause account access or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, a source repository, a matching rule, an ask-first rule, an allow-automatically rule, a team rule, a locked team rule, or a source system as a local-computer refusal",
     proof: "Is local computer work refused for the Launch note routine says there is no local-computer refusal. Asking does not turn local access on. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
   },
+  {
+    id: "ask-cloud-computer",
+    short: "Ask whether cloud computer work is refused",
+    text: "saying whether cloud computer work is refused for one named routine says that routine has no cloud-computer refusal in the record and does not turn cloud access on or turn local access on or connect a computer or connect a plugin or lock a team rule or edit a team rule or delete a team rule or save an ask-first rule or turn on allow automatically or turn on an allow-automatically rule or confirm a matching rule or a repository or connect a channel or start a test run or pause account access or treat a stored run, a desk-wide pause, a failure, a usage pause, a source channel, a source repository, a matching rule, an ask-first rule, an allow-automatically rule, a team rule, a locked team rule, a local-computer refusal, or a source system as a cloud-computer refusal",
+    proof: "Is cloud computer work refused for the Launch note routine says there is no cloud-computer refusal. Asking does not turn cloud access on. Two routines with the same name are left unchanged. Nothing is run, changed, sent, or spent.",
+  },
 ];
 
 let cache: Story[] | null = null;
