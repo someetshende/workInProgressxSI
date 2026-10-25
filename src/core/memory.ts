@@ -1229,6 +1229,24 @@ export function loosensRoutineQuietGate(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_PUBLIC_VEIL = /^(?:please,?\s+)?does the (.+) routine say to keep public template sharing off unless members should publish bot templates outside the team$/i;
+
+export function routinePublicVeilName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_PUBLIC_VEIL.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutinePublicVeil(text: string): boolean {
+  const value = tidySentence(text);
+  if (routinePublicVeilName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say to keep public template sharing off unless members should publish bot templates outside the team\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

@@ -2911,6 +2911,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F154",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says to keep public template sharing off unless members should publish Bot templates outside the team",
+      title: "Say that one routine has no public veil and do not keep public template sharing off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no public veil in the record, so that I can check the work without keeping public template sharing off.",
+      acceptance: [
+        "Saying whether the Launch note routine says to keep public template sharing off unless members should publish Bot templates outside the team says that one routine has no public veil in the record.",
+        "Asking does not keep public template sharing off, does not publish a Bot template, and does not quiet Cloud Agent spawning.",
+        "A stored run is not a public veil. A quiet gate is not one. The quiet-gate answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
