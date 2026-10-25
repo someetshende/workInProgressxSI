@@ -3063,6 +3063,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F162",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the default leaves the choice to each member, whose own setting defaults to asking before every task",
+      title: "Say that one routine has no habit ask and do not set the member's own setting to ask before every task",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no habit ask in the record, so that I can check the work without setting the member's own setting to ask before every task.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the default leaves the choice to each member, whose own setting defaults to asking before every task says that one routine has no habit ask in the record.",
+        "Asking does not set the member's own setting to ask before every task, does not preset that member's own setting to ask before every task, and does not lock that member's own setting on ask before every task.",
+        "A stored run is not a habit ask. A reason bar is not one. The reason-bar answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

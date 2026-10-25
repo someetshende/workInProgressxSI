@@ -2,6 +2,8 @@
 
 As of 23 October 2026. This is product research for Oriel, not a claim that Oriel is any of those products. Dates, prices, and regional limits below come from vendor pages and reporting. They moved during staggered rollouts, and this brief did not sign in to a live Grok Bot, Dot, or Muse account to re-verify them.
 
+Rechecked on 25 October 2026 against the Grok Bot teams page. Under Execution on Local Computer, the body still says the default leaves the choice to each member, whose own setting defaults to asking before every task. Oriel now answers that sentence as a read and does not change the setting. The capital team-setting name on that control stays out of Oriel's public reply. Allow Local Egress Routing, the next control on that page, stays unused here.
+
 ## What shipped, close together
 
 In about seven weeks the three largest consumer AI companies shipped the same kind of product.

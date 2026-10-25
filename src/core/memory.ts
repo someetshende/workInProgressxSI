@@ -1374,6 +1374,24 @@ export function loosensRoutineReasonBar(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_HABIT_ASK = /^(?:please,?\s+)?does the (.+) routine say that the default leaves the choice to each member, whose own setting defaults to asking before every task$/i;
+
+export function routineHabitAskName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_HABIT_ASK.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineHabitAsk(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineHabitAskName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the default leaves the choice to each member, whose own setting defaults to asking before every task\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
