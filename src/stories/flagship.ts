@@ -3025,6 +3025,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F160",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that a member's own setting still applies when it is stricter than the team's",
+      title: "Say that one routine has no stricter keep and do not keep a stricter member setting in force",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no stricter keep in the record, so that I can check the work without keeping a stricter member setting in force.",
+      acceptance: [
+        "Saying whether the Launch note routine says that a member's own setting still applies when it is stricter than the team's says that one routine has no stricter keep in the record.",
+        "Asking does not keep a stricter member setting in force, does not drop that stricter member setting, and does not ignore a stricter member setting.",
+        "A stored run is not a stricter keep. A local shutter is not one. The local-shutter answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

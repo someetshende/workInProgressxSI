@@ -1338,6 +1338,24 @@ export function loosensRoutineLocalShutter(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_STRICTER_KEEP = /^(?:please,?\s+)?does the (.+) routine say that a member's own setting still applies when it is stricter than the team's$/i;
+
+export function routineStricterKeepName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_STRICTER_KEEP.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineStricterKeep(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineStricterKeepName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that a member's own setting still applies when it is stricter than the team's\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
