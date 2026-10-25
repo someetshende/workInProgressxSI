@@ -2835,6 +2835,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F150",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine keeps the Cloud Agents switch on the Grok Bot page for the whole team and on by default",
+      title: "Say that one routine has no default switch and do not flip that switch",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no default switch in the record, so that I can check the work without flipping that switch.",
+      acceptance: [
+        "Saying whether the Launch note routine keeps the Cloud Agents switch on the Grok Bot page for the whole team and on by default says that one routine has no default switch in the record.",
+        "Asking does not flip that switch, does not hand the coding work off, and does not start a separate computer.",
+        "A stored run is not a default switch. A delegated lane is not one. The delegated-lane answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

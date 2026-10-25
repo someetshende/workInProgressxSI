@@ -1157,6 +1157,24 @@ export function loosensRoutineDelegatedLane(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_DEFAULT_SWITCH = /^(?:please,?\s+)?does the (.+) routine keep the cloud agents switch on the grok bot page for the whole team and on by default$/i;
+
+export function routineDefaultSwitchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DEFAULT_SWITCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDefaultSwitch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDefaultSwitchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine keep the cloud agents switch on the grok bot page for the whole team and on by default\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
