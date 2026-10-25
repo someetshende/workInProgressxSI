@@ -3331,6 +3331,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F176",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using Grok Bot",
+      title: "Say that one routine has no hibernate linger and do not leave that hibernated computer standing until someone terminates it",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no hibernate linger in the record, so that I can check the work without leaving that hibernated computer standing until someone terminates it.",
+      acceptance: [
+        "Saying whether the Launch note routine says that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using Grok Bot says that one routine has no hibernate linger in the record.",
+        "Asking does not leave that hibernated computer standing until someone terminates it, does not retain that hibernated computer standing until someone terminates it, and does not shelter that hibernated computer standing until someone terminates it.",
+        "A stored run is not a hibernate linger. A sole recreate is not one. The sole-recreate answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

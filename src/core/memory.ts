@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_HIBERNATE_LINGER = /^(?:please,?\s+)?does the (.+) routine say that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using grok bot$/i;
+
+export function routineHibernateLingerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_HIBERNATE_LINGER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineHibernateLinger(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineHibernateLingerName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using grok bot\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SOLE_RECREATE = /^(?:please,?\s+)?does the (.+) routine say that it only recreates; terminate vms and delete vms and data are under manage member computers and data$/i;
 
 export function routineSoleRecreateName(text: string): string | null {
