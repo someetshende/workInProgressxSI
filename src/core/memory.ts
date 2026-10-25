@@ -1538,6 +1538,24 @@ export function loosensRoutineAgedInclude(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_GRACE_PERIOD = /^(?:please,?\s+)?does the (.+) routine say that there is no grace period$/i;
+
+export function routineGracePeriodName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_GRACE_PERIOD.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineGracePeriod(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineGracePeriodName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that there is no grace period\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_OFF_DEFAULT = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
 
 export function routineOffDefaultName(text: string): string | null {

@@ -1203,6 +1203,20 @@ export function routineAgedIncludeAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineGracePeriodCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no grace period in the record. Asking does not waive that waiting window before cleanup.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineGracePeriodMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineGracePeriodAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineOffDefaultCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
