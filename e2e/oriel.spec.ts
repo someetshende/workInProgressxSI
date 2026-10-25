@@ -19046,6 +19046,172 @@ test("ORIEL-F158 whether one routine says the default leaves the choice does not
   await page.screenshot({ path: "test-results/oriel-routine-choice-latch.png" });
 });
 
+
+test("ORIEL-F159 whether one routine says ask every time does not turn local execution off", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team says that routine has no local shutter in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the default leaves the choice to each member says that routine has no choice latch in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says to set Execution on Local Computer to Never allow unless Bots need to act on member machines says that routine has no member ceiling in the record.",
+  );
+  await expect(page.locator("[data-testid^='shutter-pane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='shutter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='choice-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='choice-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='latch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='member-ceiling-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='member-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ceiling-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='plan-notch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plan-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='notch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='ring-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='clasp-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='veil-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='band-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='hush-mark-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='rest-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-switch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='switch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='delegated-lane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='delegated-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='lane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sealed-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='sealed-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='chat-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shared-kit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='quiet-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='bot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='shutter-pane-']").nth(0)).toHaveText("No local shutter");
+  const followsLatch = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='choice-latch-']");
+    const row = document.querySelector("[data-testid^='shutter-pane-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsLatch).toBe(true);
+  const noteIds = await page.locator("[data-testid^='shutter-pane-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("shutter-pane-"))).toBe(true);
+  for (const prefix of ["choice-latch-", "choice-", "latch-", "member-ceiling-", "member-", "ceiling-", "plan-notch-", "plan-", "notch-", "ring-clasp-", "ring-", "clasp-", "veil-band-", "veil-", "band-", "hush-mark-", "hush-", "mark-", "quiet-", "quiet-gate-", "spawn-hatch-", "spawn-", "hatch-", "rest-latch-", "rest-", "default-switch-", "default-", "switch-", "delegated-lane-", "delegated-", "lane-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "bot-", "note-", "open-", "wait-", "state-", "sign-", "cadence-", "pane-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no local shutter in the record.");
+  await expect(clear).toContainText("Asking does not turn local execution off for the whole team.");
+  await expect(clear).not.toContainText("Asking does not make every local task ask for approval.");
+  await expect(clear).not.toContainText("Asking does not leave that choice with each member.");
+  await expect(clear).not.toContainText("has no choice latch");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no local shutter in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no local shutter in the record.");
+  await expect(pausedAsk).toContainText("Asking does not turn local execution off for the whole team.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that the default leaves the choice to each member?");
+  await page.getByTestId("send").click();
+  const latchLeft = page.locator("#thread .turn").last();
+  await expect(latchLeft).toContainText("has no choice latch");
+  await expect(latchLeft).toContainText("Asking does not leave that choice with each member.");
+  await expect(latchLeft).not.toContainText("has no local shutter");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say to set Execution on Local Computer to Never allow unless Bots need to act on member machines?");
+  await page.getByTestId("send").click();
+  const ceilingLeft = page.locator("#thread .turn").last();
+  await expect(ceilingLeft).toContainText("has no member ceiling");
+  await expect(ceilingLeft).toContainText("Asking does not set that ceiling to never allow.");
+  await expect(ceilingLeft).not.toContainText("has no local shutter");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team");
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no local shutter in the record.");
+  await expect(lower).toContainText("Asking does not turn local execution off for the whole team.");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("local shutter");
+  await expect(why).not.toContainText("choice latch");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='shutter-pane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='shutter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='choice-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='choice-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='latch-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-local-shutter.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

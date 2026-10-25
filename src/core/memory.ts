@@ -1320,6 +1320,24 @@ export function loosensRoutineChoiceLatch(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_LOCAL_SHUTTER = /^(?:please,?\s+)?does the (.+) routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team$/i;
+
+export function routineLocalShutterName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_LOCAL_SHUTTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineLocalShutter(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineLocalShutterName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

@@ -3006,6 +3006,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F159",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team",
+      title: "Say that one routine has no local shutter and do not turn local execution off for the whole team",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no local shutter in the record, so that I can check the work without turning local execution off for the whole team.",
+      acceptance: [
+        "Saying whether the Launch note routine says that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team says that one routine has no local shutter in the record.",
+        "Asking does not turn local execution off for the whole team, does not make every local task ask for approval, and does not leave that choice with each member.",
+        "A stored run is not a local shutter. A choice latch is not one. The choice-latch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
