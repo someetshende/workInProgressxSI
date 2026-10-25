@@ -1284,6 +1284,24 @@ export function loosensRoutinePlanNotch(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_MEMBER_CEILING = /^(?:please,?\s+)?does the (.+) routine say to set execution on local computer to never allow unless bots need to act on member machines$/i;
+
+export function routineMemberCeilingName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_MEMBER_CEILING.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineMemberCeiling(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineMemberCeilingName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say to set execution on local computer to never allow unless bots need to act on member machines\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

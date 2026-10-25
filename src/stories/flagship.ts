@@ -2968,6 +2968,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F157",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says to set Execution on Local Computer to Never allow unless Bots need to act on member machines",
+      title: "Say that one routine has no member ceiling and do not set that ceiling to never allow",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no member ceiling in the record, so that I can check the work without setting that ceiling to never allow.",
+      acceptance: [
+        "Saying whether the Launch note routine says to set Execution on Local Computer to Never allow unless Bots need to act on member machines says that one routine has no member ceiling in the record.",
+        "Asking does not set that ceiling to never allow, does not leave the choice to each member, and does not start enterprise teams closed.",
+        "A stored run is not a member ceiling. A plan notch is not one. The plan-notch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
