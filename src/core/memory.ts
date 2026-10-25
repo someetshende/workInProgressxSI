@@ -1139,6 +1139,24 @@ export function loosensRoutineSealedChat(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_DELEGATED_LANE = /^(?:please,?\s+)?does the (.+) routine run delegated work on separate computers under your existing cloud agent controls$/i;
+
+export function routineDelegatedLaneName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DELEGATED_LANE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDelegatedLane(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDelegatedLaneName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine run delegated work on separate computers under your existing cloud agent controls\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

@@ -2816,6 +2816,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F149",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine runs delegated work on separate computers under your existing Cloud Agent controls",
+      title: "Say that one routine has no delegated lane and do not hand the coding work off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no delegated lane in the record, so that I can check the work without handing the coding work off.",
+      acceptance: [
+        "Saying whether the Launch note routine runs delegated work on separate computers under your existing Cloud Agent controls says that one routine has no delegated lane in the record.",
+        "Asking does not hand the coding work off, does not start a separate computer, and does not change Cloud Agent controls.",
+        "A stored run is not a delegated lane. A sealed chat is not one. The sealed-chat answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
