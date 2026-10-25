@@ -3217,6 +3217,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F170",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that existing computers must be restarted before a change takes effect",
+      title: "Say that one routine has no reboot wait and do not restart those existing computers before a change takes effect",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no reboot wait in the record, so that I can check the work without restarting those existing computers before a change takes effect.",
+      acceptance: [
+        "Saying whether the Launch note routine says that existing computers must be restarted before a change takes effect says that one routine has no reboot wait in the record.",
+        "Asking does not restart those existing computers before a change takes effect, does not recycle those existing computers before a change takes effect, and does not rebuild those existing computers before a change takes effect.",
+        "A stored run is not a reboot wait. A beside mark is not one. The beside-mark answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

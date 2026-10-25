@@ -21129,6 +21129,191 @@ test("ORIEL-F169 whether one routine says that the switch is on by default and s
   await page.screenshot({ path: "test-results/oriel-routine-beside-mark.png" });
 });
 
+test("ORIEL-F170 whether one routine says that existing computers must be restarted before a change takes effect does not restart those existing computers", async ({ page }) => {
+  const question = "that existing computers must be restarted before a change takes effect";
+  const short = "Asking does not restart those existing computers before a change takes effect.";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that existing computers must be restarted before a change takes effect says that routine has no reboot wait in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that it lets bots run commands as root on their own computer says that routine has no root grant in the record.",
+  );
+  const hintOrder = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const beside = text.indexOf("says that existing computers must be restarted before a change takes effect says that routine has no reboot wait");
+    const grant = text.indexOf("says that it lets bots run commands as root on their own computer says that routine has no root grant");
+    const pick = text.indexOf("says that turning it back on restores each member's previous choice says that routine has no prior pick");
+    return beside >= 0 && grant > beside && pick > grant;
+  });
+  expect(hintOrder).toBe(true);
+  const rebootBeforeBeside = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const reboot = text.indexOf("says that existing computers must be restarted before a change takes effect says that routine has no reboot wait");
+    const beside = text.indexOf("says that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page says that routine has no beside mark");
+    return reboot >= 0 && beside > reboot;
+  });
+  expect(rebootBeforeBeside).toBe(true);
+  await expect(page.locator("[data-testid^='reboot-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='beside-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='mark-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='root-grant-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='root-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='grant-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='prior-pick-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='prior-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pick-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='minute-halt-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='page-home-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='page-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='home-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='option-blank-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-switch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='switch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='reboot-wait-']").nth(0)).toHaveText("No reboot wait");
+  await expect(page.locator("[data-testid^='root-grant-']").nth(0)).toHaveText("No root grant");
+  const followsGrant = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='root-grant-']");
+    const row = document.querySelector("[data-testid^='reboot-wait-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsGrant).toBe(true);
+  const followsBeside = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='beside-mark-']");
+    const row = document.querySelector("[data-testid^='reboot-wait-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsBeside).toBe(true);
+  await expect(page.locator("[data-testid^='beside-mark-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reboot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  const noteIds = await page.locator("[data-testid^='reboot-wait-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("reboot-wait-"))).toBe(true);
+  for (const prefix of ["beside-mark-", "beside-", "wait-", "root-grant-", "root-", "grant-", "prior-pick-", "prior-", "pick-", "minute-halt-", "minute-", "halt-", "page-home-", "page-", "home-", "option-blank-", "option-", "blank-", "mark-", "hush-mark-", "hush-", "switch-", "default-", "default-switch-", "bot-", "computer-", "seat-", "note-", "file-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no reboot wait in the record.");
+  await expect(clear).toContainText(short);
+  await expect(clear).not.toContainText("Asking does not recycle those existing computers before a change takes effect.");
+  await expect(clear).not.toContainText("has no root grant");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no reboot wait in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no reboot wait in the record.");
+  await expect(pausedAsk).toContainText(short);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that it lets bots run commands as root on their own computer?");
+  await page.getByTestId("send").click();
+  const grantLeft = page.locator("#thread .turn").last();
+  await expect(grantLeft).toContainText("has no root grant");
+  await expect(grantLeft).toContainText("Asking does not let those bots run commands as root on their own computer.");
+  await expect(grantLeft).not.toContainText("has no reboot wait");
+  await expect(grantLeft).toContainText("has no root grant");
+
+  await page.getByTestId("composer").fill(`does the draft the weekly close but do not send it routine say ${question}`);
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no reboot wait in the record.");
+  await expect(lower).toContainText(short);
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that the switch is on by default and sits next to allow local egress routing in the bot computers section of the grok bot page");
+  await page.getByTestId("send").click();
+  const besideLower = page.locator("#thread .turn").last();
+  await expect(besideLower).toContainText("has no beside mark in the record.");
+  await expect(besideLower).toContainText("Asking does not sit that switch next to Allow Local Egress Routing.");
+  await expect(besideLower).not.toContainText("has no reboot wait");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that it lets bots run commands as root on their own computer");
+  await page.getByTestId("send").click();
+  const grantLower = page.locator("#thread .turn").last();
+  await expect(grantLower).toContainText("has no root grant in the record.");
+  await expect(grantLower).toContainText("Asking does not let those bots run commands as root on their own computer.");
+  await expect(grantLower).not.toContainText("has no reboot wait");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that turning it back on restores each member's previous choice");
+  await page.getByTestId("send").click();
+  const pickLower = page.locator("#thread .turn").last();
+  await expect(pickLower).toContainText("has no prior pick in the record.");
+  await expect(pickLower).not.toContainText("has no reboot wait");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("reboot wait");
+  await expect(why).not.toContainText("root grant");
+  await expect(page.locator("[data-testid^='reboot-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='beside-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='mark-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='root-grant-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='root-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='grant-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-reboot-wait.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
