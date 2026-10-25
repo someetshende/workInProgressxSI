@@ -3445,6 +3445,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F182",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that computers already past 30 days are included",
+      title: "Say that one routine has no aged include and do not include those computers already past thirty days",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no aged include in the record, so that I can check the work without including those computers already past thirty days.",
+      acceptance: [
+        "Saying whether the Launch note routine says that computers already past 30 days are included says that one routine has no aged include in the record.",
+        "Asking does not include those computers already past thirty days, does not enroll those computers already past thirty days, and does not fold those computers already past thirty days.",
+        "A stored run is not an aged include. A confirm gate is not one. The confirm-gate answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

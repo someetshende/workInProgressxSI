@@ -1520,6 +1520,24 @@ export function loosensRoutineConfirmGate(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_AGED_INCLUDE = /^(?:please,?\s+)?does the (.+) routine say that computers already past 30 days are included$/i;
+
+export function routineAgedIncludeName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_AGED_INCLUDE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineAgedInclude(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineAgedIncludeName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that computers already past 30 days are included\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_OFF_DEFAULT = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
 
 export function routineOffDefaultName(text: string): string | null {
