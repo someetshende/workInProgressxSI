@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineTallyResetCopy, routineTallyResetMissCopy, routineIdleSpanCopy, routineIdleSpanMissCopy, routineInactiveSweepCopy, routineInactiveSweepMissCopy, routineHibernateLingerCopy, routineHibernateLingerMissCopy, routineSoleRecreateCopy, routineSoleRecreateMissCopy, routineEnterpriseAdminCopy, routineEnterpriseAdminMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineOffDefaultCopy, routineOffDefaultMissCopy, routineTallyResetCopy, routineTallyResetMissCopy, routineIdleSpanCopy, routineIdleSpanMissCopy, routineInactiveSweepCopy, routineInactiveSweepMissCopy, routineHibernateLingerCopy, routineHibernateLingerMissCopy, routineSoleRecreateCopy, routineSoleRecreateMissCopy, routineEnterpriseAdminCopy, routineEnterpriseAdminMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -22256,6 +22256,124 @@ describe("Oriel server", () => {
     expect(why.body.messages.at(-1).text).toContain("A new schedule waits for its next time.");
     expect(why.body.messages.at(-1).text).not.toContain("tally reset");
     expect(why.body.messages.at(-1).text).not.toContain("idle span");
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F180 says one routine has no off default and does not leave that cleanup setting off at the start", async () => {
+    const server = await boot();
+    const question = "that the setting is off by default";
+    const short = "Asking does not leave that cleanup setting off at the start.";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineOffDefaultMissCopy("Launch note"));
+    expect(missing.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(missing.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(missing.body.trust).toContain("has no off default in the record");
+    expect(missing.body.trust).toContain(short);
+    expect(missing.body.trust).toContain("Asking does not keep that cleanup control off from the start");
+    expect(missing.body.trust).toContain("The short reply says Asking does not leave that cleanup setting off at the start");
+    expect(missing.body.trust).toContain("The tally-reset reply still says Asking does not restart that unused-time count when use resumes");
+    expect(missing.body.trust).toContain("The row says No off default");
+    expect(missing.body.trust).toContain("The row test id is off-default-");
+    expect(missing.body.trust).toContain("The row says No tally reset");
+    expect(missing.body.trust).toContain("The row test id is tally-reset-");
+    expect(missing.body.trust.indexOf("The row test id is off-default-")).toBeLessThan(missing.body.trust.indexOf("The row test id is tally-reset-"));
+    expect(missing.body.trust).toContain("does not say there is no tally reset");
+    expect(missing.body.trust).toContain("does not name an off default");
+    expect(missing.body.trust).toContain("A tally reset is not an off default");
+    expect(missing.body.trust).toContain("A stored run is not an off default");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent an off default");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not an off default");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("off-default-".startsWith("tally-reset-")).toBe(false);
+    expect("off-default-".startsWith("tally-")).toBe(false);
+    expect("off-default-".startsWith("default-")).toBe(false);
+    expect("off-default-".startsWith("reset-")).toBe(false);
+    expect("off-default-".startsWith("rest-")).toBe(false);
+    expect("off-default-".startsWith("seat-")).toBe(false);
+    expect("off-default-".startsWith("file-")).toBe(false);
+    expect(JSON.stringify(missing.body.messages.at(-1))).not.toMatch(/cursor/i);
+    expect(routineOffDefaultCopy("Launch note", true)).toContain(short);
+    expect(routineOffDefaultCopy("Launch note", true)).not.toContain("Asking does not keep that cleanup control off from the start.");
+    expect(routineOffDefaultCopy("Launch note", true)).not.toContain("Asking does not restart that unused-time count when use resumes.");
+    expect(routineTallyResetCopy("Launch note", true)).not.toContain("has no off default");
+    expect(routineOffDefaultCopy("Launch note", true)).not.toContain("has no tally reset");
+    expect(routineOffDefaultCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineOffDefaultCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineOffDefaultCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineOffDefaultCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineOffDefaultCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineOffDefaultCopy("Launch note", true)).not.toContain("Grok Bot");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineOffDefaultCopy("Launch note", false));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no off default in the record.");
+    expect(clear.body.messages.at(-1).text).toContain(short);
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not restart that unused-time count when use resumes.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no tally reset");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no off default in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const tallyLeft = await turn("Does the Launch note routine say that using grok bot again restarts the count?");
+    expect(tallyLeft.body.messages.at(-1).text).toContain("has no tally reset");
+    expect(tallyLeft.body.messages.at(-1).text).toContain("Asking does not restart that unused-time count when use resumes.");
+    expect(tallyLeft.body.messages.at(-1).text).not.toContain("has no off default");
+    const idleLeft = await turn("Does the Launch note routine say that when a member's computer goes 30 days without use, cursor terminates it?");
+    expect(idleLeft.body.messages.at(-1).text).toContain("has no idle span");
+    expect(idleLeft.body.messages.at(-1).text).not.toContain("has no off default");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("It is not paused.");
+    expect(why.body.messages.at(-1).text).toContain("A new schedule waits for its next time.");
+    expect(why.body.messages.at(-1).text).not.toContain("off default");
+    expect(why.body.messages.at(-1).text).not.toContain("tally reset");
     const refused = await turn(`Does the Launch note routine say ${question} without asking`);
     expect(refused.status).toBe(400);
     const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });

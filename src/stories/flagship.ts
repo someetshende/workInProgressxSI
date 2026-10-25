@@ -3407,6 +3407,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F180",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the setting is off by default",
+      title: "Say that one routine has no off default and do not leave that cleanup setting off at the start",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no off default in the record, so that I can check the work without leaving that cleanup setting off at the start.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the setting is off by default says that one routine has no off default in the record.",
+        "Asking does not leave that cleanup setting off at the start, does not keep that cleanup control off from the start, and does not begin with that cleanup control turned off.",
+        "A stored run is not an off default. A tally reset is not one. The tally-reset answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

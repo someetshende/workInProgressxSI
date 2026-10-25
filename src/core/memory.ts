@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_OFF_DEFAULT = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
+
+export function routineOffDefaultName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_OFF_DEFAULT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineOffDefault(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineOffDefaultName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the setting is off by default\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_TALLY_RESET = /^(?:please,?\s+)?does the (.+) routine say that using grok bot again restarts the count$/i;
 
 export function routineTallyResetName(text: string): string | null {
