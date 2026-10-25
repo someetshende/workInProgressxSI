@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Story atlas · Oriel</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/fonts/newsreader/latin-400.css" />
+    <link rel="stylesheet" href="/fonts/newsreader/latin-400-italic.css" />
+    <link rel="stylesheet" href="/fonts/inter/latin-400.css" />
+    <link rel="stylesheet" href="/fonts/inter/latin-500.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="atlas" data-testid="atlas">
+      <header class="atlas-head">
+        <a class="back" href="/">Oriel</a>
+        <h1>Story atlas</h1>
+        <p class="lede" id="atlas-lead"></p>
+      </header>
+      <form id="atlas-form" class="atlas-search" role="search">
+        <label class="sr" for="atlas-q">Search stories</label>
+        <input id="atlas-q" data-testid="atlas-search" type="search" placeholder="Search a person, a job, a hold" />
+        <button type="submit">Search</button>
+      </form>
+      <p class="count"><span data-testid="atlas-count">0</span> stories</p>
+      <div id="atlas-list" data-testid="atlas-list"></div>
+    </main>
+    <script type="module" src="/atlas.js"></script>
+  </body>
+</html>
