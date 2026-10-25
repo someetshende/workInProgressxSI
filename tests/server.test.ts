@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineRouteSpanCopy, routineRouteSpanMissCopy, routineRestoreLatchCopy, routineRestoreLatchMissCopy, routineSudoPermitCopy, routineSudoPermitMissCopy, routineNestPairCopy, routineNestPairMissCopy, routineColdStartCopy, routineColdStartMissCopy, routineBannerCrestCopy, routineBannerCrestMissCopy, routineFleetImageCopy, routineFleetImageMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineSlumberMarkCopy, routineSlumberMarkMissCopy, routineRecreateFenceCopy, routineRecreateFenceMissCopy, routineAdminChairCopy, routineAdminChairMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineRouteSpanCopy, routineRouteSpanMissCopy, routineRestoreLatchCopy, routineRestoreLatchMissCopy, routineSudoPermitCopy, routineSudoPermitMissCopy, routineNestPairCopy, routineNestPairMissCopy, routineColdStartCopy, routineColdStartMissCopy, routineBannerCrestCopy, routineBannerCrestMissCopy, routineFleetImageCopy, routineFleetImageMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineTidySweepCopy, routineTidySweepMissCopy, routineSlumberMarkCopy, routineSlumberMarkMissCopy, routineRecreateFenceCopy, routineRecreateFenceMissCopy, routineAdminChairCopy, routineAdminChairMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -22056,6 +22056,182 @@ describe("Oriel server", () => {
     expect(progressLeft.body.messages.at(-1).text).not.toContain("has no slumber mark");
     const why = await turn("Why hasn't the Launch note routine run?");
     expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("slumber mark");
+    expect(why.body.messages.at(-1).text).not.toContain("recreate fence");
+
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+
+  it("ORIEL-F177 says one routine has no tidy sweep and does not run that idle sweep on your behalf", async () => {
+    const server = await boot();
+    const question = "that Terminate Inactive Computers, in the Bot Computers section, does that cleanup for you";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineTidySweepMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("has no tidy sweep in the record");
+    expect(missing.body.trust).toContain("The row says No tidy sweep");
+    expect(missing.body.trust).toContain("The row test id is tidy-sweep-");
+    expect(missing.body.trust).toContain("The short reply says Asking does not run that idle sweep on your behalf");
+    expect(missing.body.trust).toContain("The slumber-mark reply still says Asking does not leave that sleeping computer in place until someone ends it");
+    expect(missing.body.trust).toContain("has no slumber mark in the record");
+    expect(missing.body.trust).toContain("The row says No slumber mark");
+    expect(missing.body.trust).toContain("The row test id is slumber-mark-");
+    expect(missing.body.trust).toContain("A slumber mark is not a tidy sweep");
+    expect(missing.body.trust).toContain("The recreate-fence reply still says Asking does not limit this restart to recreate only");
+    expect(missing.body.trust).toContain("has no recreate fence in the record");
+    expect(missing.body.trust).toContain("The row says No recreate fence");
+    expect(missing.body.trust).toContain("The row test id is recreate-fence-");
+    expect(missing.body.trust).toContain("A recreate fence is not a tidy sweep");
+    expect(missing.body.trust).toContain("does not say there is no tidy sweep");
+    expect(missing.body.trust).toContain("does not name a tidy sweep");
+    expect(missing.body.trust).toContain("A stored run is not a tidy sweep");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a tidy sweep");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a tidy sweep");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("has no tidy sweep".includes("has no slumber mark")).toBe(false);
+    expect("has no slumber mark".includes("has no tidy sweep")).toBe(false);
+    expect("has no tidy sweep".includes("has no recreate fence")).toBe(false);
+    expect("has no recreate fence".includes("has no tidy sweep")).toBe(false);
+    expect("has no tidy sweep".includes("has no admin chair")).toBe(false);
+    expect("has no admin chair".includes("has no tidy sweep")).toBe(false);
+    expect("Asking does not run that idle sweep on your behalf.".includes("Asking does not leave that sleeping computer in place until someone ends it.")).toBe(false);
+    expect("Asking does not leave that sleeping computer in place until someone ends it.".includes("Asking does not run that idle sweep on your behalf.")).toBe(false);
+    expect("Asking does not run that idle sweep on your behalf.".includes("Asking does not limit this restart to recreate only.")).toBe(false);
+    expect("Asking does not limit this restart to recreate only.".includes("Asking does not run that idle sweep on your behalf.")).toBe(false);
+    expect("Asking does not run that idle sweep on your behalf.".includes("Asking does not perform that idle sweep on your behalf.")).toBe(false);
+    expect("Asking does not perform that idle sweep on your behalf.".includes("Asking does not run that idle sweep on your behalf.")).toBe(false);
+    expect("tidy-sweep-".startsWith("recreate-fence-")).toBe(false);
+    expect("tidy-sweep-".startsWith("recreate-")).toBe(false);
+    expect("tidy-sweep-".startsWith("fence-")).toBe(false);
+    expect("tidy-sweep-".startsWith("mark-")).toBe(false);
+    expect("tidy-sweep-".startsWith("tidy-")).toBe(true);
+    expect("tidy-sweep-".startsWith("sweep-")).toBe(false);
+    expect("tidy-sweep-".startsWith("slumber-mark-")).toBe(false);
+    expect("tidy-sweep-".startsWith("slumber-")).toBe(false);
+    expect("slumber-mark-".startsWith("tidy-sweep-")).toBe(false);
+    expect("slumber-mark-".startsWith("tidy-")).toBe(false);
+    expect("recreate-fence-".startsWith("tidy-sweep-")).toBe(false);
+    expect("recreate-fence-".startsWith("slumber-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineTidySweepCopy("Launch note", true)).toContain("Asking does not run that idle sweep on your behalf.");
+    expect(routineTidySweepCopy("Launch note", true)).not.toContain("Asking does not perform that idle sweep on your behalf.");
+    expect(routineTidySweepCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineTidySweepCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineTidySweepCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineTidySweepCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineTidySweepCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineTidySweepCopy("Launch note", true)).not.toContain("has no recreate fence");
+    expect(routineTidySweepCopy("Launch note", true)).not.toContain("has no admin chair");
+    expect(routineTidySweepCopy("Launch note", true)).not.toContain("has no slumber mark");
+    expect(routineSlumberMarkCopy("Launch note", true)).not.toContain("has no tidy sweep");
+    expect(routineSlumberMarkCopy("Launch note", true)).not.toContain("Asking does not run that idle sweep on your behalf.");
+    expect(routineRecreateFenceCopy("Launch note", true)).not.toContain("has no tidy sweep");
+    expect(routineRecreateFenceCopy("Launch note", true)).not.toContain("Asking does not run that idle sweep on your behalf.");
+    expect(routineAdminChairCopy("Launch note", true)).not.toContain("has no tidy sweep");
+    expect(routineProgressCardCopy("Launch note", true)).not.toContain("has no tidy sweep");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineTidySweepCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no tidy sweep in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not run that idle sweep on your behalf.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not perform that idle sweep on your behalf.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no recreate fence");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not limit this restart to recreate only.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no tidy sweep in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn(`Does the Launch note routine say ${question}?`);
+    expect(asked.body.messages.at(-1).text).toBe(routineTidySweepCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const slumberLeft = await turn("Does the Launch note routine say that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using Grok Bot?");
+    expect(slumberLeft.body.messages.at(-1).text).toContain("has no slumber mark");
+    expect(slumberLeft.body.messages.at(-1).text).toContain("Asking does not leave that sleeping computer in place until someone ends it.");
+    expect(slumberLeft.body.messages.at(-1).text).not.toContain("has no tidy sweep");
+    expect(slumberLeft.body.messages.at(-1).text).not.toContain("Asking does not run that idle sweep on your behalf.");
+    const fenceLeft = await turn("Does the Launch note routine say that it only recreates; Terminate VMs and Delete VMs and Data are under Manage Member Computers and Data?");
+    expect(fenceLeft.body.messages.at(-1).text).toContain("has no recreate fence");
+    expect(fenceLeft.body.messages.at(-1).text).toContain("Asking does not limit this restart to recreate only.");
+    expect(fenceLeft.body.messages.at(-1).text).not.toContain("has no tidy sweep");
+    expect(fenceLeft.body.messages.at(-1).text).not.toContain("Asking does not run that idle sweep on your behalf.");
+    const adminLeft = await turn("Does the Launch note routine say that team admins on an Enterprise team can run this restart, not only organization admins?");
+    expect(adminLeft.body.messages.at(-1).text).toContain("has no admin chair");
+    expect(adminLeft.body.messages.at(-1).text).not.toContain("has no tidy sweep");
+    const progressLeft = await turn("Does the Launch note routine say that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts?");
+    expect(progressLeft.body.messages.at(-1).text).toContain("has no progress card");
+    expect(progressLeft.body.messages.at(-1).text).not.toContain("has no tidy sweep");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("tidy sweep");
     expect(why.body.messages.at(-1).text).not.toContain("slumber mark");
     expect(why.body.messages.at(-1).text).not.toContain("recreate fence");
 

@@ -3348,6 +3348,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F177",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Terminate Inactive Computers, in the Bot Computers section, does that cleanup for you",
+      title: "Say that one routine has no tidy sweep and do not run that idle sweep on your behalf",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no tidy sweep in the record, so that I can check the work without running that idle sweep on your behalf.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Terminate Inactive Computers, in the Bot Computers section, does that cleanup for you says that one routine has no tidy sweep in the record.",
+        "Asking does not run that idle sweep on your behalf, does not perform that idle sweep on your behalf, and does not carry out that idle sweep on your behalf.",
+        "A stored run is not a tidy sweep. A slumber mark is not one. The slumber-mark answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

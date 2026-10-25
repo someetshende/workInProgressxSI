@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_TIDY_SWEEP = /^(?:please,?\s+)?does the (.+) routine say that terminate inactive computers, in the bot computers section, does that cleanup for you$/i;
+
+export function routineTidySweepName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TIDY_SWEEP.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTidySweep(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTidySweepName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that terminate inactive computers, in the bot computers section, does that cleanup for you\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SLUMBER_MARK = /^(?:please,?\s+)?does the (.+) routine say that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using grok bot$/i;
 
 export function routineSlumberMarkName(text: string): string | null {
