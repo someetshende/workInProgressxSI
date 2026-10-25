@@ -3272,6 +3272,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F173",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts",
+      title: "Say that one routine has no progress card and do not clear that notice once the restart starts",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no progress card in the record, so that I can check the work without clearing that notice once the restart starts.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts says that one routine has no progress card in the record.",
+        "Asking does not clear that notice once the restart starts, does not clear that notice when the restart starts, and does not clear that notice after the restart starts.",
+        "A stored run is not a progress card. A fleet image is not one. The fleet-image answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

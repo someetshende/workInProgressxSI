@@ -1555,6 +1555,24 @@ export function loosensRoutineFleetImage(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_PROGRESS_CARD = /^(?:please,?\s+)?does the (.+) routine say that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts$/i;
+
+export function routineProgressCardName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_PROGRESS_CARD.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineProgressCard(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineProgressCardName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {
