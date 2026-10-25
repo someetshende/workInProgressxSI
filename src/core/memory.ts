@@ -1556,6 +1556,24 @@ export function loosensRoutineGracePeriod(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_ROLLING_CHECK = /^(?:please,?\s+)?does the (.+) routine say that cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment$/i;
+
+export function routineRollingCheckName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ROLLING_CHECK.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRollingCheck(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRollingCheckName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_OFF_DEFAULT = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
 
 export function routineOffDefaultName(text: string): string | null {

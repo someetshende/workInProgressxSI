@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineConfirmGateCopy, routineConfirmGateMissCopy, routineAgedIncludeCopy, routineAgedIncludeMissCopy, routineGracePeriodCopy, routineGracePeriodMissCopy, routineOffDefaultCopy, routineOffDefaultMissCopy, routineTallyResetCopy, routineTallyResetMissCopy, routineIdleSpanCopy, routineIdleSpanMissCopy, routineInactiveSweepCopy, routineInactiveSweepMissCopy, routineHibernateLingerCopy, routineHibernateLingerMissCopy, routineSoleRecreateCopy, routineSoleRecreateMissCopy, routineEnterpriseAdminCopy, routineEnterpriseAdminMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineConfirmGateCopy, routineConfirmGateMissCopy, routineAgedIncludeCopy, routineAgedIncludeMissCopy, routineGracePeriodCopy, routineGracePeriodMissCopy, routineRollingCheckCopy, routineRollingCheckMissCopy, routineOffDefaultCopy, routineOffDefaultMissCopy, routineTallyResetCopy, routineTallyResetMissCopy, routineIdleSpanCopy, routineIdleSpanMissCopy, routineInactiveSweepCopy, routineInactiveSweepMissCopy, routineHibernateLingerCopy, routineHibernateLingerMissCopy, routineSoleRecreateCopy, routineSoleRecreateMissCopy, routineEnterpriseAdminCopy, routineEnterpriseAdminMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -22737,6 +22737,124 @@ describe("Oriel server", () => {
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
+
+  it("ORIEL-F184 says one routine has no rolling check and does not land that cleanup in the days after the mark", async () => {
+    const server = await boot();
+    const question = "that Cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment";
+    const short = "Asking does not land that cleanup in the days after the mark.";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineRollingCheckMissCopy("Launch note"));
+    expect(missing.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(missing.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(missing.body.trust).toContain("has no rolling check in the record");
+    expect(missing.body.trust).toContain(short);
+    expect(missing.body.trust).toContain("Asking does not postpone that cleanup into the days after the mark");
+    expect(missing.body.trust).toContain("The short reply says Asking does not land that cleanup in the days after the mark");
+    expect(missing.body.trust).toContain("The grace-period reply still says Asking does not waive that waiting window before cleanup");
+    expect(missing.body.trust).toContain("The row says No rolling check");
+    expect(missing.body.trust).toContain("The row test id is rolling-check-");
+    expect(missing.body.trust).toContain("The row says No grace period");
+    expect(missing.body.trust).toContain("The row test id is grace-period-");
+    expect(missing.body.trust.indexOf("The row test id is rolling-check-")).toBeLessThan(missing.body.trust.indexOf("The row test id is grace-period-"));
+    expect(missing.body.trust).toContain("does not say there is no grace period");
+    expect(missing.body.trust).toContain("does not name a rolling check");
+    expect(missing.body.trust).toContain("A grace period is not a rolling check");
+    expect(missing.body.trust).toContain("A stored run is not a rolling check");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a rolling check");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a rolling check");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("rolling-check-".startsWith("grace-period-")).toBe(false);
+    expect("rolling-check-".startsWith("grace-")).toBe(false);
+    expect("rolling-check-".startsWith("period-")).toBe(false);
+    expect("rolling-check-".startsWith("check-")).toBe(false);
+    expect("rolling-check-".startsWith("aged-include-")).toBe(false);
+    expect("rolling-check-".startsWith("file-")).toBe(false);
+    expect(JSON.stringify(missing.body.messages.at(-1))).not.toMatch(/cursor/i);
+    expect(routineRollingCheckCopy("Launch note", true)).toContain(short);
+    expect(routineRollingCheckCopy("Launch note", true)).not.toContain("Asking does not postpone that cleanup into the days after the mark.");
+    expect(routineRollingCheckCopy("Launch note", true)).not.toContain("Asking does not waive that waiting window before cleanup.");
+    expect(routineGracePeriodCopy("Launch note", true)).not.toContain("has no rolling check");
+    expect(routineRollingCheckCopy("Launch note", true)).not.toContain("has no grace period");
+    expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineRollingCheckCopy("Launch note", true)).not.toContain("Grok Bot");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineRollingCheckCopy("Launch note", false));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no rolling check in the record.");
+    expect(clear.body.messages.at(-1).text).toContain(short);
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not waive that waiting window before cleanup.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no grace period");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain("Grok Bot");
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no rolling check in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const graceLeft = await turn("Does the Launch note routine say that there is no grace period?");
+    expect(graceLeft.body.messages.at(-1).text).toContain("has no grace period");
+    expect(graceLeft.body.messages.at(-1).text).toContain("Asking does not waive that waiting window before cleanup.");
+    expect(graceLeft.body.messages.at(-1).text).not.toContain("has no rolling check");
+    const agedLeft = await turn("Does the Launch note routine say that computers already past 30 days are included?");
+    expect(agedLeft.body.messages.at(-1).text).toContain("has no aged include");
+    expect(agedLeft.body.messages.at(-1).text).not.toContain("has no rolling check");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("It is not paused.");
+    expect(why.body.messages.at(-1).text).toContain("A new schedule waits for its next time.");
+    expect(why.body.messages.at(-1).text).not.toContain("rolling check");
+    expect(why.body.messages.at(-1).text).not.toContain("grace period");
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
 
   it("rejects an empty turn", async () => {
     const server = await boot();

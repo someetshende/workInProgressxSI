@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderAmbiguousCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceAmbiguousCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostAmbiguousCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceAmbiguousCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerAmbiguousCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayAmbiguousCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterAmbiguousCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchAmbiguousCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerAmbiguousCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskAmbiguousCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterAmbiguousCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitAmbiguousCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatAmbiguousCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneAmbiguousCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchAmbiguousCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchAmbiguousCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchAmbiguousCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateAmbiguousCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingAmbiguousCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchAmbiguousCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchAmbiguousCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterAmbiguousCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepAmbiguousCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarAmbiguousCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskAmbiguousCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathAmbiguousCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankAmbiguousCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeAmbiguousCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltAmbiguousCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickAmbiguousCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineConfirmGateAmbiguousCopy, routineConfirmGateCopy, routineConfirmGateMissCopy, routineAgedIncludeAmbiguousCopy, routineAgedIncludeCopy, routineAgedIncludeMissCopy, routineGracePeriodAmbiguousCopy, routineGracePeriodCopy, routineGracePeriodMissCopy, routineOffDefaultAmbiguousCopy, routineOffDefaultCopy, routineOffDefaultMissCopy, routineTallyResetAmbiguousCopy, routineTallyResetCopy, routineTallyResetMissCopy, routineIdleSpanAmbiguousCopy, routineIdleSpanCopy, routineIdleSpanMissCopy, routineInactiveSweepAmbiguousCopy, routineInactiveSweepCopy, routineInactiveSweepMissCopy, routineHibernateLingerAmbiguousCopy, routineHibernateLingerCopy, routineHibernateLingerMissCopy, routineSoleRecreateAmbiguousCopy, routineSoleRecreateCopy, routineSoleRecreateMissCopy, routineEnterpriseAdminAmbiguousCopy, routineEnterpriseAdminCopy, routineEnterpriseAdminMissCopy, routineProgressCardAmbiguousCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastAmbiguousCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerAmbiguousCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitAmbiguousCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkAmbiguousCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantAmbiguousCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingAmbiguousCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilAmbiguousCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderAmbiguousCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceAmbiguousCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostAmbiguousCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceAmbiguousCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerAmbiguousCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayAmbiguousCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterAmbiguousCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchAmbiguousCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerAmbiguousCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskAmbiguousCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterAmbiguousCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitAmbiguousCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatAmbiguousCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneAmbiguousCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchAmbiguousCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchAmbiguousCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchAmbiguousCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateAmbiguousCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingAmbiguousCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchAmbiguousCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchAmbiguousCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterAmbiguousCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepAmbiguousCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarAmbiguousCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskAmbiguousCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathAmbiguousCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankAmbiguousCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeAmbiguousCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltAmbiguousCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickAmbiguousCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineConfirmGateAmbiguousCopy, routineConfirmGateCopy, routineConfirmGateMissCopy, routineAgedIncludeAmbiguousCopy, routineAgedIncludeCopy, routineAgedIncludeMissCopy, routineGracePeriodAmbiguousCopy, routineGracePeriodCopy, routineGracePeriodMissCopy, routineRollingCheckAmbiguousCopy, routineRollingCheckCopy, routineRollingCheckMissCopy, routineOffDefaultAmbiguousCopy, routineOffDefaultCopy, routineOffDefaultMissCopy, routineTallyResetAmbiguousCopy, routineTallyResetCopy, routineTallyResetMissCopy, routineIdleSpanAmbiguousCopy, routineIdleSpanCopy, routineIdleSpanMissCopy, routineInactiveSweepAmbiguousCopy, routineInactiveSweepCopy, routineInactiveSweepMissCopy, routineHibernateLingerAmbiguousCopy, routineHibernateLingerCopy, routineHibernateLingerMissCopy, routineSoleRecreateAmbiguousCopy, routineSoleRecreateCopy, routineSoleRecreateMissCopy, routineEnterpriseAdminAmbiguousCopy, routineEnterpriseAdminCopy, routineEnterpriseAdminMissCopy, routineProgressCardAmbiguousCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastAmbiguousCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerAmbiguousCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitAmbiguousCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkAmbiguousCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantAmbiguousCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingAmbiguousCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilAmbiguousCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -51329,6 +51329,285 @@ describe("ORIEL-F183", () => {
     expect(kept.routines[0]?.paused).toBe(true);
     expect(kept.goals).toHaveLength(one.goals.length);
     await expect(convene(kept, `Does the Launch note routine say ${GRACE_PERIOD_QUESTION}?`, "goal_missing", early)).rejects.toThrow(/not in the record/);
+  });
+});
+
+const ROLLING_CHECK_QUESTION = "that Cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment";
+const ROLLING_SHORT = "Asking does not land that cleanup in the days after the mark.";
+const ROLLING_POSTPONE = "Asking does not postpone that cleanup into the days after the mark.";
+const ROLLING_SHIFT = "Asking does not shift that cleanup into the days after the mark.";
+
+describe("ORIEL-F184", () => {
+  it("ORIEL-F184 says one routine has no rolling check and does not land that cleanup in the days after the mark", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T04:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+      const asked = `Please, does the Launch note routine say ${ROLLING_CHECK_QUESTION}?`;
+
+      state = await convene(state, asked, goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(routineRollingCheckCopy("Launch note", true));
+      expect(state.messages.at(-1)?.text).toContain("“Launch note” has no rolling check in the record.");
+      expect(state.messages.at(-1)?.text).toContain(ROLLING_SHORT);
+      expect(state.messages.at(-1)?.text).not.toContain(ROLLING_POSTPONE);
+      expect(state.messages.at(-1)?.text).not.toContain(ROLLING_SHIFT);
+      expect(state.messages.at(-1)?.text).not.toContain("has no grace period");
+      expect(state.messages.at(-1)?.text).not.toContain("has no aged include");
+      expect(state.messages.at(-1)?.text).not.toContain("has no confirm gate");
+      expect(state.messages.at(-1)?.text).not.toContain(GRACE_SHORT);
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not include those computers already past thirty days.");
+      expect(state.messages.at(-1)?.text).not.toMatch(/cursor/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/credential/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/password/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/secret/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/file/i);
+      expect(state.messages.at(-1)?.text).not.toContain("Grok Bot");
+      const hasNo = "has no rolling check";
+      for (const other of [
+        "has no grace period",
+        "has no aged include",
+        "has no confirm gate",
+        "has no off default",
+        "has no tally reset",
+        "has no idle span",
+        "has no inactive sweep",
+        "has no hibernate linger",
+        "has no sole recreate",
+        "has no enterprise admin",
+        "has no progress card",
+        "has no fleet recast",
+        "has no vm banner",
+        "has no reboot wait",
+        "has no beside mark",
+        "has no root grant",
+        "has no prior pick",
+        "has no minute halt",
+        "has no page home",
+        "has no option blank",
+        "has no quiet gate",
+        "has no default switch",
+        "has no rest latch",
+      ]) {
+        expect(hasNo.includes(other)).toBe(false);
+        expect(other.includes(hasNo)).toBe(false);
+      }
+      for (const other of [
+        GRACE_SHORT,
+        GRACE_SKIP,
+        GRACE_DROP,
+        "Asking does not include those computers already past thirty days.",
+        "Asking does not enroll those computers already past thirty days.",
+        "Asking does not fold those computers already past thirty days.",
+        ROLLING_POSTPONE,
+        ROLLING_SHIFT,
+      ]) {
+        expect(ROLLING_SHORT.includes(other)).toBe(false);
+        expect(other.includes(ROLLING_SHORT)).toBe(false);
+      }
+      const rowId = "rolling-check-";
+      for (const prefix of ["grace-period-", "grace-", "period-", "aged-include-", "aged-", "include-", "confirm-gate-", "confirm-", "gate-", "off-default-", "off-", "default-", "tally-reset-", "tally-", "reset-", "idle-span-", "idle-", "span-", "inactive-sweep-", "inactive-", "sweep-", "hibernate-linger-", "hibernate-", "linger-", "sole-recreate-", "sole-", "recreate-", "enterprise-admin-", "enterprise-", "admin-", "progress-card-", "progress-", "card-", "fleet-recast-", "fleet-", "recast-", "cast-", "vm-banner-", "vm-", "banner-", "reboot-wait-", "reboot-", "beside-mark-", "beside-", "mark-", "root-grant-", "root-", "grant-", "prior-pick-", "prior-", "pick-", "minute-halt-", "minute-", "halt-", "page-home-", "page-", "home-", "option-blank-", "option-", "blank-", "egress-path-", "egress-", "path-", "habit-ask-", "habit-", "reason-bar-", "reason-", "bar-", "stricter-keep-", "stricter-", "keep-", "shutter-pane-", "shutter-", "pane-", "choice-latch-", "choice-", "latch-", "member-ceiling-", "member-", "ceiling-", "plan-notch-", "plan-", "notch-", "ring-clasp-", "ring-", "clasp-", "veil-band-", "veil-", "band-", "hush-mark-", "hush-", "quiet-", "quiet-gate-", "spawn-hatch-", "spawn-", "hatch-", "rest-latch-", "rest-", "default-switch-", "switch-", "delegated-lane-", "delegated-", "lane-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "bot-", "note-", "open-", "wait-", "state-", "sign-", "cadence-", "check-"]) {
+        expect(rowId.startsWith(prefix)).toBe(false);
+      }
+      expect(routineRollingCheckCopy("Launch note", true)).toContain(ROLLING_SHORT);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toContain(ROLLING_POSTPONE);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toContain("has no grace period");
+      expect(routineGracePeriodCopy("Launch note", true)).not.toContain("has no rolling check");
+      expect(routineRollingCheckCopy("Launch note", true)).not.toContain(GRACE_SHORT);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/cursor/i);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/credential/i);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/password/i);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/secret/i);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toMatch(/file/i);
+      expect(routineRollingCheckCopy("Launch note", true)).not.toContain("Grok Bot");
+      expect(routineRollingCheckCopy("Launch note", true)).not.toContain("Always allow");
+      expect(state.messages.at(-1)?.text).toContain("Another routine is unchanged.");
+      expect(state.messages.at(-1)?.text).not.toContain("Dots");
+      expect(state.messages.at(-1)?.text).not.toContain("Muse");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T02:00:00.000Z");
+      expect(state.events.some((event) => event.type === "routine_rolling_check")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_grace_period")).toBe(false);
+      expect(state.events.some((event) => event.type === "routine_aged_include")).toBe(false);
+      const published = JSON.stringify(toPublic(state, 0));
+      expect(published).not.toContain("bridge-secret-xyz");
+      expect(published).not.toContain("Always allow");
+      expect(published).toContain("has no rolling check in the record");
+      expect(published).toContain(ROLLING_SHORT);
+      expect(published).toContain(ROLLING_POSTPONE);
+      expect(published).toContain(ROLLING_SHIFT);
+      expect(published).toContain("The short reply says Asking does not land that cleanup in the days after the mark");
+      expect(published).toContain("The grace-period reply still says Asking does not waive that waiting window before cleanup");
+      expect(published).toContain("The aged-include reply still says Asking does not include those computers already past thirty days");
+      expect(published).toContain("The row says No rolling check");
+      expect(published).toContain("The row test id is rolling-check-");
+      expect(published).toContain("The row says No grace period");
+      expect(published).toContain("The row test id is grace-period-");
+      expect(published.indexOf("The row test id is rolling-check-")).toBeLessThan(published.indexOf("The row test id is grace-period-"));
+      expect(published).toContain("does not say there is no grace period");
+      expect(published).toContain("does not name a rolling check");
+      expect(published).toContain("A grace period is not a rolling check");
+      expect(published).toContain("A stored run is not a rolling check");
+      expect(published).toContain("A desk-wide pause does not invent a rolling check");
+      expect(published).toContain("There is no relay lamp");
+      expect(published).toContain("There is no keyhole");
+      expect(published).not.toContain("A recorded failure is not a rolling check");
+      expect(published).not.toContain("A recorded failure is not a grace period");
+      expect(published).toContain("says that there is no grace period says that one routine has no grace period");
+
+      const graceLeft = await convene(state, `Does the Launch note routine say ${GRACE_PERIOD_QUESTION}?`, undefined, early);
+      expect(graceLeft.messages.at(-1)?.text).toContain("has no grace period");
+      expect(graceLeft.messages.at(-1)?.text).toContain(GRACE_SHORT);
+      expect(graceLeft.messages.at(-1)?.text).not.toContain("has no rolling check");
+      expect(graceLeft.messages.at(-1)?.text).not.toContain(ROLLING_SHORT);
+      const agedLeft = await convene(state, `Does the Launch note routine say ${AGED_INCLUDE_QUESTION}?`, undefined, early);
+      expect(agedLeft.messages.at(-1)?.text).toContain("has no aged include");
+      expect(agedLeft.messages.at(-1)?.text).not.toContain("has no rolling check");
+      const why = await convene(state, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(why.messages.at(-1)?.text).toContain("It is paused.");
+      expect(why.messages.at(-1)?.text).not.toContain("rolling check");
+      expect(why.messages.at(-1)?.text).not.toContain("grace period");
+      expect(why.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+
+      const market = await convene(state, `Does the Market check routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+      expect(market.messages.at(-1)?.text).toBe(routineRollingCheckCopy("Market check", true));
+      expect(market.messages.at(-1)?.text).not.toMatch(/cursor/i);
+      expect(market.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(market.routines[0]?.paused).toBe(true);
+      expect(market.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(market.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+    });
+  });
+
+  it("ORIEL-F184 leaves two names, a desk pause, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T07:00:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), `Does the Launch note routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineRollingCheckMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_rolling_check")).toBe(true);
+    expect(none.events.some((event) => event.type === "routine_grace_period")).toBe(false);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    const launchInstruction = state.routines[0]?.instruction;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = true;
+
+    const asked = await convene(state, `PLEASE, does the Launch note routine say ${ROLLING_CHECK_QUESTION}?`, firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineRollingCheckAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).not.toContain("has no rolling check");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.instruction).toBe(launchInstruction);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+
+    const lower = await convene(state, `does the launch note routine say ${ROLLING_CHECK_QUESTION}`, undefined, early);
+    expect(lower.messages.at(-1)?.text).toBe(routineRollingCheckAmbiguousCopy("launch note"));
+    expect(lower.messages.at(-1)?.text).not.toContain("has no rolling check");
+    expect(lower.messages.at(-1)?.text).not.toMatch(/cursor/i);
+    expect(lower.messages.at(-1)?.text).not.toContain("Grok Bot");
+    const graceLower = await convene(state, `does the launch note routine say ${GRACE_PERIOD_QUESTION}`, undefined, early);
+    expect(graceLower.messages.at(-1)?.text).toBe(routineGracePeriodAmbiguousCopy("launch note"));
+    expect(graceLower.messages.at(-1)?.text).not.toContain("has no rolling check");
+    expect(graceLower.messages.at(-1)?.text).not.toContain(ROLLING_SHORT);
+    const agedLower = await convene(state, `does the launch note routine say ${AGED_INCLUDE_QUESTION}`, undefined, early);
+    expect(agedLower.messages.at(-1)?.text).toBe(routineAgedIncludeAmbiguousCopy("launch note"));
+    expect(agedLower.messages.at(-1)?.text).not.toContain("has no rolling check");
+
+    const one = structuredClone(state);
+    one.routines.splice(1, 1);
+    const named = await convene(one, `Does the "Launch note" routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+    expect(named.messages.at(-1)?.text).toBe(routineRollingCheckCopy("Launch note", true));
+    expect(named.routines[0]?.paused).toBe(true);
+    expect(named.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(named.routines[1]?.nextRunAt).toBe(marketNext);
+
+    const quoted = await convene(one, `Does the “Launch note” routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+    expect(quoted.messages.at(-1)?.text).toBe(routineRollingCheckCopy("Launch note", true));
+    expect(quoted.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const marketAsk = await convene(setPaused(one, true, early), `Does the Market check routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+    expect(marketAsk.paused).toBe(true);
+    expect(marketAsk.messages.at(-1)?.text).toBe(routineRollingCheckCopy("Market check", true));
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+
+    const solo = structuredClone(one);
+    solo.routines.splice(1, 1);
+    const alone = await convene(solo, `Does the Launch note routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(routineRollingCheckCopy("Launch note", false));
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+
+    const aside = await convene(one, `Does the Launch note routine say ${ROLLING_CHECK_QUESTION} and email Maya`, undefined, early);
+    expect(aside.goals.length).toBeGreaterThan(one.goals.length);
+    expect(aside.messages.at(-1)?.text).not.toContain("has no rolling check");
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+
+    const near = await convene(one, `Does the Launch notes routine say ${ROLLING_CHECK_QUESTION}?`, undefined, early);
+    expect(near.goals).toHaveLength(one.goals.length);
+    expect(near.messages.at(-1)?.text).toBe(routineRollingCheckMissCopy("Launch notes"));
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+
+    const kept = structuredClone(one);
+    await expect(convene(kept, `Does the Launch note routine say ${ROLLING_CHECK_QUESTION} without asking`, undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, `Please does the Launch note routine say ${ROLLING_CHECK_QUESTION} always allow`, undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.goals).toHaveLength(one.goals.length);
+    await expect(convene(kept, `Does the Launch note routine say ${ROLLING_CHECK_QUESTION}?`, "goal_missing", early)).rejects.toThrow(/not in the record/);
   });
 });
 
