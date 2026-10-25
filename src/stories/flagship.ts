@@ -3044,6 +3044,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F161",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says to pick Never allow unless Bots have a specific reason to work on member machines",
+      title: "Say that one routine has no reason bar and do not pick Never allow unless a specific reason is named",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no reason bar in the record, so that I can check the work without picking Never allow unless a specific reason is named.",
+      acceptance: [
+        "Saying whether the Launch note routine says to pick Never allow unless Bots have a specific reason to work on member machines says that one routine has no reason bar in the record.",
+        "Asking does not pick Never allow unless a specific reason is named, does not reserve Never allow for a member-machine reason, and does not hold Never allow for that member-machine case.",
+        "A stored run is not a reason bar. A stricter keep is not one. The stricter-keep answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
