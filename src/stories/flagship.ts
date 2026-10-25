@@ -3101,6 +3101,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F164",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that off disables the option in Grok Bot",
+      title: "Say that one routine has no option blank and do not disable that option",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no option blank in the record, so that I can check the work without disabling that option.",
+      acceptance: [
+        "Saying whether the Launch note routine says that off disables the option in Grok Bot says that one routine has no option blank in the record.",
+        "Asking does not disable that option, does not blank that option, and does not close that option.",
+        "A stored run is not an option blank. An egress path is not one. The egress-path answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
