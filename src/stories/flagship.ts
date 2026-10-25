@@ -3350,6 +3350,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F177",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Terminate Inactive Computers, in the Bot Computers section, does that cleanup for you",
+      title: "Say that one routine has no inactive sweep and do not perform that inactive-computer cleanup",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no inactive sweep in the record, so that I can check the work without performing that inactive-computer cleanup.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Terminate Inactive Computers, in the Bot Computers section, does that cleanup for you says that one routine has no inactive sweep in the record.",
+        "Asking does not perform that inactive-computer cleanup, does not execute that inactive-computer cleanup, and does not trigger that inactive-computer cleanup.",
+        "A stored run is not an inactive sweep. A hibernate linger is not one. The hibernate-linger answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
