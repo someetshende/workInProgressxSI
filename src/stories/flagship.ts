@@ -3236,6 +3236,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F171",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that after some changes to team settings the Grok Bot page shows Restart VMs to apply changed settings at the top",
+      title: "Say that one routine has no vm banner and do not show that restart banner at the top",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no vm banner in the record, so that I can check the work without showing that restart banner at the top.",
+      acceptance: [
+        "Saying whether the Launch note routine says that after some changes to team settings the Grok Bot page shows Restart VMs to apply changed settings at the top says that one routine has no vm banner in the record.",
+        "Asking does not show that restart banner at the top, does not surface that restart banner at the top, and does not display that restart banner at the top.",
+        "A stored run is not a vm banner. A reboot wait is not one. The reboot-wait answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

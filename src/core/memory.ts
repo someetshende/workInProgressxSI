@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_VM_BANNER = /^(?:please,?\s+)?does the (.+) routine say that after some changes to team settings the grok bot page shows restart vms to apply changed settings at the top$/i;
+
+export function routineVmBannerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_VM_BANNER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineVmBanner(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineVmBannerName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that after some changes to team settings the grok bot page shows restart vms to apply changed settings at the top\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_REBOOT_WAIT = /^(?:please,?\s+)?does the (.+) routine say that existing computers must be restarted before a change takes effect$/i;
 
 export function routineRebootWaitName(text: string): string | null {
