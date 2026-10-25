@@ -2949,6 +2949,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F156",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that enterprise teams start with public sharing off and other teams start with it allowed",
+      title: "Say that one routine has no plan notch and do not start enterprise teams closed",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no plan notch in the record, so that I can check the work without starting enterprise teams closed.",
+      acceptance: [
+        "Saying whether the Launch note routine says that enterprise teams start with public sharing off and other teams start with it allowed says that one routine has no plan notch in the record.",
+        "Asking does not start enterprise teams closed, does not leave other teams allowed, and does not keep sharing team-only.",
+        "A stored run is not a plan notch. A server ring is not one. The server-ring answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

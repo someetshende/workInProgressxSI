@@ -18540,6 +18540,178 @@ test("ORIEL-F155 whether one routine says that off keeps sharing team-only does 
   await page.screenshot({ path: "test-results/oriel-routine-server-ring.png" });
 });
 
+
+test("ORIEL-F156 whether one routine says that enterprise teams start with public sharing off does not start enterprise teams closed", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine say that enterprise teams start with public sharing off and other teams start with it allowed?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that enterprise teams start with public sharing off and other teams start with it allowed says that routine has no plan notch in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that off keeps sharing team-only, including for templates that are already public says that routine has no server ring in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says to keep public template sharing off unless members should publish Bot templates outside the team says that routine has no public veil in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says to disable Cloud Agent spawning if you do not need delegation says that routine has no quiet gate in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says admins can disable spawning says that routine has no spawn hatch in the record.",
+  );
+  await expect(page.locator("[data-testid^='plan-notch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plan-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='notch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='ring-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='clasp-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='veil-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='band-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='hush-mark-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='rest-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-switch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='switch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='delegated-lane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='delegated-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='lane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sealed-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='sealed-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='chat-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shared-kit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='quiet-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='bot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plan-notch-']").nth(0)).toHaveText("No plan notch");
+  const followsHush = await page.evaluate(() => {
+    const hush = document.querySelector("[data-testid^='hush-mark-']");
+    const row = document.querySelector("[data-testid^='plan-notch-']");
+    if (!hush || !row || hush.parentElement !== row.parentElement) return false;
+    return hush.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsHush).toBe(true);
+  const noteIds = await page.locator("[data-testid^='plan-notch-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("plan-notch-"))).toBe(true);
+  for (const prefix of ["ring-clasp-", "ring-", "veil-band-", "veil-", "clasp-", "hush-mark-", "hush-", "mark-", "quiet-", "quiet-gate-", "spawn-hatch-", "spawn-", "hatch-", "rest-latch-", "rest-", "latch-", "default-switch-", "default-", "switch-", "delegated-lane-", "delegated-", "lane-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "bot-", "note-", "open-", "wait-", "state-", "sign-", "cadence-", "band-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that enterprise teams start with public sharing off and other teams start with it allowed?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no plan notch in the record.");
+  await expect(clear).toContainText("Asking does not start enterprise teams closed.");
+  await expect(clear).not.toContainText("has no quiet gate");
+  await expect(clear).not.toContainText("has no spawn hatch");
+  await expect(clear).not.toContainText("Asking does not quiet Cloud Agent spawning.");
+  await expect(clear).not.toContainText("Asking does not disable spawning.");
+  await expect(clear).not.toContainText("Asking does not keep sharing team-only.");
+  await expect(clear).not.toContainText("Asking does not leave other teams allowed.");
+  await expect(clear).not.toContainText("has no server ring");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that enterprise teams start with public sharing off and other teams start with it allowed?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no plan notch in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that enterprise teams start with public sharing off and other teams start with it allowed?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no plan notch in the record.");
+  await expect(pausedAsk).toContainText("Asking does not start enterprise teams closed.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say to disable Cloud Agent spawning if you do not need delegation?");
+  await page.getByTestId("send").click();
+  const quietLeft = page.locator("#thread .turn").last();
+  await expect(quietLeft).toContainText("has no quiet gate");
+  await expect(quietLeft).toContainText("Asking does not quiet Cloud Agent spawning.");
+  await expect(quietLeft).not.toContainText("has no plan notch");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say to keep public template sharing off unless members should publish Bot templates outside the team?");
+  await page.getByTestId("send").click();
+  const veilLeft = page.locator("#thread .turn").last();
+  await expect(veilLeft).toContainText("has no public veil");
+  await expect(veilLeft).toContainText("Asking does not keep public template sharing off.");
+  await expect(veilLeft).not.toContainText("has no plan notch");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that off keeps sharing team-only, including for templates that are already public?");
+  await page.getByTestId("send").click();
+  const ringLeft = page.locator("#thread .turn").last();
+  await expect(ringLeft).toContainText("has no server ring");
+  await expect(ringLeft).toContainText("Asking does not keep sharing team-only.");
+  await expect(ringLeft).not.toContainText("has no plan notch");
+  await expect(ringLeft).not.toContainText("Asking does not start enterprise teams closed.");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("plan notch");
+  await expect(why).not.toContainText("quiet gate");
+  await expect(why).not.toContainText("spawn hatch");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='plan-notch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='plan-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='notch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='hush-mark-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='quiet-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-plan-notch.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

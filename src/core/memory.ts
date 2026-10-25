@@ -1266,6 +1266,24 @@ export function loosensRoutineServerRing(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_PLAN_NOTCH = /^(?:please,?\s+)?does the (.+) routine say that enterprise teams start with public sharing off and other teams start with it allowed$/i;
+
+export function routinePlanNotchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_PLAN_NOTCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutinePlanNotch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routinePlanNotchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that enterprise teams start with public sharing off and other teams start with it allowed\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
