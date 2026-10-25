@@ -3158,6 +3158,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F167",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that turning it back on restores each member's previous choice",
+      title: "Say that one routine has no restore latch and do not restore each member's previous choice",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no restore latch in the record, so that I can check the work without restoring each member's previous choice.",
+      acceptance: [
+        "Saying whether the Launch note routine says that turning it back on restores each member's previous choice says that one routine has no restore latch in the record.",
+        "Asking does not restore each member's previous choice, does not return each member's previous choice, and does not bring back each member's previous choice.",
+        "A stored run is not a restore latch. A route span is not one. The route-span answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

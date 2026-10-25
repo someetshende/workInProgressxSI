@@ -1447,6 +1447,24 @@ export function loosensRoutineRouteSpan(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_RESTORE_LATCH = /^(?:please,?\s+)?does the (.+) routine say that turning it back on restores each member's previous choice$/i;
+
+export function routineRestoreLatchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_RESTORE_LATCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRestoreLatch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRestoreLatchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that turning it back on restores each member's previous choice\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {
