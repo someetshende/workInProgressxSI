@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_RECREATE_FENCE = /^(?:please,?\s+)?does the (.+) routine say that it only recreates; terminate vms and delete vms and data are under manage member computers and data$/i;
+
+export function routineRecreateFenceName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_RECREATE_FENCE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRecreateFence(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRecreateFenceName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that it only recreates; terminate vms and delete vms and data are under manage member computers and data\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_ADMIN_CHAIR = /^(?:please,?\s+)?does the (.+) routine say that team admins on an enterprise team can run this restart, not only organization admins$/i;
 
 export function routineAdminChairName(text: string): string | null {

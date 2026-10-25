@@ -3310,6 +3310,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F175",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that it only recreates; Terminate VMs and Delete VMs and Data are under Manage Member Computers and Data",
+      title: "Say that one routine has no recreate fence and do not limit this restart to recreate only",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no recreate fence in the record, so that I can check the work without limiting this restart to recreate only.",
+      acceptance: [
+        "Saying whether the Launch note routine says that it only recreates; Terminate VMs and Delete VMs and Data are under Manage Member Computers and Data says that one routine has no recreate fence in the record.",
+        "Asking does not limit this restart to recreate only, does not confine this restart to recreate only, and does not bind this restart to recreate only.",
+        "A stored run is not a recreate fence. An admin chair is not one. The admin-chair answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
