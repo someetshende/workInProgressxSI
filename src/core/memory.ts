@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_CONFIRM_GATE = /^(?:please,?\s+)?does the (.+) routine say that turning it on opens a confirmation$/i;
+
+export function routineConfirmGateName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CONFIRM_GATE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineConfirmGate(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineConfirmGateName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that turning it on opens a confirmation\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_OFF_DEFAULT = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
 
 export function routineOffDefaultName(text: string): string | null {
