@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -20181,6 +20181,189 @@ describe("Oriel server", () => {
     const why = await turn("Why hasn't the Launch note routine run?");
     expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
     expect(why.body.messages.at(-1).text).not.toContain("option blank");
+    expect(why.body.messages.at(-1).text).not.toContain("local shutter");
+
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F165 says one routine has no page home and does not park that control on the page", async () => {
+    const server = await boot();
+    const question = "that the switch is under Bot Computers on the Grok Bot page and is on by default";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routinePageHomeMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("has no page home in the record");
+    expect(missing.body.trust).toContain("Asking does not park that control on the page");
+    expect(missing.body.trust).toContain("Asking does not seat that control on the page");
+    expect(missing.body.trust).toContain("The short reply says Asking does not park that control on the page");
+    expect(missing.body.trust).toContain("The local-shutter reply still says Asking does not turn local execution off for the whole team");
+    expect(missing.body.trust).toContain("The choice-latch reply still says Asking does not leave that choice with each member");
+    expect(missing.body.trust).toContain("The row says No page home");
+    expect(missing.body.trust).toContain("The row test id is page-home-");
+    expect(missing.body.trust).toContain("does not say there is no page home");
+    expect(missing.body.trust).toContain("does not name a page home");
+    expect(missing.body.trust).toContain("A local shutter is not a page home");
+    expect(missing.body.trust).toContain("A stored run is not a page home");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a page home");
+    expect(missing.body.trust).toContain("has no local shutter in the record");
+    expect(missing.body.trust).toContain("The row says No local shutter");
+    expect(missing.body.trust).toContain("The row test id is shutter-pane-");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a page home");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("has no page home".includes("has no option blank")).toBe(false);
+    expect("has no option blank".includes("has no page home")).toBe(false);
+    expect("has no page home".includes("has no local shutter")).toBe(false);
+    expect("has no local shutter".includes("has no page home")).toBe(false);
+    expect("has no page home".includes("has no egress path")).toBe(false);
+    expect("has no egress path".includes("has no page home")).toBe(false);
+    expect("Asking does not park that control on the page.".includes("Asking does not disable that option.")).toBe(false);
+    expect("Asking does not disable that option.".includes("Asking does not park that control on the page.")).toBe(false);
+    expect("Asking does not park that control on the page.".includes("Asking does not seat that control on the page.")).toBe(false);
+    expect("Asking does not seat that control on the page.".includes("Asking does not park that control on the page.")).toBe(false);
+    expect("Asking does not park that control on the page.".includes("Asking does not home that control on the page.")).toBe(false);
+    expect("Asking does not park that control on the page.".includes("Asking does not route that web traffic through the member's own computer.")).toBe(false);
+    expect("Asking does not route that web traffic through the member's own computer.".includes("Asking does not park that control on the page.")).toBe(false);
+    expect("Asking does not park that control on the page.".includes("Asking does not keep sharing team-only.")).toBe(false);
+    expect("Asking does not keep sharing team-only.".includes("Asking does not park that control on the page.")).toBe(false);
+    expect("Asking does not park that control on the page.".includes("Asking does not seat that control on the page.")).toBe(false);
+    expect("page-home-".startsWith("option-blank-")).toBe(false);
+    expect("page-home-".startsWith("option-")).toBe(false);
+    expect("page-home-".startsWith("blank-")).toBe(false);
+    expect("page-home-".startsWith("stricter-keep-")).toBe(false);
+    expect("page-home-".startsWith("stricter-")).toBe(false);
+    expect("page-home-".startsWith("keep-")).toBe(false);
+    expect("page-home-".startsWith("shutter-pane-")).toBe(false);
+    expect("page-home-".startsWith("shutter-")).toBe(false);
+    expect("page-home-".startsWith("pane-")).toBe(false);
+    expect("page-home-".startsWith("choice-latch-")).toBe(false);
+    expect("page-home-".startsWith("egress-path-")).toBe(false);
+    expect("page-home-".startsWith("egress-")).toBe(false);
+    expect("page-home-".startsWith("path-")).toBe(false);
+    expect("page-home-".startsWith("habit-ask-")).toBe(false);
+    expect("page-home-".startsWith("habit-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routinePageHomeCopy("Launch note", true)).toContain("Asking does not park that control on the page.");
+    expect(routinePageHomeCopy("Launch note", true)).not.toContain("Asking does not seat that control on the page.");
+    expect(routinePageHomeCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routinePageHomeCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routinePageHomeCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routinePageHomeCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routinePageHomeCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routinePageHomeCopy("Launch note", true)).not.toContain("has no local shutter");
+    expect(routinePageHomeCopy("Launch note", true)).not.toContain("has no option blank");
+    expect(routinePageHomeCopy("Launch note", true)).not.toContain("Asking does not disable that option.");
+    expect(routineOptionBlankCopy("Launch note", true)).not.toContain("has no page home");
+    expect(routineOptionBlankCopy("Launch note", true)).not.toContain("Asking does not park that control on the page.");
+    expect(routineLocalShutterCopy("Launch note", true)).not.toContain("has no page home");
+    expect(routineLocalShutterCopy("Launch note", true)).not.toContain("Asking does not park that control on the page.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routinePageHomeCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no page home in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not park that control on the page.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not seat that control on the page.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no local shutter");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not turn local execution off for the whole team.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no page home in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn(`Does the Launch note routine say ${question}?`);
+    expect(asked.body.messages.at(-1).text).toBe(routinePageHomeCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const blankLeft = await turn("Does the Launch note routine say that off disables the option in Grok Bot?");
+    expect(blankLeft.body.messages.at(-1).text).toContain("has no option blank");
+    expect(blankLeft.body.messages.at(-1).text).toContain("Asking does not disable that option.");
+    expect(blankLeft.body.messages.at(-1).text).not.toContain("has no page home");
+    expect(blankLeft.body.messages.at(-1).text).not.toContain("Asking does not park that control on the page.");
+    const switchLeft = await turn("Does the Launch note routine keep the Cloud Agents switch on the Grok Bot page for the whole team and on by default?");
+    expect(switchLeft.body.messages.at(-1).text).toContain("has no default switch");
+    expect(switchLeft.body.messages.at(-1).text).not.toContain("has no page home");
+    const shutterLeft = await turn("Does the Launch note routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+    expect(shutterLeft.body.messages.at(-1).text).toContain("has no local shutter");
+    expect(shutterLeft.body.messages.at(-1).text).toContain("Asking does not turn local execution off for the whole team.");
+    expect(shutterLeft.body.messages.at(-1).text).not.toContain("has no page home");
+    const latchLeft = await turn("Does the Launch note routine say that the default leaves the choice to each member?");
+    expect(latchLeft.body.messages.at(-1).text).toContain("has no choice latch");
+    expect(latchLeft.body.messages.at(-1).text).not.toContain("has no page home");
+    const ceilingLeft = await turn("Does the Launch note routine say to set Execution on Local Computer to Never allow unless Bots need to act on member machines?");
+    expect(ceilingLeft.body.messages.at(-1).text).toContain("has no member ceiling");
+    expect(ceilingLeft.body.messages.at(-1).text).not.toContain("has no page home");
+    const keepLeft = await turn("Does the Launch note routine say that a member's own setting still applies when it is stricter than the team's?");
+    expect(keepLeft.body.messages.at(-1).text).toContain("has no stricter keep");
+    expect(keepLeft.body.messages.at(-1).text).toContain("Asking does not keep a stricter member setting in force.");
+    expect(keepLeft.body.messages.at(-1).text).not.toContain("has no page home");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("page home");
     expect(why.body.messages.at(-1).text).not.toContain("local shutter");
 
     const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });

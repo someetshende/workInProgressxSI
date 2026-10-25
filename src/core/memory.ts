@@ -1411,6 +1411,24 @@ export function loosensRoutineOptionBlank(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_PAGE_HOME = /^(?:please,?\s+)?does the (.+) routine say that the switch is under bot computers on the grok bot page and is on by default$/i;
+
+export function routinePageHomeName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_PAGE_HOME.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutinePageHome(text: string): boolean {
+  const value = tidySentence(text);
+  if (routinePageHomeName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the switch is under bot computers on the grok bot page and is on by default\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {

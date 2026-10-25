@@ -3120,6 +3120,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F165",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the switch is under Bot Computers on the Grok Bot page and is on by default",
+      title: "Say that one routine has no page home and do not park that control on the page",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no page home in the record, so that I can check the work without parking that control on the page.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the switch is under Bot Computers on the Grok Bot page and is on by default says that one routine has no page home in the record.",
+        "Asking does not park that control on the page, does not seat that control on the page, and does not home that control on the page.",
+        "A stored run is not a page home. An option blank is not one. The option-blank answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

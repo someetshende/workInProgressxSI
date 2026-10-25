@@ -20047,6 +20047,207 @@ test("ORIEL-F164 whether one routine says that off disables the option in Grok B
 });
 
 
+test("ORIEL-F165 whether one routine says that the switch is under Bot Computers on the Grok Bot page and is on by default does not park that control on the page", async ({ page }) => {
+  const question = "that the switch is under Bot Computers on the Grok Bot page and is on by default";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the switch is under Bot Computers on the Grok Bot page and is on by default says that routine has no page home in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that off disables the option in Grok Bot says that routine has no option blank in the record.",
+  );
+  const hintOrder = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const home = text.indexOf("says that the switch is under Bot Computers on the Grok Bot page and is on by default says that routine has no page home");
+    const blank = text.indexOf("says that off disables the option in Grok Bot says that routine has no option blank");
+    return home >= 0 && blank > home;
+  });
+  expect(hintOrder).toBe(true);
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says to let members route Grok Bot's web traffic through their own computer says that routine has no egress path in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the default leaves the choice to each member, whose own setting defaults to asking before every task says that routine has no habit ask in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says to pick Never allow unless Bots have a specific reason to work on member machines says that routine has no reason bar in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that a member's own setting still applies when it is stricter than the team's says that routine has no stricter keep in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team says that routine has no local shutter in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the default leaves the choice to each member says that routine has no choice latch in the record.",
+  );
+  await expect(page.locator("[data-testid^='page-home-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='page-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='home-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='option-blank-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='option-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='blank-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='egress-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='path-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='habit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reason-bar-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reason-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bar-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='stricter-keep-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stricter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='keep-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shutter-pane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='shutter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='choice-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='choice-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='latch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='member-ceiling-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='member-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='ceiling-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='page-home-']").nth(0)).toHaveText("No page home");
+  await expect(page.locator("[data-testid^='option-blank-']").nth(0)).toHaveText("No option blank");
+  await expect(page.locator("[data-testid^='reason-bar-']").nth(0)).toHaveText("No reason bar");
+  const followsKeep = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='option-blank-']");
+    const row = document.querySelector("[data-testid^='page-home-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsKeep).toBe(true);
+  const noteIds = await page.locator("[data-testid^='page-home-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("page-home-"))).toBe(true);
+  for (const prefix of ["option-blank-", "option-", "blank-", "egress-path-", "egress-", "path-", "habit-ask-", "habit-", "reason-bar-", "reason-", "bar-", "stricter-keep-", "stricter-", "keep-", "shutter-pane-", "shutter-", "pane-", "choice-latch-", "choice-", "latch-", "member-ceiling-", "member-", "ceiling-", "plan-notch-", "plan-", "notch-", "ring-clasp-", "ring-", "clasp-", "veil-band-", "veil-", "band-", "hush-mark-", "hush-", "mark-", "quiet-", "quiet-gate-", "spawn-hatch-", "spawn-", "hatch-", "rest-latch-", "rest-", "default-switch-", "default-", "switch-", "delegated-lane-", "delegated-", "lane-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "bot-", "note-", "open-", "wait-", "state-", "sign-", "cadence-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no page home in the record.");
+  await expect(clear).toContainText("Asking does not park that control on the page.");
+  await expect(clear).not.toContainText("Asking does not seat that control on the page.");
+  await expect(clear).not.toContainText("Asking does not turn local execution off for the whole team.");
+  await expect(clear).not.toContainText("has no local shutter");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no page home in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no page home in the record.");
+  await expect(pausedAsk).toContainText("Asking does not park that control on the page.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that a member's own setting still applies when it is stricter than the team's?");
+  await page.getByTestId("send").click();
+  const keepLeft = page.locator("#thread .turn").last();
+  await expect(keepLeft).toContainText("has no stricter keep");
+  await expect(keepLeft).toContainText("Asking does not keep a stricter member setting in force.");
+  await expect(keepLeft).not.toContainText("has no page home");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+  await page.getByTestId("send").click();
+  const shutterLeft = page.locator("#thread .turn").last();
+  await expect(shutterLeft).toContainText("has no local shutter");
+  await expect(shutterLeft).toContainText("Asking does not turn local execution off for the whole team.");
+  await expect(shutterLeft).not.toContainText("has no page home");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that the default leaves the choice to each member?");
+  await page.getByTestId("send").click();
+  const latchLeft = page.locator("#thread .turn").last();
+  await expect(latchLeft).toContainText("has no choice latch");
+  await expect(latchLeft).toContainText("Asking does not leave that choice with each member.");
+  await expect(latchLeft).not.toContainText("has no page home");
+
+  await page.getByTestId("composer").fill(`does the draft the weekly close but do not send it routine say ${question}`);
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no page home in the record.");
+  await expect(lower).toContainText("Asking does not park that control on the page.");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("page home");
+  await expect(why).not.toContainText("local shutter");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='page-home-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='page-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='home-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='option-blank-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='option-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='blank-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='egress-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='path-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='habit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reason-bar-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reason-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='bar-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='stricter-keep-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stricter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='keep-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shutter-pane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='shutter-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pane-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-page-home.png" });
+});
+
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
