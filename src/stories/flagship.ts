@@ -3253,6 +3253,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F172",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says to select Restart all VMs, then Recreate VMs, to recreate the computer of every member of the team with the current team settings",
+      title: "Say that one routine has no fleet image and do not rebuild every member computer from the current team settings",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no fleet image in the record, so that I can check the work without rebuilding every member computer from the current team settings.",
+      acceptance: [
+        "Saying whether the Launch note routine says to select Restart all VMs, then Recreate VMs, to recreate the computer of every member of the team with the current team settings says that one routine has no fleet image in the record.",
+        "Asking does not rebuild every member computer from the current team settings, does not rebuild every member computer from the saved team settings, and does not rebuild every member computer from the latest team settings.",
+        "A stored run is not a fleet image. A banner crest is not one. The banner-crest answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
