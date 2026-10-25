@@ -1429,6 +1429,24 @@ export function loosensRoutinePageHome(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_ROUTE_SPAN = /^(?:please,?\s+)?does the (.+) routine say that turning it off stops active routes within five minutes$/i;
+
+export function routineRouteSpanName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ROUTE_SPAN.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRouteSpan(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRouteSpanName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that turning it off stops active routes within five minutes\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {
