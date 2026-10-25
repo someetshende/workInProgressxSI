@@ -2930,6 +2930,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F155",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that off keeps sharing team-only, including for templates that are already public",
+      title: "Say that one routine has no server ring and do not keep sharing team-only",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no server ring in the record, so that I can check the work without keeping sharing team-only.",
+      acceptance: [
+        "Saying whether the Launch note routine says that off keeps sharing team-only, including for templates that are already public says that one routine has no server ring in the record.",
+        "Asking does not keep sharing team-only, does not keep public template sharing off, and does not publish a Bot template.",
+        "A stored run is not a server ring. A public veil is not one. The public-veil answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
