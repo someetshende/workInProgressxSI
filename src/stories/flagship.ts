@@ -3177,6 +3177,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F168",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that it lets Bots run commands as root on their own computer",
+      title: "Say that one routine has no sudo permit and do not run those commands as root",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no sudo permit in the record, so that I can check the work without running those commands as root.",
+      acceptance: [
+        "Saying whether the Launch note routine says that it lets Bots run commands as root on their own computer says that one routine has no sudo permit in the record.",
+        "Asking does not run those commands as root, does not execute those commands as root, and does not launch those commands as root.",
+        "A stored run is not a sudo permit. A restore latch is not one. The restore-latch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

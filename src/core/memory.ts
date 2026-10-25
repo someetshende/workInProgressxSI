@@ -1465,6 +1465,24 @@ export function loosensRoutineRestoreLatch(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SUDO_PERMIT = /^(?:please,?\s+)?does the (.+) routine say that it lets bots run commands as root on their own computer$/i;
+
+export function routineSudoPermitName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SUDO_PERMIT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSudoPermit(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSudoPermitName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that it lets bots run commands as root on their own computer\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {
