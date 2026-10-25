@@ -3082,6 +3082,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F163",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says to let members route Grok Bot's web traffic through their own computer",
+      title: "Say that one routine has no egress path and do not route that web traffic through the member's own computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no egress path in the record, so that I can check the work without routing that web traffic through the member's own computer.",
+      acceptance: [
+        "Saying whether the Launch note routine says to let members route Grok Bot's web traffic through their own computer says that one routine has no egress path in the record.",
+        "Asking does not route that web traffic through the member's own computer, does not steer that web traffic through the member's own computer, and does not send that web traffic through the member's own computer.",
+        "A stored run is not an egress path. A habit ask is not one. The habit-ask answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

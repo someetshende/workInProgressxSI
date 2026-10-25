@@ -15,5 +15,14 @@ const body = {
 };
 
 await mkdir("data", { recursive: true });
-await writeFile("data/user-stories.json", `${JSON.stringify(body, null, 2)}\n`);
-console.log(`Wrote ${stories.length} stories`);
+const limit = 104_857_600;
+const pretty = `${JSON.stringify(body, null, 2)}\n`;
+const compact = `${JSON.stringify(body)}\n`;
+const chosen = Buffer.byteLength(pretty) < limit ? pretty : compact;
+const bytes = Buffer.byteLength(chosen);
+if (bytes >= limit) {
+  console.error(`atlas is ${bytes} bytes, over the ${limit} byte GitHub limit`);
+  process.exit(1);
+}
+await writeFile("data/user-stories.json", chosen);
+console.log(`Wrote ${stories.length} stories (${bytes} bytes, ${chosen === pretty ? "pretty" : "compact"})`);
