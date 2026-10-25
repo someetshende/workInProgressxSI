@@ -21644,6 +21644,169 @@ test("ORIEL-F172 whether one routine says to select restart all vms then recreat
   await page.screenshot({ path: "test-results/oriel-routine-fleet-recast.png" });
 });
 
+test("ORIEL-F173 whether one routine says the restart runs like any other recreate does not show that same progress card", async ({ page }) => {
+  const question = "that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts";
+  const short = "Asking does not show that same progress card.";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts says that routine has no progress card in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that select Restart all VMs, then Recreate VMs, to recreate the computer of every member of the team with the current team settings says that routine has no fleet recast in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that after some changes to team settings the Grok Bot page shows Restart VMs to apply changed settings at the top says that routine has no vm banner in the record.",
+  );
+  const hintOrder = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const progress = text.indexOf("says that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts says that routine has no progress card");
+    const fleet = text.indexOf("says that select Restart all VMs, then Recreate VMs, to recreate the computer of every member of the team with the current team settings says that routine has no fleet recast");
+    const vm = text.indexOf("says that after some changes to team settings the Grok Bot page shows Restart VMs to apply changed settings at the top says that routine has no vm banner");
+    return progress >= 0 && fleet > progress && vm > fleet;
+  });
+  expect(hintOrder).toBe(true);
+  await expect(page.locator("[data-testid^='progress-card-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='progress-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='card-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='fleet-recast-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='fleet-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='recast-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='cast-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='vm-banner-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='vm-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='banner-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='band-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='reboot-wait-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reboot-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='wait-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='progress-card-']").nth(0)).toHaveText("No progress card");
+  await expect(page.locator("[data-testid^='fleet-recast-']").nth(0)).toHaveText("No fleet recast");
+  await expect(page.locator("[data-testid^='vm-banner-']").nth(0)).toHaveText("No vm banner");
+  const followsFleet = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='fleet-recast-']");
+    const row = document.querySelector("[data-testid^='progress-card-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsFleet).toBe(true);
+  const noteIds = await page.locator("[data-testid^='progress-card-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("progress-card-"))).toBe(true);
+  for (const prefix of ["fleet-recast-", "fleet-", "card-", "note-", "vm-banner-", "vm-", "banner-", "band-", "reboot-wait-", "reboot-", "wait-", "beside-mark-", "beside-", "mark-", "root-grant-", "root-", "grant-", "file-", "rest-", "recast-", "cast-", "computer-", "team-", "switch-", "bot-", "note-", "seat-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no progress card in the record.");
+  await expect(clear).toContainText(short);
+  await expect(clear).not.toContainText("Asking does not rebuild every teammate computer from the saved team settings.");
+  await expect(clear).not.toContainText("has no vm banner");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no progress card in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no progress card in the record.");
+  await expect(pausedAsk).toContainText(short);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that select restart all vms, then recreate vms, to recreate the computer of every member of the team with the current team settings");
+  await page.getByTestId("send").click();
+  const fleetLower = page.locator("#thread .turn").last();
+  await expect(fleetLower).toContainText("has no fleet recast in the record.");
+  await expect(fleetLower).toContainText("Asking does not recast every teammate computer from the saved team settings.");
+  await expect(fleetLower).not.toContainText("has no progress card");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that after some changes to team settings the grok bot page shows restart vms to apply changed settings at the top");
+  await page.getByTestId("send").click();
+  const vmLower = page.locator("#thread .turn").last();
+  await expect(vmLower).toContainText("has no vm banner in the record.");
+  await expect(vmLower).toContainText("Asking does not show that restart banner at the top.");
+  await expect(vmLower).not.toContainText("has no progress card");
+
+  await page.getByTestId("composer").fill(`does the draft the weekly close but do not send it routine say ${question}`);
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no progress card in the record.");
+  await expect(lower).toContainText(short);
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that existing computers must be restarted before a change takes effect");
+  await page.getByTestId("send").click();
+  const rebootLower = page.locator("#thread .turn").last();
+  await expect(rebootLower).toContainText("has no reboot wait in the record.");
+  await expect(rebootLower).toContainText("Asking does not restart those existing computers before a change takes effect.");
+  await expect(rebootLower).not.toContainText("has no progress card");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("progress card");
+  await expect(why).not.toContainText("fleet recast");
+  await expect(why).not.toContainText("vm banner");
+  await expect(page.locator("[data-testid^='progress-card-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='vm-banner-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='vm-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='banner-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-progress-card.png" });
+});
+
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

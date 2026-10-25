@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderAmbiguousCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceAmbiguousCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostAmbiguousCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceAmbiguousCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerAmbiguousCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayAmbiguousCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterAmbiguousCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchAmbiguousCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerAmbiguousCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskAmbiguousCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterAmbiguousCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitAmbiguousCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatAmbiguousCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneAmbiguousCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchAmbiguousCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchAmbiguousCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchAmbiguousCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateAmbiguousCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingAmbiguousCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchAmbiguousCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchAmbiguousCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterAmbiguousCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepAmbiguousCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarAmbiguousCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskAmbiguousCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathAmbiguousCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankAmbiguousCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeAmbiguousCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltAmbiguousCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickAmbiguousCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineFleetRecastAmbiguousCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerAmbiguousCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitAmbiguousCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkAmbiguousCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantAmbiguousCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingAmbiguousCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilAmbiguousCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderAmbiguousCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceAmbiguousCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostAmbiguousCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceAmbiguousCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerAmbiguousCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayAmbiguousCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterAmbiguousCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchAmbiguousCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerAmbiguousCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskAmbiguousCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterAmbiguousCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitAmbiguousCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatAmbiguousCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneAmbiguousCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchAmbiguousCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchAmbiguousCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchAmbiguousCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateAmbiguousCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingAmbiguousCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchAmbiguousCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchAmbiguousCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterAmbiguousCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepAmbiguousCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarAmbiguousCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskAmbiguousCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathAmbiguousCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankAmbiguousCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeAmbiguousCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltAmbiguousCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickAmbiguousCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineProgressCardAmbiguousCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineFleetRecastAmbiguousCopy, routineFleetRecastCopy, routineFleetRecastMissCopy, routineVmBannerAmbiguousCopy, routineVmBannerCopy, routineVmBannerMissCopy, routineRebootWaitAmbiguousCopy, routineRebootWaitCopy, routineRebootWaitMissCopy, routineBesideMarkAmbiguousCopy, routineBesideMarkCopy, routineBesideMarkMissCopy, routineRootGrantAmbiguousCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingAmbiguousCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilAmbiguousCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -48331,6 +48331,323 @@ describe("ORIEL-F172", () => {
     await expect(convene(kept, `Does the Launch note routine say ${FLEET_RECAST_QUESTION}?`, "goal_missing", early)).rejects.toThrow(/not in the record/);
   });
 });
+
+const PROGRESS_CARD_QUESTION = "that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts";
+const PROGRESS_SHORT = "Asking does not show that same progress card.";
+const PROGRESS_RENDER = "Asking does not render that same progress card.";
+const PROGRESS_PAINT = "Asking does not paint that same progress card.";
+const FLEET_STILL = "that select restart all vms, then recreate vms, to recreate the computer of every member of the team with the current team settings";
+
+describe("ORIEL-F173", () => {
+  it("ORIEL-F173 says one routine has no progress card and does not show that same progress card", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T04:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+      const asked = `Please, does the Launch note routine say ${PROGRESS_CARD_QUESTION}?`;
+
+      state = await convene(state, asked, goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(routineProgressCardCopy("Launch note", true));
+      expect(state.messages.at(-1)?.text).toContain("“Launch note” has no progress card in the record.");
+      expect(state.messages.at(-1)?.text).toContain(PROGRESS_SHORT);
+      expect(state.messages.at(-1)?.text).not.toContain(PROGRESS_RENDER);
+      expect(state.messages.at(-1)?.text).not.toContain(PROGRESS_PAINT);
+      expect(state.messages.at(-1)?.text).not.toContain("has no vm banner");
+      expect(state.messages.at(-1)?.text).not.toContain("has no reboot wait");
+      expect(state.messages.at(-1)?.text).not.toContain("has no beside mark");
+      expect(state.messages.at(-1)?.text).not.toContain("has no root grant");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not show that restart banner at the top.");
+      expect(state.messages.at(-1)?.text).not.toMatch(/cursor/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/credential/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/password/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/secret/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/file/i);
+      const hasNo = "has no progress card";
+      for (const other of [
+        "has no vm banner",
+        "has no reboot wait",
+        "has no beside mark",
+        "has no root grant",
+        "has no prior pick",
+        "has no minute halt",
+        "has no page home",
+        "has no option blank",
+        "has no egress path",
+        "has no habit ask",
+        "has no local shutter",
+        "has no choice latch",
+        "has no default switch",
+        "has no hush mark",
+      ]) {
+        expect(hasNo.includes(other)).toBe(false);
+        expect(other.includes(hasNo)).toBe(false);
+      }
+      for (const other of [
+        "Asking does not show that restart banner at the top.",
+        "Asking does not surface that restart banner at the top.",
+        "Asking does not display that restart banner at the top.",
+        "Asking does not restart those existing computers before a change takes effect.",
+        "Asking does not recycle those existing computers before a change takes effect.",
+        "Asking does not rebuild those existing computers before a change takes effect.",
+        "Asking does not sit that switch next to Allow Local Egress Routing.",
+        "Asking does not let those bots run commands as root on their own computer.",
+        PROGRESS_RENDER,
+        PROGRESS_PAINT,
+      ]) {
+        expect(PROGRESS_SHORT.includes(other)).toBe(false);
+        expect(other.includes(PROGRESS_SHORT)).toBe(false);
+      }
+      const rowId = "progress-card-";
+      for (const prefix of ["fleet-recast-", "fleet-", "card-", "note-", "vm-banner-", "vm-", "banner-", "band-", "bar-", "reboot-wait-", "reboot-", "wait-", "beside-mark-", "beside-", "mark-", "root-grant-", "root-", "grant-", "prior-pick-", "prior-", "pick-", "minute-halt-", "minute-", "halt-", "page-home-", "page-", "home-", "option-blank-", "option-", "blank-", "file-", "rest-", "cast-", "recast-", "computer-", "team-", "switch-", "bot-", "note-", "seat-"]) {
+        expect(rowId.startsWith(prefix)).toBe(false);
+      }
+      expect(routineProgressCardCopy("Launch note", true)).toContain(PROGRESS_SHORT);
+      expect(routineProgressCardCopy("Launch note", true)).not.toContain(PROGRESS_RENDER);
+      expect(routineProgressCardCopy("Launch note", true)).not.toContain("has no vm banner");
+      expect(routineFleetRecastCopy("Launch note", true)).not.toContain("has no progress card");
+      expect(routineProgressCardCopy("Launch note", true)).not.toContain("has no fleet recast");
+      expect(routineProgressCardCopy("Launch note", true)).not.toContain("Asking does not recast every teammate computer from the saved team settings.");
+
+      expect(routineVmBannerCopy("Launch note", true)).not.toContain("has no progress card");
+      expect(routineVmBannerCopy("Launch note", true)).not.toContain(PROGRESS_SHORT);
+      expect(routineRebootWaitCopy("Launch note", true)).not.toContain("has no progress card");
+      expect(routineProgressCardCopy("Launch note", true)).not.toContain("has no reboot wait");
+      expect(routineRootGrantCopy("Launch note", true)).not.toContain("has no progress card");
+      expect(routineBesideMarkCopy("Launch note", true)).not.toContain("has no progress card");
+      expect(routinePageHomeCopy("Launch note", true)).not.toContain("has no progress card");
+      expect(routineProgressCardCopy("Launch note", true)).not.toMatch(/cursor/i);
+      expect(routineProgressCardCopy("Launch note", true)).not.toMatch(/credential/i);
+      expect(routineProgressCardCopy("Launch note", true)).not.toMatch(/password/i);
+      expect(routineProgressCardCopy("Launch note", true)).not.toMatch(/secret/i);
+      expect(routineProgressCardCopy("Launch note", true)).not.toMatch(/file/i);
+      expect(state.messages.at(-1)?.text).toContain("Another routine is unchanged.");
+      expect(state.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(state.messages.at(-1)?.text).not.toContain("Dots");
+      expect(state.messages.at(-1)?.text).not.toContain("Muse");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T02:00:00.000Z");
+      expect(state.events.some((event) => event.type === "routine_progress_card")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_vm_banner")).toBe(false);
+      expect(state.events.some((event) => event.type === "routine_reboot_wait")).toBe(false);
+      expect(state.events.some((event) => event.type === "routine_beside_mark")).toBe(false);
+      expect(state.events.some((event) => event.type === "routine_root_grant")).toBe(false);
+      const published = JSON.stringify(toPublic(state, 0));
+      expect(published).not.toContain("bridge-secret-xyz");
+      expect(published).not.toContain("Always allow");
+      expect(published).toContain("has no progress card in the record");
+      expect(published).toContain(PROGRESS_SHORT);
+      expect(published).toContain(PROGRESS_RENDER);
+      expect(published).toContain(PROGRESS_PAINT);
+      expect(published).toContain("The short reply says Asking does not show that same progress card");
+      expect(published).toContain("The vm-banner reply still says Asking does not show that restart banner at the top");
+      expect(published).toContain("The reboot-wait reply still says Asking does not restart those existing computers before a change takes effect");
+      expect(published).toContain("The beside-mark reply still says Asking does not sit that switch next to Allow Local Egress Routing");
+      expect(published).toContain("The root-grant reply still says Asking does not let those bots run commands as root on their own computer");
+      expect(published).toContain("The row says No progress card");
+      expect(published).toContain("The row says No fleet recast");
+      expect(published).toContain("The row test id is fleet-recast-");
+      expect(published).toContain("The fleet-recast reply still says Asking does not recast every teammate computer from the saved team settings");
+      expect(published).toContain("The row test id is progress-card-");
+      expect(published).toContain("The row says No vm banner");
+      expect(published).toContain("The row test id is vm-banner-");
+      expect(published).toContain("does not say there is no fleet recast");
+      expect(published).toContain("does not name a progress card");
+      expect(published).toContain("A vm banner is not a progress card");
+      expect(published).toContain("A root grant is not a progress card");
+      expect(published).toContain("A stored run is not a progress card");
+      expect(published).toContain("A desk-wide pause does not invent a progress card");
+      expect(published).toContain("There is no relay lamp");
+      expect(published).toContain("There is no keyhole");
+      expect(published).not.toContain("A recorded failure is not a progress card");
+      expect(published).not.toContain("A recorded failure is not a vm banner");
+
+      const fleetLeft = await convene(state, `Does the Launch note routine say ${FLEET_STILL}?`, undefined, early);
+      expect(fleetLeft.messages.at(-1)?.text).toContain("has no fleet recast");
+      expect(fleetLeft.messages.at(-1)?.text).toContain("Asking does not recast every teammate computer from the saved team settings.");
+      expect(fleetLeft.messages.at(-1)?.text).not.toContain("has no progress card");
+      expect(fleetLeft.messages.at(-1)?.text).not.toContain(PROGRESS_SHORT);
+      const vmLeft = await convene(state, `Does the Launch note routine say ${VM_BANNER_STILL}?`, undefined, early);
+      expect(vmLeft.messages.at(-1)?.text).toContain("has no vm banner");
+      expect(vmLeft.messages.at(-1)?.text).toContain("Asking does not show that restart banner at the top.");
+      expect(vmLeft.messages.at(-1)?.text).not.toContain("has no progress card");
+      expect(vmLeft.messages.at(-1)?.text).not.toContain(PROGRESS_SHORT);
+      const rebootLeft = await convene(state, "Does the Launch note routine say that existing computers must be restarted before a change takes effect?", undefined, early);
+      expect(rebootLeft.messages.at(-1)?.text).toContain("has no reboot wait");
+      expect(rebootLeft.messages.at(-1)?.text).toContain("Asking does not restart those existing computers before a change takes effect.");
+      expect(rebootLeft.messages.at(-1)?.text).not.toContain("has no progress card");
+      expect(rebootLeft.messages.at(-1)?.text).not.toContain(PROGRESS_SHORT);
+      const besideLeft = await convene(state, "Does the Launch note routine say that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page?", undefined, early);
+      expect(besideLeft.messages.at(-1)?.text).toContain("has no beside mark");
+      expect(besideLeft.messages.at(-1)?.text).not.toContain("has no progress card");
+      const grantLeft = await convene(state, "Does the Launch note routine say that it lets bots run commands as root on their own computer?", undefined, early);
+      expect(grantLeft.messages.at(-1)?.text).toContain("has no root grant");
+      expect(grantLeft.messages.at(-1)?.text).not.toContain("has no progress card");
+      const homeLeft = await convene(state, "Does the Launch note routine say that the switch is under Bot Computers on the Grok Bot page and is on by default?", undefined, early);
+      expect(homeLeft.messages.at(-1)?.text).toContain("has no page home");
+      expect(homeLeft.messages.at(-1)?.text).not.toContain("has no progress card");
+      const why = await convene(state, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(why.messages.at(-1)?.text).toContain("It is paused.");
+      expect(why.messages.at(-1)?.text).not.toContain("progress card");
+      expect(why.messages.at(-1)?.text).not.toContain("fleet recast");
+      expect(why.messages.at(-1)?.text).not.toContain("vm banner");
+      expect(why.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+
+      const market = await convene(state, `Does the Market check routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+      expect(market.messages.at(-1)?.text).toBe(routineProgressCardCopy("Market check", true));
+      expect(market.routines[0]?.paused).toBe(true);
+      expect(market.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(market.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+    });
+  });
+
+  it("ORIEL-F173 leaves two names, a desk pause, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T07:00:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), `Does the Launch note routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineProgressCardMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_progress_card")).toBe(true);
+    expect(none.events.some((event) => event.type === "routine_vm_banner")).toBe(false);
+    expect(none.events.some((event) => event.type === "routine_reboot_wait")).toBe(false);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    const launchInstruction = state.routines[0]?.instruction;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = true;
+
+    const asked = await convene(state, `PLEASE, does the Launch note routine say ${PROGRESS_CARD_QUESTION}?`, firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineProgressCardAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).not.toContain("has no progress card");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.instruction).toBe(launchInstruction);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+
+    const lower = await convene(state, `does the launch note routine say ${PROGRESS_CARD_QUESTION}`, undefined, early);
+    expect(lower.messages.at(-1)?.text).toBe(routineProgressCardAmbiguousCopy("launch note"));
+    expect(lower.messages.at(-1)?.text).not.toContain("has no progress card");
+    const fleetLower = await convene(state, `does the launch note routine say ${FLEET_STILL}`, undefined, early);
+    expect(fleetLower.messages.at(-1)?.text).toBe(routineFleetRecastAmbiguousCopy("launch note"));
+    expect(fleetLower.messages.at(-1)?.text).not.toContain("has no progress card");
+    expect(fleetLower.messages.at(-1)?.text).not.toContain(PROGRESS_SHORT);
+    const vmLower = await convene(state, `does the launch note routine say ${VM_BANNER_STILL}`, undefined, early);
+    expect(vmLower.messages.at(-1)?.text).toBe(routineVmBannerAmbiguousCopy("launch note"));
+    expect(vmLower.messages.at(-1)?.text).not.toContain("has no progress card");
+    expect(vmLower.messages.at(-1)?.text).not.toContain(PROGRESS_SHORT);
+    const rebootLower = await convene(state, "does the launch note routine say that existing computers must be restarted before a change takes effect", undefined, early);
+    expect(rebootLower.messages.at(-1)?.text).toBe(routineRebootWaitAmbiguousCopy("launch note"));
+    expect(rebootLower.messages.at(-1)?.text).not.toContain("has no progress card");
+    const besideLower = await convene(state, "does the launch note routine say that the switch is on by default and sits next to allow local egress routing in the bot computers section of the grok bot page", undefined, early);
+    expect(besideLower.messages.at(-1)?.text).toBe(routineBesideMarkAmbiguousCopy("launch note"));
+    expect(besideLower.messages.at(-1)?.text).not.toContain("has no progress card");
+    const grantLower = await convene(state, "does the launch note routine say that it lets bots run commands as root on their own computer", undefined, early);
+    expect(grantLower.messages.at(-1)?.text).toBe(routineRootGrantAmbiguousCopy("launch note"));
+    expect(grantLower.messages.at(-1)?.text).not.toContain("has no progress card");
+    const pickLower = await convene(state, "does the launch note routine say that turning it back on restores each member's previous choice", undefined, early);
+    expect(pickLower.messages.at(-1)?.text).toBe(routinePriorPickAmbiguousCopy("launch note"));
+    expect(pickLower.messages.at(-1)?.text).not.toContain("has no progress card");
+    const homeLower = await convene(state, "does the launch note routine say that the switch is under bot computers on the grok bot page and is on by default", undefined, early);
+    expect(homeLower.messages.at(-1)?.text).toBe(routinePageHomeAmbiguousCopy("launch note"));
+    expect(homeLower.messages.at(-1)?.text).not.toContain("has no progress card");
+
+    const one = structuredClone(state);
+    one.routines.splice(1, 1);
+    const named = await convene(one, `Does the "Launch note" routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+    expect(named.messages.at(-1)?.text).toBe(routineProgressCardCopy("Launch note", true));
+    expect(named.routines[0]?.paused).toBe(true);
+    expect(named.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(named.routines[1]?.nextRunAt).toBe(marketNext);
+
+    const quoted = await convene(one, `Does the “Launch note” routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+    expect(quoted.messages.at(-1)?.text).toBe(routineProgressCardCopy("Launch note", true));
+    expect(quoted.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const marketAsk = await convene(setPaused(one, true, early), `Does the Market check routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+    expect(marketAsk.paused).toBe(true);
+    expect(marketAsk.messages.at(-1)?.text).toBe(routineProgressCardCopy("Market check", true));
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+
+    const solo = structuredClone(one);
+    solo.routines.splice(1, 1);
+    const alone = await convene(solo, `Does the Launch note routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(routineProgressCardCopy("Launch note", false));
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+
+    const aside = await convene(one, `Does the Launch note routine say ${PROGRESS_CARD_QUESTION} and email Maya`, undefined, early);
+    expect(aside.goals.length).toBeGreaterThan(one.goals.length);
+    expect(aside.messages.at(-1)?.text).not.toContain("has no progress card");
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+
+    const near = await convene(one, `Does the Launch notes routine say ${PROGRESS_CARD_QUESTION}?`, undefined, early);
+    expect(near.goals).toHaveLength(one.goals.length);
+    expect(near.messages.at(-1)?.text).toBe(routineProgressCardMissCopy("Launch notes"));
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+
+    const kept = structuredClone(one);
+    await expect(convene(kept, `Does the Launch note routine say ${PROGRESS_CARD_QUESTION} without asking`, undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, `Please does the Launch note routine say ${PROGRESS_CARD_QUESTION} always allow`, undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.goals).toHaveLength(one.goals.length);
+    await expect(convene(kept, `Does the Launch note routine say ${PROGRESS_CARD_QUESTION}?`, "goal_missing", early)).rejects.toThrow(/not in the record/);
+  });
+});
+
 
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
