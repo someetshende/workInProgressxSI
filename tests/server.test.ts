@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -19122,6 +19122,156 @@ describe("Oriel server", () => {
     const gone = await turn("Does the Launch note routine say to set Execution on Local Computer to Never allow unless Bots need to act on member machines?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Does the Launch note routine say to set Execution on Local Computer to Never allow unless Bots need to act on member machines without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F158 says one routine has no choice latch and does not leave that choice with each member", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Does the Launch note routine say that the default leaves the choice to each member?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineChoiceLatchMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("has no choice latch in the record");
+    expect(missing.body.trust).toContain("Asking does not leave that choice with each member");
+    expect(missing.body.trust).toContain("Asking does not pick Never allow for a specific reason");
+    expect(missing.body.trust).toContain("The short reply says Asking does not leave that choice with each member");
+    expect(missing.body.trust).toContain("The member-ceiling reply still says Asking does not set that ceiling to never allow");
+    expect(missing.body.trust).toContain("The plan-notch reply still says Asking does not start enterprise teams closed");
+    expect(missing.body.trust).toContain("The row says No choice latch");
+    expect(missing.body.trust).toContain("The row test id is choice-latch-");
+    expect(missing.body.trust).toContain("does not say there is no choice latch");
+    expect(missing.body.trust).toContain("does not name a choice latch");
+    expect(missing.body.trust).toContain("A member ceiling is not a choice latch");
+    expect(missing.body.trust).toContain("A stored run is not a choice latch");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a choice latch");
+    expect(missing.body.trust).toContain("has no member ceiling in the record");
+    expect(missing.body.trust).toContain("The short reply says Asking does not set that ceiling to never allow");
+    expect(missing.body.trust).toContain("The row says No member ceiling");
+    expect(missing.body.trust).toContain("The row test id is member-ceiling-");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a choice latch");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("has no choice latch".includes("has no member ceiling")).toBe(false);
+    expect("has no member ceiling".includes("has no choice latch")).toBe(false);
+    expect("Asking does not leave that choice with each member.".includes("Asking does not leave the choice to each member.")).toBe(false);
+    expect("Asking does not leave the choice to each member.".includes("Asking does not leave that choice with each member.")).toBe(false);
+    expect("Asking does not leave that choice with each member.".includes("Asking does not set that ceiling to never allow.")).toBe(false);
+    expect("choice-latch-".startsWith("member-ceiling-")).toBe(false);
+    expect("choice-latch-".startsWith("member-")).toBe(false);
+    expect("choice-latch-".startsWith("ceiling-")).toBe(false);
+    expect("choice-latch-".startsWith("latch-")).toBe(false);
+    expect("choice-latch-".startsWith("plan-notch-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineChoiceLatchCopy("Launch note", true)).toContain("Asking does not leave that choice with each member.");
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toContain("has no member ceiling");
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toContain("Asking does not set that ceiling to never allow.");
+    expect(routineChoiceLatchCopy("Launch note", true)).not.toContain("Asking does not leave the choice to each member.");
+    expect(routineMemberCeilingCopy("Launch note", true)).not.toContain("has no choice latch");
+    expect(routineMemberCeilingCopy("Launch note", true)).not.toContain("Asking does not leave that choice with each member.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, does the Launch note routine say that the default leaves the choice to each member?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineChoiceLatchCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no choice latch in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not leave that choice with each member.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not leave the choice to each member.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not pick Never allow for a specific reason.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no member ceiling");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not set that ceiling to never allow.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Does the Launch note routine say that the default leaves the choice to each member?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no choice latch in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Does the Launch note routine say that the default leaves the choice to each member?");
+    expect(asked.body.messages.at(-1).text).toBe(routineChoiceLatchCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const ceilingLeft = await turn("Does the Launch note routine say to set Execution on Local Computer to Never allow unless Bots need to act on member machines?");
+    expect(ceilingLeft.body.messages.at(-1).text).toContain("has no member ceiling");
+    expect(ceilingLeft.body.messages.at(-1).text).toContain("Asking does not set that ceiling to never allow.");
+    expect(ceilingLeft.body.messages.at(-1).text).not.toContain("has no choice latch");
+    const notchLeft = await turn("Does the Launch note routine say that enterprise teams start with public sharing off and other teams start with it allowed?");
+    expect(notchLeft.body.messages.at(-1).text).toContain("has no plan notch");
+    expect(notchLeft.body.messages.at(-1).text).toContain("Asking does not start enterprise teams closed.");
+    expect(notchLeft.body.messages.at(-1).text).not.toContain("has no choice latch");
+    const ringLeft = await turn("Does the Launch note routine say that off keeps sharing team-only, including for templates that are already public?");
+    expect(ringLeft.body.messages.at(-1).text).toContain("has no server ring");
+    expect(ringLeft.body.messages.at(-1).text).toContain("Asking does not keep sharing team-only.");
+    expect(ringLeft.body.messages.at(-1).text).not.toContain("has no choice latch");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("choice latch");
+    expect(why.body.messages.at(-1).text).not.toContain("member ceiling");
+
+    const gone = await turn("Does the Launch note routine say that the default leaves the choice to each member?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Does the Launch note routine say that the default leaves the choice to each member without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);

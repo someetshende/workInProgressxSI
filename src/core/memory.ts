@@ -1302,6 +1302,24 @@ export function loosensRoutineMemberCeiling(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_CHOICE_LATCH = /^(?:please,?\s+)?does the (.+) routine say that the default leaves the choice to each member$/i;
+
+export function routineChoiceLatchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CHOICE_LATCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineChoiceLatch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineChoiceLatchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the default leaves the choice to each member\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

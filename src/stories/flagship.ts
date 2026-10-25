@@ -2987,6 +2987,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F158",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the default leaves the choice to each member",
+      title: "Say that one routine has no choice latch and do not leave that choice with each member",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no choice latch in the record, so that I can check the work without leaving that choice with each member.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the default leaves the choice to each member says that one routine has no choice latch in the record.",
+        "Asking does not leave that choice with each member, does not pick Never allow for a specific reason, and does not set that ceiling to never allow.",
+        "A stored run is not a choice latch. A member ceiling is not one. The member-ceiling answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
