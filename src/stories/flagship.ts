@@ -3293,6 +3293,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F174",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that team admins on an Enterprise team can run this restart, not only organization admins",
+      title: "Say that one routine has no enterprise admin and do not let those team admins run this restart",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no enterprise admin in the record, so that I can check the work without letting those team admins run this restart.",
+      acceptance: [
+        "Saying whether the Launch note routine says that team admins on an Enterprise team can run this restart, not only organization admins says that one routine has no enterprise admin in the record.",
+        "Asking does not let those team admins run this restart, does not permit those team admins to run this restart, and does not enable those team admins for this restart.",
+        "A stored run is not an enterprise admin. A progress card is not one. The progress-card answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_ENTERPRISE_ADMIN = /^(?:please,?\s+)?does the (.+) routine say that team admins on an enterprise team can run this restart, not only organization admins$/i;
+
+export function routineEnterpriseAdminName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ENTERPRISE_ADMIN.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineEnterpriseAdmin(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineEnterpriseAdminName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that team admins on an enterprise team can run this restart, not only organization admins\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_PROGRESS_CARD = /^(?:please,?\s+)?does the (.+) routine say that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts$/i;
 
 export function routineProgressCardName(text: string): string | null {
