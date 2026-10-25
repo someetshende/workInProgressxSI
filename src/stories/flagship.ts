@@ -3159,6 +3159,26 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+
+    {
+      id: "ORIEL-F167",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that turning it back on restores each member's previous choice",
+      title: "Say that one routine has no prior pick and do not restore that member's earlier selection",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no prior pick in the record, so that I can check the work without restoring that member's earlier selection.",
+      acceptance: [
+        "Saying whether the Launch note routine says that turning it back on restores each member's previous choice says that one routine has no prior pick in the record.",
+        "Asking does not restore that member's earlier selection, does not reinstate that member's earlier selection, and does not return that member's earlier selection.",
+        "A stored run is not a prior pick. A minute halt is not one. The minute-halt answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
