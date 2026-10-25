@@ -1501,6 +1501,24 @@ export function loosensRoutineNestPair(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_COLD_START = /^(?:please,?\s+)?does the (.+) routine say that existing computers must be restarted before a change takes effect$/i;
+
+export function routineColdStartName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_COLD_START.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineColdStart(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineColdStartName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that existing computers must be restarted before a change takes effect\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {
