@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_TALLY_RESET = /^(?:please,?\s+)?does the (.+) routine say that using grok bot again restarts the count$/i;
+
+export function routineTallyResetName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TALLY_RESET.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTallyReset(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTallyResetName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that using grok bot again restarts the count\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_IDLE_SPAN = /^(?:please,?\s+)?does the (.+) routine say that when a member's computer goes 30 days without use, cursor terminates it$/i;
 
 export function routineIdleSpanName(text: string): string | null {

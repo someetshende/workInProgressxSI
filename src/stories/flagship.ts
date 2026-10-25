@@ -3388,6 +3388,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F179",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that using Grok Bot again restarts the count",
+      title: "Say that one routine has no tally reset and do not restart that unused-time count when use resumes",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no tally reset in the record, so that I can check the work without restarting that unused-time count when use resumes.",
+      acceptance: [
+        "Saying whether the Launch note routine says that using Grok Bot again restarts the count says that one routine has no tally reset in the record.",
+        "Asking does not restart that unused-time count when use resumes, does not zero that unused-time count when use resumes, and does not refresh that unused-time count when use resumes.",
+        "A stored run is not a tally reset. An idle span is not one. The idle-span answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
