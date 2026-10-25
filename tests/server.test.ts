@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineRouteSpanCopy, routineRouteSpanMissCopy, routineRestoreLatchCopy, routineRestoreLatchMissCopy, routineSudoPermitCopy, routineSudoPermitMissCopy, routineNestPairCopy, routineNestPairMissCopy, routineColdStartCopy, routineColdStartMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineRouteSpanCopy, routineRouteSpanMissCopy, routineRestoreLatchCopy, routineRestoreLatchMissCopy, routineSudoPermitCopy, routineSudoPermitMissCopy, routineNestPairCopy, routineNestPairMissCopy, routineColdStartCopy, routineColdStartMissCopy, routineBannerCrestCopy, routineBannerCrestMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -21137,6 +21137,159 @@ describe("Oriel server", () => {
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
 
+
+  it("ORIEL-F171 says one routine has no banner crest and does not show that notice at the top", async () => {
+    const server = await boot();
+    const question = "that after some changes to team settings the Grok Bot page shows Restart VMs to apply changed settings at the top";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineBannerCrestMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("has no banner crest in the record");
+    expect(missing.body.trust).toContain("Asking does not show that notice at the top");
+    expect(missing.body.trust).toContain("Asking does not display that notice at the top");
+    expect(missing.body.trust).toContain("Asking does not raise that notice at the top");
+    expect(missing.body.trust).toContain("The short reply says Asking does not show that notice at the top");
+    expect(missing.body.trust).toContain("The cold-start reply still says Asking does not restart those computers before the change");
+    expect(missing.body.trust).toContain("The row says No banner crest");
+    expect(missing.body.trust).toContain("The row test id is banner-crest-");
+    expect(missing.body.trust).toContain("The row says No cold start");
+    expect(missing.body.trust).toContain("The row test id is cold-start-");
+    expect(missing.body.trust).toContain("has no cold start in the record");
+    expect(missing.body.trust).toContain("does not say there is no banner crest");
+    expect(missing.body.trust).toContain("does not name a banner crest");
+    expect(missing.body.trust).toContain("A cold start is not a banner crest");
+    expect(missing.body.trust).toContain("A stored run is not a banner crest");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a banner crest");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a banner crest");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("has no banner crest".includes("has no cold start")).toBe(false);
+    expect("has no cold start".includes("has no banner crest")).toBe(false);
+    expect("has no banner crest".includes("has no nest pair")).toBe(false);
+    expect("has no nest pair".includes("has no banner crest")).toBe(false);
+    expect("Asking does not show that notice at the top.".includes("Asking does not restart those computers before the change.")).toBe(false);
+    expect("Asking does not restart those computers before the change.".includes("Asking does not show that notice at the top.")).toBe(false);
+    expect("Asking does not show that notice at the top.".includes("Asking does not display that notice at the top.")).toBe(false);
+    expect("Asking does not display that notice at the top.".includes("Asking does not show that notice at the top.")).toBe(false);
+    expect("banner-crest-".startsWith("cold-start-")).toBe(false);
+    expect("banner-crest-".startsWith("cold-")).toBe(false);
+    expect("banner-crest-".startsWith("start-")).toBe(false);
+    expect("banner-crest-".startsWith("crest-")).toBe(false);
+    expect("banner-crest-".startsWith("nest-pair-")).toBe(false);
+    expect("banner-crest-".startsWith("bar-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineBannerCrestCopy("Launch note", true)).toContain("Asking does not show that notice at the top.");
+    expect(routineBannerCrestCopy("Launch note", true)).not.toContain("Asking does not display that notice at the top.");
+    expect(routineBannerCrestCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineBannerCrestCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineBannerCrestCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineBannerCrestCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineBannerCrestCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineBannerCrestCopy("Launch note", true)).not.toContain("has no cold start");
+    expect(routineBannerCrestCopy("Launch note", true)).not.toContain("has no nest pair");
+    expect(routineColdStartCopy("Launch note", true)).not.toContain("has no banner crest");
+    expect(routineColdStartCopy("Launch note", true)).not.toContain("Asking does not show that notice at the top.");
+    expect(routineNestPairCopy("Launch note", true)).not.toContain("has no banner crest");
+    expect(routineNestPairCopy("Launch note", true)).not.toContain("Asking does not show that notice at the top.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineBannerCrestCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no banner crest in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not show that notice at the top.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not display that notice at the top.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no cold start");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not restart those computers before the change.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no banner crest in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn(`Does the Launch note routine say ${question}?`);
+    expect(asked.body.messages.at(-1).text).toBe(routineBannerCrestCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const coldLeft = await turn("Does the Launch note routine say that existing computers must be restarted before a change takes effect?");
+    expect(coldLeft.body.messages.at(-1).text).toContain("has no cold start");
+    expect(coldLeft.body.messages.at(-1).text).toContain("Asking does not restart those computers before the change.");
+    expect(coldLeft.body.messages.at(-1).text).not.toContain("has no banner crest");
+    expect(coldLeft.body.messages.at(-1).text).not.toContain("Asking does not show that notice at the top.");
+    const nestLeft = await turn("Does the Launch note routine say that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page?");
+    expect(nestLeft.body.messages.at(-1).text).toContain("has no nest pair");
+    expect(nestLeft.body.messages.at(-1).text).toContain("Asking does not leave that switch on beside the egress control.");
+    expect(nestLeft.body.messages.at(-1).text).not.toContain("has no banner crest");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("banner crest");
+    expect(why.body.messages.at(-1).text).not.toContain("cold start");
+    expect(why.body.messages.at(-1).text).not.toContain("nest pair");
+
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
 
   it("rejects an empty turn", async () => {
     const server = await boot();

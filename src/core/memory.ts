@@ -1519,6 +1519,24 @@ export function loosensRoutineColdStart(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_BANNER_CREST = /^(?:please,?\s+)?does the (.+) routine say that after some changes to team settings the grok bot page shows restart vms to apply changed settings at the top$/i;
+
+export function routineBannerCrestName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_BANNER_CREST.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineBannerCrest(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineBannerCrestName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that after some changes to team settings the grok bot page shows restart vms to apply changed settings at the top\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {
