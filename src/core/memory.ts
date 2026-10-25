@@ -1483,6 +1483,24 @@ export function loosensRoutineSudoPermit(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_NEST_PAIR = /^(?:please,?\s+)?does the (.+) routine say that the switch is on by default and sits next to allow local egress routing in the bot computers section of the grok bot page$/i;
+
+export function routineNestPairName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_NEST_PAIR.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineNestPair(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineNestPairName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the switch is on by default and sits next to allow local egress routing in the bot computers section of the grok bot page\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {

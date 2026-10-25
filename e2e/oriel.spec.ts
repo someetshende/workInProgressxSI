@@ -20657,6 +20657,160 @@ test("ORIEL-F168 whether one routine says that it lets Bots run commands as root
   await page.screenshot({ path: "test-results/oriel-routine-sudo-permit.png" });
 });
 
+test("ORIEL-F169 whether one routine says that the switch is on by default and sits next to Allow Local Egress Routing does not leave that switch on", async ({ page }) => {
+  const question = "that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page says that routine has no nest pair in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that it lets Bots run commands as root on their own computer says that routine has no sudo permit in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that turning it back on restores each member's previous choice says that routine has no restore latch in the record.",
+  );
+  const hintOrder = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const nest = text.indexOf("says that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page says that routine has no nest pair");
+    const permit = text.indexOf("says that it lets Bots run commands as root on their own computer says that routine has no sudo permit");
+    const latch = text.indexOf("says that turning it back on restores each member's previous choice says that routine has no restore latch");
+    return nest >= 0 && permit > nest && latch > permit;
+  });
+  expect(hintOrder).toBe(true);
+  await expect(page.locator("[data-testid^='nest-pair-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='nest-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pair-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sudo-permit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='sudo-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='permit-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='restore-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='restore-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='latch-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='nest-pair-']").nth(0)).toHaveText("No nest pair");
+  await expect(page.locator("[data-testid^='sudo-permit-']").nth(0)).toHaveText("No sudo permit");
+  await expect(page.locator("[data-testid^='restore-latch-']").nth(0)).toHaveText("No restore latch");
+  const followsLatch = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='sudo-permit-']");
+    const row = document.querySelector("[data-testid^='nest-pair-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsLatch).toBe(true);
+  const noteIds = await page.locator("[data-testid^='nest-pair-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("nest-pair-"))).toBe(true);
+  for (const prefix of ["sudo-permit-", "sudo-", "restore-latch-", "restore-", "latch-", "route-span-", "route-", "permit-", "pair-", "root-", "file-", "cadence-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no nest pair in the record.");
+  await expect(clear).toContainText("Asking does not leave that switch on beside the egress control.");
+  await expect(clear).not.toContainText("Asking does not seat that switch on beside the egress control.");
+  await expect(clear).not.toContainText("Asking does not restore each member's previous choice.");
+  await expect(clear).not.toContainText("has no restore latch");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no nest pair in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no nest pair in the record.");
+  await expect(pausedAsk).toContainText("Asking does not leave that switch on beside the egress control.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that it lets Bots run commands as root on their own computer?");
+  await page.getByTestId("send").click();
+  const permitLeft = page.locator("#thread .turn").last();
+  await expect(permitLeft).toContainText("has no sudo permit");
+  await expect(permitLeft).toContainText("Asking does not run those commands as root.");
+  await expect(permitLeft).not.toContainText("has no nest pair");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say that turning it back on restores each member's previous choice?");
+  await page.getByTestId("send").click();
+  const latchLeft = page.locator("#thread .turn").last();
+  await expect(latchLeft).toContainText("has no restore latch");
+  await expect(latchLeft).toContainText("Asking does not restore each member's previous choice.");
+  await expect(latchLeft).not.toContainText("has no nest pair");
+
+  await page.getByTestId("composer").fill(`does the draft the weekly close but do not send it routine say ${question}`);
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no nest pair in the record.");
+  await expect(lower).toContainText("Asking does not leave that switch on beside the egress control.");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("nest pair");
+  await expect(why).not.toContainText("sudo permit");
+  await expect(why).not.toContainText("restore latch");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='nest-pair-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='nest-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='pair-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sudo-permit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='sudo-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='permit-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='restore-latch-']")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-nest-pair.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
