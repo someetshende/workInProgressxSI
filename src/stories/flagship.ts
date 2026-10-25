@@ -3198,6 +3198,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F169",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page",
+      title: "Say that one routine has no beside mark and do not sit that switch next to Allow Local Egress Routing",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no beside mark in the record, so that I can check the work without sitting that switch next to Allow Local Egress Routing.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the switch is on by default and sits next to Allow Local Egress Routing in the Bot Computers section of the Grok Bot page says that one routine has no beside mark in the record.",
+        "Asking does not sit that switch next to Allow Local Egress Routing, does not place that switch beside Allow Local Egress Routing, and does not nest that switch by Allow Local Egress Routing.",
+        "A stored run is not a beside mark. A root grant is not one. The root-grant answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
