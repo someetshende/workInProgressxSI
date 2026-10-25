@@ -2873,6 +2873,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F152",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says admins can disable spawning",
+      title: "Say that one routine has no spawn hatch and do not disable spawning",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no spawn hatch in the record, so that I can check the work without disabling spawning.",
+      acceptance: [
+        "Saying whether the Launch note routine says admins can disable spawning says that one routine has no spawn hatch in the record.",
+        "Asking does not disable spawning, does not turn delegation off, and does not flip that switch.",
+        "A stored run is not a spawn hatch. A rest latch is not one. The rest-latch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

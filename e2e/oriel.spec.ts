@@ -17975,6 +17975,142 @@ test("ORIEL-F151 whether one routine turns it off when your team does not need d
   await page.screenshot({ path: "test-results/oriel-routine-rest-latch.png" });
 });
 
+test("ORIEL-F152 whether one routine says admins can disable spawning does not disable spawning", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine say admins can disable spawning?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says admins can disable spawning says that routine has no spawn hatch in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine runs delegated work on separate computers under your existing Cloud Agent controls says that routine has no delegated lane in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine keeps each member's chat private, including from the owner and the Bot's Managers says that routine has no sealed chat in the record.",
+  );
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='rest-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='delegated-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='lane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sealed-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='sealed-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='chat-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shared-kit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='spawn-hatch-']").nth(0)).toHaveText("No spawn hatch");
+  const followsDelegated = await page.evaluate(() => {
+    const lane = document.querySelector("[data-testid^='rest-latch-']");
+    const row = document.querySelector("[data-testid^='spawn-hatch-']");
+    if (!lane || !row || lane.parentElement !== row.parentElement) return false;
+    return lane.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsDelegated).toBe(true);
+  await expect(page.locator("[data-testid^='delegated-lane-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='switch-']")).toHaveCount(0);
+  const noteIds = await page.locator("[data-testid^='spawn-hatch-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("spawn-hatch-"))).toBe(true);
+  for (const prefix of ["rest-latch-", "rest-", "latch-", "default-switch-", "default-", "delegated-lane-", "delegated-", "switch-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "lane-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say admins can disable spawning?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no spawn hatch in the record.");
+  await expect(clear).toContainText("Asking does not disable spawning.");
+  await expect(clear).not.toContainText("has no sealed chat");
+  await expect(clear).not.toContainText("has no shared kit");
+  await expect(clear).not.toContainText("Asking does not reveal that member's chat to the owner or a Manager.");
+  await expect(clear).not.toContainText("Asking does not start a separate computer.");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say admins can disable spawning?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no spawn hatch in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say admins can disable spawning?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no spawn hatch in the record.");
+  await expect(pausedAsk).toContainText("Asking does not disable spawning.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine keep each member's chat private, including from the owner and the Bot's Managers?");
+  await page.getByTestId("send").click();
+  const sealedLeft = page.locator("#thread .turn").last();
+  await expect(sealedLeft).toContainText("has no sealed chat");
+  await expect(sealedLeft).toContainText("Asking does not reveal that member's chat to the owner or a Manager.");
+  await expect(sealedLeft).not.toContainText("has no spawn hatch");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("spawn hatch");
+  await expect(why).not.toContainText("rest latch");
+  await expect(why).not.toContainText("default switch");
+  await expect(why).not.toContainText("delegated lane");
+  await expect(why).not.toContainText("sealed chat");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='delegated-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='lane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sealed-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='chat-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-spawn-hatch.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

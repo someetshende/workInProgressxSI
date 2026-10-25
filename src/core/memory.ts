@@ -1193,6 +1193,24 @@ export function loosensRoutineRestLatch(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_SPAWN_HATCH = /^(?:please,?\s+)?does the (.+) routine say admins can disable spawning$/i;
+
+export function routineSpawnHatchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SPAWN_HATCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSpawnHatch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSpawnHatchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say admins can disable spawning\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
