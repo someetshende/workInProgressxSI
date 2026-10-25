@@ -1502,6 +1502,24 @@ export function loosensRoutineBesideMark(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_FLEET_RECAST = /^(?:please,?\s+)?does the (.+) routine say that select restart all vms, then recreate vms, to recreate the computer of every member of the team with the current team settings$/i;
+
+export function routineFleetRecastName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_FLEET_RECAST.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineFleetRecast(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineFleetRecastName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that select restart all vms, then recreate vms, to recreate the computer of every member of the team with the current team settings\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_VM_BANNER = /^(?:please,?\s+)?does the (.+) routine say that after some changes to team settings the grok bot page shows restart vms to apply changed settings at the top$/i;
 
 export function routineVmBannerName(text: string): string | null {

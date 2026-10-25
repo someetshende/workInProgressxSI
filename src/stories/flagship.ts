@@ -3255,6 +3255,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F172",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that select Restart all VMs, then Recreate VMs, to recreate the computer of every member of the team with the current team settings",
+      title: "Say that one routine has no fleet recast and do not recast every teammate computer from the saved team settings",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no fleet recast in the record, so that I can check the work without recasting every teammate computer from the saved team settings.",
+      acceptance: [
+        "Saying whether the Launch note routine says that select Restart all VMs, then Recreate VMs, to recreate the computer of every member of the team with the current team settings says that one routine has no fleet recast in the record.",
+        "Asking does not recast every teammate computer from the saved team settings, does not rebuild every teammate computer from the saved team settings, and does not replace every teammate computer from the saved team settings.",
+        "A stored run is not a fleet recast. A vm banner is not one. The vm-banner answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
