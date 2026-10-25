@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineMinuteHaltCopy, routineMinuteHaltMissCopy, routinePriorPickCopy, routinePriorPickMissCopy, routineRootGrantCopy, routineRootGrantMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -20770,6 +20770,223 @@ describe("Oriel server", () => {
     expect(still.messages.at(-1).text).toContain("A wake does not run it.");
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
+
+  it("ORIEL-F168 says one routine has no root grant and does not let those bots run commands as root on their own computer", async () => {
+    const server = await boot();
+    const question = "that it lets bots run commands as root on their own computer";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineRootGrantMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("has no root grant in the record");
+    expect(missing.body.trust).toContain("Asking does not let those bots run commands as root on their own computer");
+    expect(missing.body.trust).toContain("Asking does not grant those bots root on their own computer");
+    expect(missing.body.trust).toContain("The short reply says Asking does not let those bots run commands as root on their own computer");
+    expect(missing.body.trust).toContain("The local-shutter reply still says Asking does not turn local execution off for the whole team");
+    expect(missing.body.trust).toContain("The choice-latch reply still says Asking does not leave that choice with each member");
+    expect(missing.body.trust).toContain("The row says No root grant");
+    expect(missing.body.trust).toContain("The row test id is root-grant-");
+    expect(missing.body.trust).toContain("does not say there is no root grant");
+    expect(missing.body.trust).toContain("does not name a root grant");
+    expect(missing.body.trust).toContain("A local shutter is not a root grant");
+    expect(missing.body.trust).toContain("A stored run is not a root grant");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a root grant");
+    expect(missing.body.trust).toContain("has no local shutter in the record");
+    expect(missing.body.trust).toContain("The row says No local shutter");
+    expect(missing.body.trust).toContain("The row test id is shutter-pane-");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a root grant");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("has no root grant".includes("has no prior pick")).toBe(false);
+    expect("has no prior pick".includes("has no root grant")).toBe(false);
+    expect("has no root grant".includes("has no minute halt")).toBe(false);
+    expect("has no minute halt".includes("has no root grant")).toBe(false);
+    expect("has no root grant".includes("has no page home")).toBe(false);
+    expect("has no page home".includes("has no root grant")).toBe(false);
+    expect("has no root grant".includes("has no option blank")).toBe(false);
+    expect("has no option blank".includes("has no root grant")).toBe(false);
+    expect("has no root grant".includes("has no local shutter")).toBe(false);
+    expect("has no local shutter".includes("has no root grant")).toBe(false);
+    expect("has no root grant".includes("has no egress path")).toBe(false);
+    expect("has no egress path".includes("has no root grant")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not disable that option.")).toBe(false);
+    expect("Asking does not disable that option.".includes("Asking does not let those bots run commands as root on their own computer.")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not restore that member's earlier selection.")).toBe(false);
+    expect("Asking does not restore that member's earlier selection.".includes("Asking does not let those bots run commands as root on their own computer.")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not grant those bots root on their own computer.")).toBe(false);
+    expect("Asking does not grant those bots root on their own computer.".includes("Asking does not permit those bots root commands on their own computer.")).toBe(false);
+    expect("Asking does not permit those bots root commands on their own computer.".includes("Asking does not grant those bots root on their own computer.")).toBe(false);
+    expect("Asking does not grant those bots root on their own computer.".includes("Asking does not let those bots run commands as root on their own computer.")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not permit those bots root commands on their own computer.")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not route that web traffic through the member's own computer.")).toBe(false);
+    expect("Asking does not route that web traffic through the member's own computer.".includes("Asking does not let those bots run commands as root on their own computer.")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not keep sharing team-only.")).toBe(false);
+    expect("Asking does not keep sharing team-only.".includes("Asking does not let those bots run commands as root on their own computer.")).toBe(false);
+    expect("Asking does not let those bots run commands as root on their own computer.".includes("Asking does not grant those bots root on their own computer.")).toBe(false);
+    expect("root-grant-".startsWith("option-blank-")).toBe(false);
+    expect("root-grant-".startsWith("option-")).toBe(false);
+    expect("root-grant-".startsWith("blank-")).toBe(false);
+    expect("root-grant-".startsWith("stricter-keep-")).toBe(false);
+    expect("root-grant-".startsWith("stricter-")).toBe(false);
+    expect("root-grant-".startsWith("keep-")).toBe(false);
+    expect("root-grant-".startsWith("shutter-pane-")).toBe(false);
+    expect("root-grant-".startsWith("shutter-")).toBe(false);
+    expect("root-grant-".startsWith("pane-")).toBe(false);
+    expect("root-grant-".startsWith("choice-latch-")).toBe(false);
+    expect("root-grant-".startsWith("egress-path-")).toBe(false);
+    expect("root-grant-".startsWith("egress-")).toBe(false);
+    expect("root-grant-".startsWith("path-")).toBe(false);
+    expect("root-grant-".startsWith("habit-ask-")).toBe(false);
+    expect("root-grant-".startsWith("habit-")).toBe(false);
+    expect("root-grant-".startsWith("prior-pick-")).toBe(false);
+    expect("root-grant-".startsWith("prior-")).toBe(false);
+    expect("root-grant-".startsWith("pick-")).toBe(false);
+    expect("root-grant-".startsWith("minute-halt-")).toBe(false);
+    expect("root-grant-".startsWith("minute-")).toBe(false);
+    expect("root-grant-".startsWith("halt-")).toBe(false);
+    expect("root-grant-".startsWith("page-home-")).toBe(false);
+    expect("root-grant-".startsWith("page-")).toBe(false);
+    expect("root-grant-".startsWith("home-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineRootGrantCopy("Launch note", true)).toContain("Asking does not let those bots run commands as root on their own computer.");
+    expect(routineRootGrantCopy("Launch note", true)).not.toContain("Asking does not grant those bots root on their own computer.");
+    expect(routineRootGrantCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineRootGrantCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineRootGrantCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineRootGrantCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineRootGrantCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineRootGrantCopy("Launch note", true)).not.toContain("has no local shutter");
+    expect(routineRootGrantCopy("Launch note", true)).not.toContain("has no option blank");
+    expect(routineRootGrantCopy("Launch note", true)).not.toContain("Asking does not disable that option.");
+    expect(routineOptionBlankCopy("Launch note", true)).not.toContain("has no root grant");
+    expect(routineOptionBlankCopy("Launch note", true)).not.toContain("Asking does not let those bots run commands as root on their own computer.");
+    expect(routineLocalShutterCopy("Launch note", true)).not.toContain("has no root grant");
+    expect(routineLocalShutterCopy("Launch note", true)).not.toContain("Asking does not let those bots run commands as root on their own computer.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineRootGrantCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no root grant in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not let those bots run commands as root on their own computer.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not grant those bots root on their own computer.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no local shutter");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not turn local execution off for the whole team.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no root grant in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn(`Does the Launch note routine say ${question}?`);
+    expect(asked.body.messages.at(-1).text).toBe(routineRootGrantCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const blankLeft = await turn("Does the Launch note routine say that off disables the option in Grok Bot?");
+    expect(blankLeft.body.messages.at(-1).text).toContain("has no option blank");
+    expect(blankLeft.body.messages.at(-1).text).toContain("Asking does not disable that option.");
+    expect(blankLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    expect(blankLeft.body.messages.at(-1).text).not.toContain("Asking does not let those bots run commands as root on their own computer.");
+    const switchLeft = await turn("Does the Launch note routine keep the Cloud Agents switch on the Grok Bot page for the whole team and on by default?");
+    expect(switchLeft.body.messages.at(-1).text).toContain("has no default switch");
+    expect(switchLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    const shutterLeft = await turn("Does the Launch note routine say that ask every time makes every local task ask for approval and never allow turns local execution off for the whole team?");
+    expect(shutterLeft.body.messages.at(-1).text).toContain("has no local shutter");
+    expect(shutterLeft.body.messages.at(-1).text).toContain("Asking does not turn local execution off for the whole team.");
+    expect(shutterLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    const latchLeft = await turn("Does the Launch note routine say that the default leaves the choice to each member?");
+    expect(latchLeft.body.messages.at(-1).text).toContain("has no choice latch");
+    expect(latchLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    const ceilingLeft = await turn("Does the Launch note routine say to set Execution on Local Computer to Never allow unless Bots need to act on member machines?");
+    expect(ceilingLeft.body.messages.at(-1).text).toContain("has no member ceiling");
+    expect(ceilingLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    const keepLeft = await turn("Does the Launch note routine say that a member's own setting still applies when it is stricter than the team's?");
+    expect(keepLeft.body.messages.at(-1).text).toContain("has no stricter keep");
+    expect(keepLeft.body.messages.at(-1).text).toContain("Asking does not keep a stricter member setting in force.");
+    expect(keepLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    const pickLeft = await turn("Does the Launch note routine say that turning it back on restores each member's previous choice?");
+    expect(pickLeft.body.messages.at(-1).text).toContain("has no prior pick");
+    expect(pickLeft.body.messages.at(-1).text).toContain("Asking does not restore that member's earlier selection.");
+    expect(pickLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    expect(pickLeft.body.messages.at(-1).text).not.toContain("Asking does not let those bots run commands as root on their own computer.");
+    const haltLeft = await turn("Does the Launch note routine say that turning it off stops active routes within five minutes?");
+    expect(haltLeft.body.messages.at(-1).text).toContain("has no minute halt");
+    expect(haltLeft.body.messages.at(-1).text).toContain("Asking does not stop those active routes within five minutes.");
+    expect(haltLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    expect(haltLeft.body.messages.at(-1).text).not.toContain("Asking does not let those bots run commands as root on their own computer.");
+    const homeLeft = await turn("Does the Launch note routine say that the switch is under Bot Computers on the Grok Bot page and is on by default?");
+    expect(homeLeft.body.messages.at(-1).text).toContain("has no page home");
+    expect(homeLeft.body.messages.at(-1).text).toContain("Asking does not park that control on the page.");
+    expect(homeLeft.body.messages.at(-1).text).not.toContain("has no root grant");
+    expect(homeLeft.body.messages.at(-1).text).not.toContain("Asking does not let those bots run commands as root on their own computer.");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("root grant");
+    expect(why.body.messages.at(-1).text).not.toContain("local shutter");
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
 
   it("rejects an empty turn", async () => {
     const server = await boot();

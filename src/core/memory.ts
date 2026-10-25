@@ -1466,6 +1466,24 @@ export function loosensRoutinePriorPick(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_ROOT_GRANT = /^(?:please,?\s+)?does the (.+) routine say that it lets bots run commands as root on their own computer$/i;
+
+export function routineRootGrantName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_ROOT_GRANT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRootGrant(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRootGrantName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that it lets bots run commands as root on their own computer\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_EGRESS_PATH = /^(?:please,?\s+)?does the (.+) routine say to let members route grok bot's web traffic through their own computer$/i;
 
 export function routineEgressPathName(text: string): string | null {

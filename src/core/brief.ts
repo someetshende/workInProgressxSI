@@ -1175,6 +1175,20 @@ export function routinePriorPickAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineRootGrantCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no root grant in the record. Asking does not let those bots run commands as root on their own computer.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineRootGrantMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineRootGrantAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineWakeCopy(name: string, cadence: Cadence, nextRunAt: string | null, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

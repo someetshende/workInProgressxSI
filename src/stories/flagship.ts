@@ -3179,6 +3179,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F168",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that it lets bots run commands as root on their own computer",
+      title: "Say that one routine has no root grant and do not let those bots run commands as root on their own computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no root grant in the record, so that I can check the work without letting those bots run commands as root on their own computer.",
+      acceptance: [
+        "Saying whether the Launch note routine says that it lets bots run commands as root on their own computer says that one routine has no root grant in the record.",
+        "Asking does not let those bots run commands as root on their own computer, does not grant those bots root on their own computer, and does not permit those bots root commands on their own computer.",
+        "A stored run is not a root grant. A prior pick is not one. The prior-pick answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
