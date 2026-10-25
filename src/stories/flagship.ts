@@ -3139,6 +3139,26 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+
+    {
+      id: "ORIEL-F166",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that turning it off stops active routes within five minutes",
+      title: "Say that one routine has no minute halt and do not stop those active routes within five minutes",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no minute halt in the record, so that I can check the work without stopping those active routes within five minutes.",
+      acceptance: [
+        "Saying whether the Launch note routine says that turning it off stops active routes within five minutes says that one routine has no minute halt in the record.",
+        "Asking does not stop those active routes within five minutes, does not halt those active routes within five minutes, and does not end those active routes within five minutes.",
+        "A stored run is not a minute halt. A page home is not one. The page-home answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
