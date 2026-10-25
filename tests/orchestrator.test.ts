@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderAmbiguousCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceAmbiguousCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostAmbiguousCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceAmbiguousCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerAmbiguousCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayAmbiguousCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterAmbiguousCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchAmbiguousCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerAmbiguousCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskAmbiguousCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterAmbiguousCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitAmbiguousCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatAmbiguousCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneAmbiguousCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchAmbiguousCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchAmbiguousCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchAmbiguousCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, renderMarkdown, routineActiveAskAmbiguousCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskAmbiguousCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskAmbiguousCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneAmbiguousCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerAmbiguousCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginAmbiguousCopy, routinePluginCopy, routinePluginMissCopy, routineSourceAmbiguousCopy, routineSourceCopy, routineSourceMissCopy, routineUsageAmbiguousCopy, routineUsageCopy, routineUsageMissCopy, routineFailureAmbiguousCopy, routineFailureCopy, routineFailureMissCopy, routineChannelAmbiguousCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryAmbiguousCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingAmbiguousCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstAmbiguousCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoAmbiguousCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleAmbiguousCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleAmbiguousCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerAmbiguousCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerAmbiguousCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerAmbiguousCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateAmbiguousCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitAmbiguousCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthAmbiguousCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentAmbiguousCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalAmbiguousCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupAmbiguousCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateAmbiguousCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInAmbiguousCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietAmbiguousCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteAmbiguousCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultAmbiguousCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppAmbiguousCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveAmbiguousCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskAmbiguousCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildAmbiguousCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationAmbiguousCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileAmbiguousCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshAmbiguousCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderAmbiguousCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceAmbiguousCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostAmbiguousCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceAmbiguousCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerAmbiguousCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayAmbiguousCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterAmbiguousCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchAmbiguousCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerAmbiguousCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskAmbiguousCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterAmbiguousCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitAmbiguousCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatAmbiguousCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneAmbiguousCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchAmbiguousCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchAmbiguousCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchAmbiguousCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateAmbiguousCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineCapCopy, routineHourCopy, routinePausedAskAmbiguousCopy, routinePausedAskCopy, routinePausedAskMissCopy, routinePlaceAmbiguousCopy, routinePlaceCopy, routinePlaceMissCopy, routineQuietAmbiguousCopy, routineQuietCopy, routineQuietMissCopy, routineRunsAmbiguousCopy, routineRunsCopy, routineRunsMissCopy } from "../src/core/brief.js";
 import { runsThisHour } from "../src/core/cadence.js";
 import { convene, probeConnector, reviewWatches, runRoutine, saveRoutine, saveSkill, setConnector, setHandoffRule, setPaused, setRoutineCadence, settle, settleHandoff, stampRoutineRuns, wakeDue } from "../src/core/convene.js";
 import { OrielError } from "../src/core/errors.js";
@@ -40803,6 +40803,390 @@ describe("ORIEL-F152", () => {
   });
 });
 
+
+
+describe("ORIEL-F153", () => {
+  it("ORIEL-F153 says one routine has no quiet gate and does not quiet Cloud Agent spawning", async () => {
+    await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
+      const now = new Date("2026-10-24T04:30:00.000Z");
+      const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+      let state = initialState();
+      for (const id of ["grok", "dots", "muse"] as const) {
+        state = setConnector(state, id, { bridgeUrl: url, token: "bridge-secret-xyz" }, early);
+      }
+      state = await convene(state, "Email the client the launch note", undefined, early);
+      const goalId = state.goals[0]?.id ?? "";
+      const open = state.approvals.find((approval) => approval.status === "open" && approval.kind === "send");
+      state = await settle(state, open?.id ?? "", "approve", early);
+      state = saveRoutine(state, goalId, "Launch note", early);
+      state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+      state = await convene(state, "Compare the market landscape", undefined, early);
+      const marketGoal = state.goals.at(-1)?.id ?? "";
+      state = saveRoutine(state, marketGoal, "Market check", early);
+      state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+      state.routines[0]!.paused = true;
+      state.routines[0]!.heldBack = ["send"];
+      state.routines[0]!.lastRunAt = "2026-10-23T11:00:00.000Z";
+      state.routines[0]!.nextRunAt = "2026-10-24T02:00:00.000Z";
+      state.routines[0]!.recentRuns = ["2026-10-23T11:00:00.000Z"];
+      state.routines[1]!.heldBack = ["pay"];
+      state.routines[1]!.lastRunAt = null;
+      state.routines[1]!.recentRuns = [];
+      state.routines[1]!.nextRunAt = "2026-10-24T05:00:00.000Z";
+      state.paused = true;
+      state = setHandoffRule(state, "delete", true, early, "shared project files");
+      const beforeHits = hits.length;
+      const routinesBefore = structuredClone(state.routines);
+      const approvalsBefore = structuredClone(state.approvals);
+      const goalsBefore = structuredClone(state.goals);
+      const rulesBefore = structuredClone(state.handoffRules);
+      const asked = "Please, does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation?";
+
+      state = await convene(state, asked, goalId, early, "missing-skill");
+      expect(hits.length).toBe(beforeHits);
+      expect(state.goals).toEqual(goalsBefore);
+      expect(state.routines).toEqual(routinesBefore);
+      expect(state.approvals).toEqual(approvalsBefore);
+      expect(state.handoffRules).toEqual(rulesBefore);
+      expect(state.paused).toBe(true);
+      expect(state.messages.at(-1)?.goalId).toBeUndefined();
+      expect(state.messages.at(-1)?.text).toBe(routineQuietGateCopy("Launch note", true));
+      expect(state.messages.at(-1)?.text).toContain("“Launch note” has no quiet gate in the record.");
+      expect(state.messages.at(-1)?.text).toContain("Asking does not quiet Cloud Agent spawning.");
+      expect(state.messages.at(-1)?.text).not.toContain("has no spawn hatch");
+      expect(state.messages.at(-1)?.text).not.toContain("has no rest latch");
+      expect(state.messages.at(-1)?.text).not.toContain("has no sealed chat");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not disable spawning.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not turn delegation off.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not start a separate computer.");
+      expect(state.messages.at(-1)?.text).not.toContain("Asking does not change Cloud Agent controls.");
+      expect(state.messages.at(-1)?.text).not.toMatch(/cursor/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/credential/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/password/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/secret/i);
+      expect(state.messages.at(-1)?.text).not.toMatch(/file/i);
+      const hasNo = "has no quiet gate";
+      for (const other of [
+        "has no spawn hatch",
+        "has no rest latch",
+        "has no default switch",
+        "has no delegated lane",
+        "has no sealed chat",
+        "has no shared kit",
+        "has no asked meter",
+        "has no direct desk",
+        "has no group computer",
+        "has no team bench",
+        "has no solo roster",
+        "has no common tray",
+        "has no persona ledger",
+        "has no guest slice",
+        "has no private host",
+        "has no work surface",
+        "has no scratch folder",
+        "has no software refresh",
+        "has no kept-file",
+        "has no kept conversation",
+        "has no finish-before-rebuild",
+        "has no active screen task",
+        "has no app update",
+        "has no computer setup",
+        "has no login wait",
+        "has no team rule",
+        "has no locked team rule",
+      ]) {
+        expect(hasNo.includes(other)).toBe(false);
+        expect(other.includes(hasNo)).toBe(false);
+      }
+      const short = "Asking does not quiet Cloud Agent spawning.";
+      for (const other of [
+        "Asking does not disable spawning.",
+        "Asking does not turn delegation off.",
+        "Asking does not flip that switch.",
+        "Asking does not hand the coding work off.",
+        "Asking does not start a separate computer.",
+        "Asking does not change Cloud Agent controls.",
+        "Asking does not reveal that member's chat to the owner or a Manager.",
+        "Asking does not display that member's chat to the owner.",
+        "Asking does not display that member's chat to a Manager.",
+        "Asking does not spread that kit across teammate chats.",
+        "Asking does not add a secret.",
+        "Asking does not share a file.",
+        "Asking does not use that member's connected accounts.",
+        "Asking does not use that member's Grok Bot usage.",
+        "Asking does not bill that member's quota.",
+        "Asking does not put the work on that member's computer.",
+        "Asking does not borrow that member's computer.",
+        "Asking does not seat the work on that member's machine.",
+        "Asking does not give the group its own computer.",
+        "Asking does not assign a channel computer.",
+        "Asking does not lend the group a machine.",
+        "Asking does not share a team bot.",
+        "Asking does not invite a member.",
+        "Asking does not open someone else's chat.",
+        "Asking does not give a workload its own user.",
+        "Asking does not create a Cursor user.",
+        "Asking does not sign the browser out.",
+        "Asking does not share a login across bots.",
+        "Asking does not remove a temporary file.",
+        "Asking does not merge personalities.",
+        "Asking does not split compute.",
+        "Asking does not boot a microVM.",
+        "Asking does not share one computer across users.",
+        "Asking does not merge the screens.",
+        "Asking does not delete a temporary directory.",
+        "Asking does not refresh the software.",
+        "Asking leaves the saved files in place.",
+        "Asking leaves the saved chat in place.",
+        "Asking does not rebuild the computer.",
+        "Asking does not recover a computer.",
+        "Asking does not reset the computer.",
+        "Asking does not update the computer.",
+        "Asking does not remove an installed app.",
+        "Asking does not remove a package.",
+        "Asking does not redirect the screen.",
+        "Asking does not install an app.",
+        "Asking does not start it.",
+        "Asking does not connect a computer.",
+        "Asking does not open the computer.",
+        "Asking does not turn cloud access on.",
+      ]) {
+        expect(short.includes(other)).toBe(false);
+        expect(other.includes(short)).toBe(false);
+      }
+      const rowId = "hush-mark-";
+      for (const prefix of ["quiet-", "spawn-hatch-", "spawn-", "hatch-", "rest-latch-", "rest-", "latch-", "default-switch-", "default-", "delegated-lane-", "delegated-", "switch-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "lane-"]) {
+        expect(rowId.startsWith(prefix)).toBe(false);
+      }
+      expect(routineSpawnHatchCopy("Launch note", true)).toContain("Asking does not disable spawning.");
+      expect(routineSpawnHatchCopy("Launch note", true)).not.toContain("has no quiet gate");
+      expect(routineSpawnHatchCopy("Launch note", true)).not.toContain("Asking does not quiet Cloud Agent spawning.");
+      expect(routineQuietGateCopy("Launch note", true)).not.toContain("has no spawn hatch");
+      expect(routineQuietGateCopy("Launch note", true)).not.toContain("Asking does not disable spawning.");
+      expect(routineRestLatchCopy("Launch note", true)).not.toContain("has no quiet gate");
+      expect(routineRestLatchCopy("Launch note", true)).not.toContain("Asking does not quiet Cloud Agent spawning.");
+      expect(routineQuietGateCopy("Launch note", true)).not.toContain("has no rest latch");
+      expect(routineQuietGateCopy("Launch note", true)).not.toContain("Asking does not turn delegation off.");
+      expect(routineQuietGateCopy("Launch note", true)).not.toMatch(/cursor/i);
+      expect(routineQuietGateCopy("Launch note", true)).not.toMatch(/credential/i);
+      expect(routineQuietGateCopy("Launch note", true)).not.toMatch(/password/i);
+      expect(routineQuietGateCopy("Launch note", true)).not.toMatch(/secret/i);
+      expect(routineQuietGateCopy("Launch note", true)).not.toMatch(/file/i);
+      expect(state.messages.at(-1)?.text).toContain("Another routine is unchanged.");
+      expect(state.messages.at(-1)?.text).not.toContain("Grok Bot");
+      expect(state.messages.at(-1)?.text).not.toContain("Dots");
+      expect(state.messages.at(-1)?.text).not.toContain("Muse");
+      expect(state.messages.at(-1)?.text).not.toContain("2026-10-24T02:00:00.000Z");
+      expect(state.messages.at(-1)?.text).not.toContain("Market check");
+      expect(state.events.some((event) => event.type === "routine_quiet_gate")).toBe(true);
+      expect(state.events.some((event) => event.type === "routine_spawn_hatch")).toBe(false);
+      expect(state.events.some((event) => event.type === "routine_rest_latch")).toBe(false);
+      expect(state.events.some((event) => event.type === "routine_ran")).toBe(false);
+      const published = JSON.stringify(toPublic(state, 0));
+      expect(published).not.toContain("bridge-secret-xyz");
+      expect(published).not.toContain("Always allow");
+      expect(published).toContain("Asking whether one named routine says to disable Cloud Agent spawning if you do not need delegation");
+      expect(published).toContain("Asking whether one named routine says admins can disable spawning");
+      expect(published).toContain("Asking whether one named routine turns it off when your team does not need delegation");
+      expect(published).toContain("has no quiet gate in the record");
+      expect(published).toContain("Asking does not quiet Cloud Agent spawning");
+      expect(published).toContain("Asking does not disable spawning");
+      expect(published).toContain("does not turn delegation off");
+      expect(published).toContain("does not reveal that member's chat to the owner or a Manager");
+      expect(published).toContain("does not spread that kit across teammate chats");
+      expect(published).toContain("does not add a secret");
+      expect(published).toContain("does not share a file");
+      expect(published).toContain("does not use that member's connected accounts");
+      expect(published).toContain("does not put the work on that member's computer");
+      expect(published).toContain("does not give the group its own computer");
+      expect(published).toContain("does not share a team bot");
+      expect(published).toContain("does not install an app");
+      expect(published).toContain("does not open the computer");
+      expect(published).toContain("does not take a destructive step");
+      expect(published).toContain("The short reply says Asking does not quiet Cloud Agent spawning");
+      expect(published).toContain("The spawn-hatch reply still says Asking does not disable spawning");
+      expect(published).toContain("The rest-latch reply still says Asking does not turn delegation off");
+      expect(published).toContain("The sealed-chat reply still says Asking does not reveal that member's chat to the owner or a Manager");
+      expect(published).toContain("The row says No quiet gate");
+      expect(published).toContain("The row test id is hush-mark-");
+      expect(published).toContain("does not say there is no quiet gate");
+      expect(published).toContain("does not name a quiet gate");
+      expect(published).toContain("A spawn hatch is not a quiet gate");
+      expect(published).toContain("A rest latch is not a quiet gate");
+      expect(published).toContain("A stored run is not a quiet gate");
+      expect(published).toContain("A desk-wide pause does not invent a quiet gate");
+      expect(published).toContain("There is no relay lamp");
+      expect(published).toContain("There is no keyhole");
+      expect(published).not.toContain("A recorded failure is not a quiet gate");
+
+      const openDesk = structuredClone(state);
+      openDesk.paused = false;
+      const still = await wakeDue(openDesk, early);
+      expect(still.routines[0]?.paused).toBe(true);
+      expect(still.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(still.events.some((event) => event.type === "routine_ran")).toBe(false);
+
+      const market = await convene(state, "Does the Market check routine say to disable Cloud Agent spawning if you do not need delegation?", undefined, early);
+      expect(market.messages.at(-1)?.text).toBe(routineQuietGateCopy("Market check", true));
+      expect(market.routines[0]?.paused).toBe(true);
+      expect(market.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+      expect(market.routines[1]?.nextRunAt).toBe("2026-10-24T05:00:00.000Z");
+      expect(market.routines[0]?.heldBack).toEqual(["send"]);
+
+      const hatchLeft = await convene(state, "Does the Launch note routine say admins can disable spawning?", undefined, early);
+      expect(hatchLeft.messages.at(-1)?.text).toContain("“Launch note” has no spawn hatch in the record.");
+      expect(hatchLeft.messages.at(-1)?.text).toContain("Asking does not disable spawning.");
+      expect(hatchLeft.messages.at(-1)?.text).not.toContain("has no quiet gate");
+      const restLeft = await convene(state, "Does the Launch note routine turn it off when your team does not need delegation?", undefined, early);
+      expect(restLeft.messages.at(-1)?.text).toContain("has no rest latch");
+      expect(restLeft.messages.at(-1)?.text).toContain("Asking does not turn delegation off.");
+      expect(restLeft.messages.at(-1)?.text).not.toContain("has no quiet gate");
+      expect(restLeft.messages.at(-1)?.text).not.toContain("Asking does not quiet Cloud Agent spawning.");
+      const why = await convene(state, "Why hasn't the Launch note routine run?", undefined, early);
+      expect(why.messages.at(-1)?.text).toContain("It is paused.");
+      expect(why.messages.at(-1)?.text).not.toContain("quiet gate");
+      expect(why.messages.at(-1)?.text).not.toContain("spawn hatch");
+      expect(why.messages.at(-1)?.text).not.toContain("rest latch");
+      expect(why.routines[0]?.nextRunAt).toBe("2026-10-24T02:00:00.000Z");
+    });
+  });
+
+  it("ORIEL-F153 leaves two names, a desk pause, and a widened sentence alone", async () => {
+    const now = new Date("2026-10-24T07:00:00.000Z");
+    const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
+    const none = await convene(initialState(), "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation?", undefined, early);
+    expect(none.goals).toHaveLength(0);
+    expect(none.routines).toHaveLength(0);
+    expect(none.messages.at(-1)?.text).toBe(routineQuietGateMissCopy("Launch note"));
+    expect(none.events.some((event) => event.type === "routine_quiet_gate")).toBe(true);
+
+    let state = await convene(initialState(), "Email Maya the launch update", undefined, early);
+    const firstId = state.goals[0]?.id ?? "";
+    state = await settle(state, state.approvals[0]?.id ?? "", "task", early);
+    state = saveRoutine(state, firstId, "Launch note", early);
+    state = setRoutineCadence(state, state.routines[0]?.id ?? "", "hourly", early);
+    const launchNext = state.routines[0]?.nextRunAt;
+    const launchInstruction = state.routines[0]?.instruction;
+    state.routines[0]!.recentRuns = ["2026-10-24T03:00:00.000Z"];
+    state.routines[0]!.lastRunAt = "2026-10-24T03:00:00.000Z";
+    state = await convene(state, "Email Noah the other note", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Launch note", early);
+    state = setRoutineCadence(state, state.routines[1]?.id ?? "", "daily", early);
+    const secondNext = state.routines[1]?.nextRunAt;
+    state = await convene(state, "Summarize the launch risks", undefined, early);
+    state = saveRoutine(state, state.goals.at(-1)?.id ?? "", "Market check", early);
+    state = setRoutineCadence(state, state.routines[2]?.id ?? "", "hourly", early);
+    const marketNext = state.routines[2]?.nextRunAt;
+    const goals = state.goals.length;
+    state.routines[0]!.heldBack = ["send"];
+    state.routines[0]!.paused = true;
+    state.routines[1]!.paused = true;
+
+    const asked = await convene(state, "PLEASE, does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation?", firstId, early, "missing-skill");
+    expect(asked.goals).toHaveLength(goals);
+    expect(asked.messages.at(-1)?.text).toBe(routineQuietGateAmbiguousCopy("Launch note"));
+    expect(asked.messages.at(-1)?.text).toContain("More than one routine has that name");
+    expect(asked.messages.at(-1)?.text).not.toContain("has no quiet gate");
+    expect(asked.routines[0]?.heldBack).toEqual(["send"]);
+    expect(asked.routines[0]?.paused).toBe(true);
+    expect(asked.routines[0]?.instruction).toBe(launchInstruction);
+    expect(asked.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(asked.routines[1]?.nextRunAt).toBe(secondNext);
+    expect(asked.routines[2]?.nextRunAt).toBe(marketNext);
+
+    for (const text of [
+      "Please, does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation.",
+      "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation??",
+    ]) {
+      const again = await convene(state, text, undefined, early);
+      expect(again.messages.at(-1)?.text).toBe(routineQuietGateAmbiguousCopy("Launch note"));
+      expect(again.routines[0]?.paused).toBe(true);
+      expect(again.goals).toHaveLength(goals);
+    }
+    const lower = await convene(state, "does the launch note routine say to disable cloud agent spawning if you do not need delegation", undefined, early);
+    expect(lower.messages.at(-1)?.text).toBe(routineQuietGateAmbiguousCopy("launch note"));
+    expect(lower.messages.at(-1)?.text).not.toContain("has no quiet gate");
+    const restLower = await convene(state, "does the launch note routine turn it off when your team does not need delegation", undefined, early);
+    expect(restLower.messages.at(-1)?.text).toBe(routineRestLatchAmbiguousCopy("launch note"));
+    expect(restLower.messages.at(-1)?.text).not.toContain("has no quiet gate");
+    expect(restLower.messages.at(-1)?.text).not.toContain("has no spawn hatch");
+
+    const one = structuredClone(state);
+    one.routines.splice(1, 1);
+    const named = await convene(one, 'Does the "Launch note" routine say to disable Cloud Agent spawning if you do not need delegation?', undefined, early);
+    expect(named.messages.at(-1)?.text).toBe(routineQuietGateCopy("Launch note", true));
+    expect(named.messages.at(-1)?.text).toContain("Asking does not quiet Cloud Agent spawning.");
+    expect(named.routines[0]?.paused).toBe(true);
+    expect(named.routines[0]?.nextRunAt).toBe(launchNext);
+    expect(named.routines[1]?.nextRunAt).toBe(marketNext);
+
+    const quoted = await convene(one, "Does the “Launch note” routine say to disable Cloud Agent spawning if you do not need delegation?", undefined, early);
+    expect(quoted.messages.at(-1)?.text).toBe(routineQuietGateCopy("Launch note", true));
+    expect(quoted.routines[0]?.recentRuns).toEqual(["2026-10-24T03:00:00.000Z"]);
+
+    const marketAsk = await convene(setPaused(one, true, early), "Does the Market check routine say to disable Cloud Agent spawning if you do not need delegation?", undefined, early);
+    expect(marketAsk.paused).toBe(true);
+    expect(marketAsk.messages.at(-1)?.text).toBe(routineQuietGateCopy("Market check", true));
+    expect(marketAsk.messages.at(-1)?.text).not.toContain("Wakes are paused");
+    expect(marketAsk.routines[0]?.paused).toBe(true);
+
+    const solo = structuredClone(one);
+    solo.routines.splice(1, 1);
+    const alone = await convene(solo, "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation?", undefined, early);
+    expect(alone.messages.at(-1)?.text).toBe(routineQuietGateCopy("Launch note", false));
+    expect(alone.messages.at(-1)?.text).not.toContain("Another routine is unchanged.");
+    expect(alone.routines).toHaveLength(1);
+
+    const aside = await convene(one, "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation and email Maya", undefined, early);
+    expect(aside.goals.length).toBeGreaterThan(one.goals.length);
+    expect(aside.messages.at(-1)?.text).not.toContain("has no quiet gate");
+    expect(aside.messages.at(-1)?.text).not.toContain("Asking does not quiet Cloud Agent spawning.");
+    expect(aside.routines[0]?.paused).toBe(true);
+    expect(aside.routines[0]?.nextRunAt).toBe(launchNext);
+
+    const near = await convene(one, "Does the Launch notes routine say to disable Cloud Agent spawning if you do not need delegation?", undefined, early);
+    expect(near.goals).toHaveLength(one.goals.length);
+    expect(near.messages.at(-1)?.text).toBe(routineQuietGateMissCopy("Launch notes"));
+    expect(near.routines[0]?.paused).toBe(true);
+    expect(near.routines[0]?.nextRunAt).toBe(launchNext);
+
+    for (const text of [
+      "Does it say to disable Cloud Agent spawning if you do not need delegation?",
+      "Do the Launch note routines need their own Cursor user for a separate computer and credential set?",
+      "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation yet?",
+      "Don't ask if the Launch note routine turns it off when your team does not need delegation",
+      "Does the routine say to disable Cloud Agent spawning if you do not need delegation?",
+      "Does the Launch note routines say to disable Cloud Agent spawning if you do not need delegation?",
+      "Does the Launch note routine say admins can disable spawning yet?",
+    ]) {
+      const ordinary = await convene(one, text, undefined, early);
+      expect(ordinary.goals.length).toBeGreaterThan(one.goals.length);
+      expect(ordinary.routines[0]?.paused).toBe(true);
+      expect(ordinary.routines[0]?.nextRunAt).toBe(launchNext);
+      expect(ordinary.messages.at(-1)?.text).not.toContain("has no quiet gate");
+      expect(ordinary.messages.at(-1)?.text).not.toContain("There is no such routine");
+    }
+
+    const kept = structuredClone(one);
+    await expect(convene(kept, "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation without asking", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Please does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation always allow", undefined, early)).rejects.toThrow(/without asking/);
+    await expect(convene(kept, "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation and allow for this site", undefined, early)).rejects.toThrow(/without asking/);
+    expect(kept.routines[0]?.paused).toBe(true);
+    expect(kept.routines[0]?.heldBack).toEqual(["send"]);
+    expect(kept.goals).toHaveLength(one.goals.length);
+    await expect(convene(kept, "Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation?", "goal_missing", early)).rejects.toThrow(/not in the record/);
+
+    const hatchLeft = await convene(one, "Does the Launch note routine say admins can disable spawning?", undefined, early);
+    expect(hatchLeft.messages.at(-1)?.text).toContain("has no spawn hatch");
+    expect(hatchLeft.messages.at(-1)?.text).toContain("Asking does not disable spawning.");
+    expect(hatchLeft.messages.at(-1)?.text).not.toContain("has no quiet gate");
+    const why = await convene(one, "Why hasn't the Launch note routine run?", undefined, early);
+    expect(why.messages.at(-1)?.text).toContain("It is paused.");
+    expect(why.messages.at(-1)?.text).not.toContain("quiet gate");
+    expect(why.messages.at(-1)?.text).not.toContain("spawn hatch");
+    expect(why.routines[0]?.nextRunAt).toBe(launchNext);
+  });
+});
 
 describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {

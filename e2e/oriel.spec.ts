@@ -18111,6 +18111,141 @@ test("ORIEL-F152 whether one routine says admins can disable spawning does not d
   await page.screenshot({ path: "test-results/oriel-routine-spawn-hatch.png" });
 });
 
+
+test("ORIEL-F153 whether one routine says to disable Cloud Agent spawning if you do not need delegation does not quiet Cloud Agent spawning", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("composer").fill("Does the Launch note routine say to disable Cloud Agent spawning if you do not need delegation?");
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says to disable Cloud Agent spawning if you do not need delegation says that routine has no quiet gate in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says admins can disable spawning says that routine has no spawn hatch in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine runs delegated work on separate computers under your existing Cloud Agent controls says that routine has no delegated lane in the record.",
+  );
+  await expect(page.locator("[data-testid^='hush-mark-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='rest-latch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='delegated-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='lane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='sealed-chat-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='sealed-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='chat-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='shared-kit-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='computer-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='hush-mark-']").nth(0)).toHaveText("No quiet gate");
+  const followsHatch = await page.evaluate(() => {
+    const hatch = document.querySelector("[data-testid^='spawn-hatch-']");
+    const row = document.querySelector("[data-testid^='hush-mark-']");
+    if (!hatch || !row || hatch.parentElement !== row.parentElement) return false;
+    return hatch.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsHatch).toBe(true);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='default-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='switch-']")).toHaveCount(0);
+  const noteIds = await page.locator("[data-testid^='hush-mark-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("hush-mark-"))).toBe(true);
+  for (const prefix of ["quiet-", "spawn-hatch-", "spawn-", "hatch-", "rest-latch-", "rest-", "latch-", "default-switch-", "default-", "delegated-lane-", "delegated-", "switch-", "sealed-chat-", "sealed-", "chat-", "shared-kit-", "shared-", "kit-", "asked-meter-", "asked-", "meter-", "direct-desk-", "direct-", "desk-", "group-computer-", "group-", "computer-", "team-bench-", "team-", "bench-", "solo-roster-", "solo-", "roster-", "common-tray-", "common-", "tray-", "persona-ledger-", "persona-", "ledger-", "guest-slice-", "guest-", "slice-", "private-host-", "private-", "host-", "work-surface-", "work-", "surface-", "scratch-folder-", "scratch-", "folder-", "software-refresh-", "software-", "refresh-", "kept-file-", "kept-chat-", "app-", "update-", "finish-", "screen-", "least-", "plugin-", "login-", "stuck-", "source-", "active-", "task-", "file-", "delivery-", "destination-", "disconnected-", "destructive-", "lane-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say to disable Cloud Agent spawning if you do not need delegation?");
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no quiet gate in the record.");
+  await expect(clear).toContainText("Asking does not quiet Cloud Agent spawning.");
+  await expect(clear).not.toContainText("has no spawn hatch");
+  await expect(clear).not.toContainText("has no rest latch");
+  await expect(clear).not.toContainText("Asking does not disable spawning.");
+  await expect(clear).not.toContainText("Asking does not turn delegation off.");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say to disable Cloud Agent spawning if you do not need delegation?");
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no quiet gate in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say to disable Cloud Agent spawning if you do not need delegation?");
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no quiet gate in the record.");
+  await expect(pausedAsk).toContainText("Asking does not quiet Cloud Agent spawning.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("Does the Draft the weekly close but do not send it routine say admins can disable spawning?");
+  await page.getByTestId("send").click();
+  const hatchLeft = page.locator("#thread .turn").last();
+  await expect(hatchLeft).toContainText("has no spawn hatch");
+  await expect(hatchLeft).toContainText("Asking does not disable spawning.");
+  await expect(hatchLeft).not.toContainText("has no quiet gate");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("quiet gate");
+  await expect(why).not.toContainText("spawn hatch");
+  await expect(why).not.toContainText("rest latch");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='hush-mark-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='spawn-hatch-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='delegated-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='lane-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='file-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-quiet-gate.png" });
+});
+
 test("a phone in the dark still fits the composer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });

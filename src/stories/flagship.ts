@@ -2892,6 +2892,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F153",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says to disable Cloud Agent spawning if you do not need delegation",
+      title: "Say that one routine has no quiet gate and do not quiet Cloud Agent spawning",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no quiet gate in the record, so that I can check the work without quieting Cloud Agent spawning.",
+      acceptance: [
+        "Saying whether the Launch note routine says to disable Cloud Agent spawning if you do not need delegation says that one routine has no quiet gate in the record.",
+        "Asking does not quiet Cloud Agent spawning, does not disable spawning, and does not turn delegation off.",
+        "A stored run is not a quiet gate. A spawn hatch is not one. The spawn-hatch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

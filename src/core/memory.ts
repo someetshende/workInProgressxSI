@@ -1211,6 +1211,24 @@ export function loosensRoutineSpawnHatch(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_QUIET_GATE = /^(?:please,?\s+)?does the (.+) routine say to disable cloud agent spawning if you do not need delegation$/i;
+
+export function routineQuietGateName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_QUIET_GATE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineQuietGate(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineQuietGateName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say to disable cloud agent spawning if you do not need delegation\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {
