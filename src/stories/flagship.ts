@@ -2854,6 +2854,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F151",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine turns it off when your team does not need delegation",
+      title: "Say that one routine has no rest latch and do not turn delegation off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no rest latch in the record, so that I can check the work without turning delegation off.",
+      acceptance: [
+        "Saying whether the Launch note routine turns it off when your team does not need delegation says that one routine has no rest latch in the record.",
+        "Asking does not turn delegation off, does not flip that switch, and does not hand the coding work off.",
+        "A stored run is not a rest latch. A default switch is not one. The default-switch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

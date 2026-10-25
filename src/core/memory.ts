@@ -1175,6 +1175,24 @@ export function loosensRoutineDefaultSwitch(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_REST_LATCH = /^(?:please,?\s+)?does the (.+) routine turn it off when your team does not need delegation$/i;
+
+export function routineRestLatchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_REST_LATCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRestLatch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRestLatchName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine turn it off when your team does not need delegation\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE = /^(?:please,?\s+)?when does the (.+) routine wake$/i;
 
 export function routineWakeName(text: string): string | null {

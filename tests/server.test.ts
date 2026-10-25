@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -17860,6 +17860,173 @@ describe("Oriel server", () => {
     const gone = await turn("Does the Launch note routine keep the Cloud Agents switch on the Grok Bot page for the whole team and on by default?", { goalId: "goal_missing" });
     expect(gone.status).toBe(404);
     const refused = await turn("Does the Launch note routine keep the Cloud Agents switch on the Grok Bot page for the whole team and on by default without asking");
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
+
+  it("ORIEL-F151 says one routine has no rest latch and does not turn delegation off", async () => {
+    const server = await boot();
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn("Does the Launch note routine turn it off when your team does not need delegation?");
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineRestLatchMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("Asking whether one named routine turns it off when your team does not need delegation");
+    expect(missing.body.trust).toContain("Asking whether one named routine runs delegated work on separate computers under your existing Cloud Agent controls");
+    expect(missing.body.trust).toContain("has no rest latch in the record");
+    expect(missing.body.trust).toContain("Asking does not turn delegation off");
+    expect(missing.body.trust).toContain("Asking does not start a separate computer");
+    expect(missing.body.trust).toContain("Asking does not change Cloud Agent controls");
+    expect(missing.body.trust).toContain("does not reveal that member's chat to the owner or a Manager");
+    expect(missing.body.trust).toContain("does not spread that kit across teammate chats");
+    expect(missing.body.trust).toContain("does not add a secret");
+    expect(missing.body.trust).toContain("does not share a file");
+    expect(missing.body.trust).toContain("does not use that member's connected accounts");
+    expect(missing.body.trust).toContain("does not put the work on that member's computer");
+    expect(missing.body.trust).toContain("does not give the group its own computer");
+    expect(missing.body.trust).toContain("does not share a team bot");
+    expect(missing.body.trust).toContain("does not install an app");
+    expect(missing.body.trust).toContain("does not open the computer");
+    expect(missing.body.trust).toContain("does not take a destructive step");
+    expect(missing.body.trust).toContain("The short reply says Asking does not turn delegation off");
+    expect(missing.body.trust).toContain("The sealed-chat reply still says Asking does not reveal that member's chat to the owner or a Manager");
+    expect(missing.body.trust).toContain("The shared-kit reply still says Asking does not spread that kit across teammate chats");
+    expect(missing.body.trust).toContain("The asked-meter reply still says Asking does not use that member's connected accounts");
+    expect(missing.body.trust).toContain("The direct-desk reply still says Asking does not put the work on that member's computer");
+    expect(missing.body.trust).toContain("The row says No rest latch");
+    expect(missing.body.trust).toContain("The row test id is rest-latch-");
+    expect(missing.body.trust).toContain("does not say there is no rest latch");
+    expect(missing.body.trust).toContain("does not name a rest latch");
+    expect(missing.body.trust).toContain("A sealed chat is not a rest latch");
+    expect(missing.body.trust).toContain("A shared kit is not a rest latch");
+    expect(missing.body.trust).toContain("A stored run is not a rest latch");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a rest latch");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a rest latch");
+    expect("has no rest latch".includes("has no sealed chat")).toBe(false);
+    expect("has no sealed chat".includes("has no rest latch")).toBe(false);
+    expect("has no rest latch".includes("has no delegated lane")).toBe(false);
+    expect("has no delegated lane".includes("has no rest latch")).toBe(false);
+    expect("Asking does not turn delegation off.".includes("Asking does not hand the coding work off.")).toBe(false);
+    expect("Asking does not hand the coding work off.".includes("Asking does not turn delegation off.")).toBe(false);
+    expect("Asking does not turn delegation off.".includes("Asking does not reveal that member's chat to the owner or a Manager.")).toBe(false);
+    expect("Asking does not reveal that member's chat to the owner or a Manager.".includes("Asking does not turn delegation off.")).toBe(false);
+    expect("Asking does not turn delegation off.".includes("Asking does not start a separate computer.")).toBe(false);
+    expect("Asking does not start a separate computer.".includes("Asking does not turn delegation off.")).toBe(false);
+    expect("Asking does not turn delegation off.".includes("Asking does not change Cloud Agent controls.")).toBe(false);
+    expect("Asking does not change Cloud Agent controls.".includes("Asking does not turn delegation off.")).toBe(false);
+    expect("Asking does not start a separate computer.".includes("Asking does not change Cloud Agent controls.")).toBe(false);
+    expect("Asking does not change Cloud Agent controls.".includes("Asking does not start a separate computer.")).toBe(false);
+    expect("rest-latch-".startsWith("sealed-chat-")).toBe(false);
+    expect("rest-latch-".startsWith("sealed-")).toBe(false);
+    expect("rest-latch-".startsWith("chat-")).toBe(false);
+    expect("rest-latch-".startsWith("lane-")).toBe(false);
+    expect("rest-latch-".startsWith("delegated-lane-")).toBe(false);
+    expect("rest-latch-".startsWith("delegated-")).toBe(false);
+    expect("rest-latch-".startsWith("default-switch-")).toBe(false);
+    expect("rest-latch-".startsWith("default-")).toBe(false);
+    expect("rest-latch-".startsWith("switch-")).toBe(false);
+    expect("rest-latch-".startsWith("computer-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineRestLatchCopy("Launch note", true)).toContain("Asking does not turn delegation off.");
+    expect(routineRestLatchCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineRestLatchCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineRestLatchCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineRestLatchCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineRestLatchCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineSealedChatCopy("Launch note", true)).not.toContain("has no rest latch");
+    expect(routineSealedChatCopy("Launch note", true)).toContain("Asking does not reveal that member's chat to the owner or a Manager.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const next = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn("Please, does the Launch note routine turn it off when your team does not need delegation?", { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineRestLatchCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no rest latch in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not turn delegation off.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no sealed chat");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no shared kit");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not start a separate computer.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(next);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn("Does the Launch note routine turn it off when your team does not need delegation?");
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no rest latch in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn("Does the Launch note routine turn it off when your team does not need delegation?");
+    expect(asked.body.messages.at(-1).text).toBe(routineRestLatchCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(next);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const sealedLeft = await turn("Does the Launch note routine keep each member's chat private, including from the owner and the Bot's Managers?");
+    expect(sealedLeft.body.messages.at(-1).text).toContain("has no sealed chat");
+    expect(sealedLeft.body.messages.at(-1).text).toContain("Asking does not reveal that member's chat to the owner or a Manager.");
+    expect(sealedLeft.body.messages.at(-1).text).not.toContain("has no rest latch");
+    const groupLeft = await turn("Does the Launch note routine use one computer of its own in Slack channels, threads, group DMs, and group chats?");
+    expect(groupLeft.body.messages.at(-1).text).toContain("has no group computer");
+    expect(groupLeft.body.messages.at(-1).text).not.toContain("has no rest latch");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("rest latch");
+    expect(why.body.messages.at(-1).text).not.toContain("default switch");
+    expect(why.body.messages.at(-1).text).not.toContain("sealed chat");
+
+    const gone = await turn("Does the Launch note routine turn it off when your team does not need delegation?", { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn("Does the Launch note routine turn it off when your team does not need delegation without asking");
     expect(refused.status).toBe(400);
     const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
     expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
