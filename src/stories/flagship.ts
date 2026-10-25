@@ -3329,6 +3329,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F176",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using Grok Bot",
+      title: "Say that one routine has no slumber mark and do not leave that sleeping computer in place until someone ends it",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no slumber mark in the record, so that I can check the work without leaving that sleeping computer in place until someone ends it.",
+      acceptance: [
+        "Saying whether the Launch note routine says that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using Grok Bot says that one routine has no slumber mark in the record.",
+        "Asking does not leave that sleeping computer in place until someone ends it, does not keep that sleeping computer in place until someone ends it, and does not hold that sleeping computer in place until someone ends it.",
+        "A stored run is not a slumber mark. A recreate fence is not one. The recreate-fence answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
