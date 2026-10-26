@@ -11,7 +11,7 @@ async function bringIntoView(page: Page, testId: string) {
   await locator.evaluate((node) => node.scrollIntoView({ block: "center", inline: "nearest" }));
 }
 
-test("ORIEL-F221 whether one routine says that see approvals and auto review does not halt those shared notes once the lock is switched off", async ({
+test("ORIEL-F221 whether one routine says that see approvals and auto review does not open that review page from the note", async ({
   page,
 }) => {
   const question = "that See approvals and Auto Review";

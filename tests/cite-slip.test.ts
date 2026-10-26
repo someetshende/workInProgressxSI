@@ -200,7 +200,7 @@ async function withBridge(
 }
 
 describe("ORIEL-F221", () => {
-  it("ORIEL-F221 says one routine has no cite slip and does not halt those shared notes once the lock is switched off", async () => {
+  it("ORIEL-F221 says one routine has no cite slip and does not open that review page from the note", async () => {
     await withBridge(200, { summary: "Ready.", points: [], stance: "" }, async (url, hits) => {
       const now = new Date("2026-10-24T04:30:00.000Z");
       const early: Deps = { now: () => now, fetchImpl: fetch, refine: null };
@@ -413,6 +413,7 @@ describe("ORIEL-F221", () => {
       expect(published).toContain("has no cite slip in the record");
       expect(published).toContain("The row says No cite slip");
       expect(published).toContain("The row test id is cite-slip-");
+      expect(published).toContain("The short reply says Asking does not open that review page from the note");
       expect(published).toContain("The short reply says Asking does not halt those shared notes once the lock is switched off");
       expect(published).toContain("A sight glass is not a cite slip");
       expect(published).toContain("does not say there is no cite slip");
@@ -981,7 +982,7 @@ afterEach(async () => {
 });
 
 describe("ORIEL-F221 server", () => {
-  it("ORIEL-F221 says one routine has no cite slip and does not halt those shared notes once the lock is switched off", async () => {
+  it("ORIEL-F221 says one routine has no cite slip and does not open that review page from the note", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "oriel-"));
     const server = await startServer({ port: 0, host: "127.0.0.1", dataDir: dir, testMode: true });
     running.push({ close: server.close, dir });
