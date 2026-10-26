@@ -1263,6 +1263,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineDouseMarkCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no douse mark in the record. Asking does not halt those shared notes once the lock is switched off.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineDouseMarkMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineDouseMarkAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineSightGlassCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

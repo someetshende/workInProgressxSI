@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no sight glass";
 
 const OTHER_HAS_NO = [
+  "has no douse mark",
   "has no ink latch",
   "has no cap layer",
   "has no waiver lock",
@@ -262,6 +263,9 @@ describe("ORIEL-F219", () => {
         expect(other.includes(HAS_NO)).toBe(false);
       }
       for (const other of [
+        "Asking does not halt those shared notes once the lock is switched off.",
+        "Asking does not cease those shared notes once the lock is switched off.",
+        "Asking does not drop those shared notes once the lock is switched off.",
         "Asking does not write those notes on that page the moment they change.",
         "Asking does not store those notes on that page the moment they change.",
         "Asking does not keep those notes on that page the moment they change.",

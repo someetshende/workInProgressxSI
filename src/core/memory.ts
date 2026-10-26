@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const DOUSE_MARK_FACT = "turning enforcement off stops applying the team rules";
+const ROUTINE_DOUSE_MARK = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${DOUSE_MARK_FACT}$`, "i");
+const ROUTINE_DOUSE_MARK_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${DOUSE_MARK_FACT}\\b`, "i");
+
+export function routineDouseMarkName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DOUSE_MARK.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDouseMark(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDouseMarkName(text)) return false;
+  if (!ROUTINE_DOUSE_MARK_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const SIGHT_GLASS_FACT = "members see the team rules under settings → general → auto-review but cannot edit or delete them, and ask first wins when rules conflict";
 const ROUTINE_SIGHT_GLASS = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${SIGHT_GLASS_FACT}$`, "i");
 const ROUTINE_SIGHT_GLASS_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${SIGHT_GLASS_FACT}\\b`, "i");
