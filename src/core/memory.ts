@@ -1576,6 +1576,27 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const CAP_LAYER_FACT = "team-wide ask first and allow automatically rules that apply to every member's bots on top of their own rules";
+const ROUTINE_CAP_LAYER = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${CAP_LAYER_FACT}$`, "i");
+const ROUTINE_CAP_LAYER_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${CAP_LAYER_FACT}\\b`, "i");
+
+export function routineCapLayerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CAP_LAYER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCapLayer(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCapLayerName(text)) return false;
+  if (!ROUTINE_CAP_LAYER_PREFIX.test(value)) return false;
+  const withoutFact = value.replace(new RegExp(CAP_LAYER_FACT, "i"), "");
+  return ROUTINE_LOOSEN.test(withoutFact);
+}
+
 const ROUTINE_WAIVER_LOCK = /^(?:please,?\s+)?does the (.+) routine say that a group can lift the lock for its own members with don't enforce for this group; see group settings$/i;
 
 export function routineWaiverLockName(text: string): string | null {

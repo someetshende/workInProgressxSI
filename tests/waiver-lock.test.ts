@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no waiver lock";
 
 const OTHER_HAS_NO = [
+  "has no cap layer",
   "has no prior arm",
   "has no vacant quorum",
   "has no risk gate",
@@ -259,6 +260,9 @@ describe("ORIEL-F216", () => {
         expect(other.includes(HAS_NO)).toBe(false);
       }
       for (const other of [
+        "Asking does not lay that shared cap over each person's own notes.",
+        "Asking does not set that shared cap over each person's own notes.",
+        "Asking does not place that shared cap over each person's own notes.",
         ALT_OPEN,
         ALT_SET,
         "Asking does not cover a chat where nobody can answer before the work runs.",

@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F217",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that team-wide Ask first and Allow automatically rules that apply to every member's Bots on top of their own rules",
+      title: "Say that one routine has no cap layer and do not lay that shared cap over each person's own notes",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no cap layer in the record, so that I can check the work without laying that shared cap over each person's own notes.",
+      acceptance: [
+        "Saying whether the Launch note routine says that team-wide Ask first and Allow automatically rules that apply to every member's Bots on top of their own rules says that one routine has no cap layer in the record.",
+        "Asking does not lay that shared cap over each person's own notes, does not set that shared cap over each person's own notes, and does not place that shared cap over each person's own notes.",
+        "A stored run is not a cap layer. A waiver lock is not one. The waiver-lock answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F216",
       persona: "a chief of staff",
       role: "operator",

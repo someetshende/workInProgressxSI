@@ -1262,6 +1262,21 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+
+export function routineCapLayerCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no cap layer in the record. Asking does not lay that shared cap over each person's own notes.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineCapLayerMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineCapLayerAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineWaiverLockCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
