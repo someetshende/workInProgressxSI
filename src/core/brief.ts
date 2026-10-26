@@ -1259,6 +1259,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 }
 
 
+export function routineGlyphLingerCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no glyph linger in the record. Asking does not paint that updating label until the switch finishes.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineGlyphLingerMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineGlyphLingerAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineCrossReachCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

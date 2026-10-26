@@ -1574,6 +1574,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 }
 
 
+const ROUTINE_GLYPH_LINGER = /^(?:please,?\s+)?does the (.+) routine say that during a recreate, the desktop app shows updating grok bot's computer until the switch completes$/i;
+
+export function routineGlyphLingerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_GLYPH_LINGER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineGlyphLinger(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineGlyphLingerName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that during a recreate, the desktop app shows updating grok bot's computer until the switch completes\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_CROSS_REACH = /^(?:please,?\s+)?does the (.+) routine say that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their enterprise teams has it on$/i;
 
 export function routineCrossReachName(text: string): string | null {

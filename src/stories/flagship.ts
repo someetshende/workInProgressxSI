@@ -3633,6 +3633,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F192",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that during a recreate, the desktop app shows Updating Grok Bot's Computer until the switch completes",
+      title: "Say that one routine has no glyph linger and do not paint that updating label until the switch finishes",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no glyph linger in the record, so that I can check the work without painting that updating label until the switch finishes.",
+      acceptance: [
+        "Saying whether the Launch note routine says that during a recreate, the desktop app shows Updating Grok Bot's Computer until the switch completes says that one routine has no glyph linger in the record.",
+        "Asking does not paint that updating label until the switch finishes, does not draw that updating label until the switch finishes, and does not render that updating label until the switch finishes.",
+        "A stored run is not a glyph linger. A cross reach is not one. The cross-reach answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
