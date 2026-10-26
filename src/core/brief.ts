@@ -1263,6 +1263,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineQuillBondCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no quill bond in the record. Asking does not forward each signed model request to a review server the organization runs or reaches through a vendor.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineQuillBondMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineQuillBondAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineCiteSlipCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

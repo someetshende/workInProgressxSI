@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no cite slip";
 
 const OTHER_HAS_NO = [
+  "has no quill bond",
   "has no douse mark",
   "has no sight glass",
   "has no ink latch",
@@ -264,6 +265,9 @@ describe("ORIEL-F221", () => {
         expect(other.includes(HAS_NO)).toBe(false);
       }
       for (const other of [
+        "Asking does not forward each signed model request to a review server the organization runs or reaches through a vendor.",
+        "Asking does not pass each signed model request to a review server the organization runs or reaches through a vendor.",
+        "Asking does not route each signed model request to a review server the organization runs or reaches through a vendor.",
         "Asking does not halt those shared notes once the lock is switched off.",
         "Asking does not cease those shared notes once the lock is switched off.",
         "Asking does not drop those shared notes once the lock is switched off.",

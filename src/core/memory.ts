@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const QUILL_BOND_FACT = "sends each grok bot model request, signed, to an ai security server your organization runs or uses through a security vendor";
+const ROUTINE_QUILL_BOND = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${QUILL_BOND_FACT}$`, "i");
+const ROUTINE_QUILL_BOND_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${QUILL_BOND_FACT}\\b`, "i");
+
+export function routineQuillBondName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_QUILL_BOND.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineQuillBond(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineQuillBondName(text)) return false;
+  if (!ROUTINE_QUILL_BOND_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const CITE_SLIP_FACT = "see approvals and auto review";
 const ROUTINE_CITE_SLIP = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${CITE_SLIP_FACT}$`, "i");
 const ROUTINE_CITE_SLIP_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${CITE_SLIP_FACT}\\b`, "i");

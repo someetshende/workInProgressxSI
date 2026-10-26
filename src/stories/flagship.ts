@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F222",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Sends each Grok Bot model request, signed, to an AI security server your organization runs or uses through a security vendor",
+      title: "Say that one routine has no quill bond and do not forward each signed model request to a review server the organization runs or reaches through a vendor",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no quill bond in the record, so that I can check the work without forwarding each signed model request to a review server the organization runs or reaches through a vendor.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Sends each Grok Bot model request, signed, to an AI security server your organization runs or uses through a security vendor says that one routine has no quill bond in the record.",
+        "Asking does not forward each signed model request to a review server the organization runs or reaches through a vendor, does not pass each signed model request to a review server the organization runs or reaches through a vendor, and does not route each signed model request to a review server the organization runs or reaches through a vendor.",
+        "A stored run is not a quill bond. A cite slip is not one. The cite-slip answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F221",
       persona: "a chief of staff",
       role: "operator",
