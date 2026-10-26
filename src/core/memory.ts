@@ -1576,6 +1576,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_RISK_GATE = /^(?:please,?\s+)?does the (.+) routine say that when it is on, bots always check risky actions before running them and ask for approval when needed$/i;
+
+export function routineRiskGateName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_RISK_GATE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineRiskGate(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineRiskGateName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that when it is on, bots always check risky actions before running them and ask for approval when needed\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_START_DIM = /^(?:please,?\s+)?does the (.+) routine say that the switch is on the grok bot page and is off by default$/i;
 
 export function routineStartDimName(text: string): string | null {

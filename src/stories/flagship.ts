@@ -4033,6 +4033,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F213",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that when it is on, Bots always check risky actions before running them and ask for approval when needed",
+      title: "Say that one routine has no risk gate and do not make those workers check risky steps before they run and ask before they proceed",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no risk gate in the record, so that I can check the work without making those workers check risky steps before they run and ask before they proceed.",
+      acceptance: [
+        "Saying whether the Launch note routine says that when it is on, Bots always check risky actions before running them and ask for approval when needed says that one routine has no risk gate in the record.",
+        "Asking does not make those workers check risky steps before they run and ask before they proceed, does not force those workers to check risky steps before they run and ask before they proceed, and does not set those workers to check risky steps before they run and ask before they proceed.",
+        "A stored run is not a risk gate. A start dim is not one. The start-dim answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
 
   ];
 

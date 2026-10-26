@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no start dim";
 
 const OTHER_HAS_NO = [
+  "has no risk gate",
   "has no veto keel",
   "has no clan charter",
   "has no guide lane",
@@ -257,6 +258,9 @@ describe("ORIEL-F212", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not make those workers check risky steps before they run and ask before they proceed.",
+        "Asking does not force those workers to check risky steps before they run and ask before they proceed.",
+        "Asking does not set those workers to check risky steps before they run and ask before they proceed.",
         "Asking does not stop people from switching that check off.",
         "Asking does not block people from switching that check off.",
         "Asking does not bar people from switching that check off.",
