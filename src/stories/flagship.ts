@@ -3938,6 +3938,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F208",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: 'Whether one routine says that keep them short and few, like "never move company data to personal accounts."',
+      title: "Say that one routine has no terse few and do not keep those guides short and few",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no terse few in the record, so that I can check the work without keeping those guides short and few.",
+      acceptance: [
+        'Saying whether the Launch note routine says that keep them short and few, like "never move company data to personal accounts." says that one routine has no terse few in the record.',
+        "Asking does not keep those guides short and few, does not hold those guides short and few, and does not leave those guides short and few.",
+        "A stored run is not a terse few. A firm yoke is not one. The firm-yoke answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
