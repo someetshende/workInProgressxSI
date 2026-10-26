@@ -1261,6 +1261,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routinePriorArmCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no prior arm in the record. Asking does not turn that lock on before you count on the shared review rules.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routinePriorArmMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routinePriorArmAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineVacantQuorumCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

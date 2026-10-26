@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no vacant quorum";
 
 const OTHER_HAS_NO = [
+  "has no prior arm",
   "has no risk gate",
   "has no start dim",
   "has no veto keel",
@@ -259,6 +260,9 @@ describe("ORIEL-F214", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not turn that lock on before you count on the shared review rules.",
+        "Asking does not set that lock on before you count on the shared review rules.",
+        "Asking does not place that lock on before you count on the shared review rules.",
         "Asking does not make those workers check risky steps before they run and ask before they proceed.",
         "Asking does not force those workers to check risky steps before they run and ask before they proceed.",
         "Asking does not set those workers to check risky steps before they run and ask before they proceed.",

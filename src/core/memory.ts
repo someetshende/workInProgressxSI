@@ -1576,6 +1576,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_PRIOR_ARM = /^(?:please,?\s+)?does the (.+) routine say that turn it on before you rely on team auto-review rules$/i;
+
+export function routinePriorArmName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_PRIOR_ARM.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutinePriorArm(text: string): boolean {
+  const value = tidySentence(text);
+  if (routinePriorArmName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that turn it on before you rely on team auto-review rules\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_VACANT_QUORUM = /^(?:please,?\s+)?does the (.+) routine say that this includes team bots in chats where nobody can answer an approval, which otherwise run without auto-review$/i;
 
 export function routineVacantQuorumName(text: string): string | null {

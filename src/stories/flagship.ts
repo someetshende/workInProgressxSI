@@ -4073,6 +4073,27 @@ export function flagshipStories(): Story[] {
       insight: 0,
     },
 
+    {
+      id: "ORIEL-F215",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that turn it on before you rely on team Auto-review rules",
+      title: "Say that one routine has no prior arm and do not turn that lock on before you count on the shared review rules",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no prior arm in the record, so that I can check the work without turning that lock on before you count on the shared review rules.",
+      acceptance: [
+        "Saying whether the Launch note routine says that turn it on before you rely on team Auto-review rules says that one routine has no prior arm in the record.",
+        "Asking does not turn that lock on before you count on the shared review rules, does not set that lock on before you count on the shared review rules, and does not place that lock on before you count on the shared review rules.",
+        "A stored run is not a prior arm. A vacant quorum is not one. The vacant-quorum answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+
   ];
 
   return stories.map((story) => {
