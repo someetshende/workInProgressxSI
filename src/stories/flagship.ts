@@ -3843,6 +3843,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F203",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the 30 days count from when the computer went to sleep after its last use",
+      title: "Say that one routine has no doze tally and do not begin that thirty-day wait when the machine fell asleep after its last use",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no doze tally in the record, so that I can check the work without beginning that thirty-day wait when the machine fell asleep after its last use.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the 30 days count from when the computer went to sleep after its last use says that one routine has no doze tally in the record.",
+        "Asking does not begin that thirty-day wait when the machine fell asleep after its last use, does not open that thirty-day wait when the machine fell asleep after its last use, and does not set that thirty-day wait when the machine fell asleep after its last use.",
+        "A stored run is not a doze tally. An access lift is not one. The access-lift answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

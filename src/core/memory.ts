@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_DOZE_TALLY = /^(?:please,?\s+)?does the (.+) routine say that the 30 days count from when the computer went to sleep after its last use$/i;
+
+export function routineDozeTallyName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DOZE_TALLY.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDozeTally(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDozeTallyName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the 30 days count from when the computer went to sleep after its last use\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_ACCESS_LIFT = /^(?:please,?\s+)?does the (.+) routine say that to remove access, remove the member from the team or turn off their access with manage group access, and revoke their sessions in your identity provider$/i;
 
 export function routineAccessLiftName(text: string): string | null {

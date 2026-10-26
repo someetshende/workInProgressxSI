@@ -43,6 +43,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no access lift";
 
 const OTHER_HAS_NO = [
+  "has no doze tally",
   "has no folio return",
   "has no labor close",
   "has no serve wide",
@@ -205,7 +206,15 @@ describe("ORIEL-F202", () => {
         expect(HAS_NO.includes(other)).toBe(false);
         expect(other.includes(HAS_NO)).toBe(false);
       }
-      for (const other of [ALT_FROM, ALT_OUT, FOLIO_SHORT, LABOR_SHORT]) {
+      for (const other of [
+        ALT_FROM,
+        ALT_OUT,
+        FOLIO_SHORT,
+        LABOR_SHORT,
+        "Asking does not begin that thirty-day wait when the machine fell asleep after its last use.",
+        "Asking does not open that thirty-day wait when the machine fell asleep after its last use.",
+        "Asking does not set that thirty-day wait when the machine fell asleep after its last use.",
+      ]) {
         expect(SHORT.includes(other)).toBe(false);
         expect(other.includes(SHORT)).toBe(false);
       }
@@ -519,6 +528,10 @@ describe("ORIEL-F202 server", () => {
     expect(SHORT.includes(FOLIO_SHORT)).toBe(false);
     expect(FOLIO_SHORT.includes(SHORT)).toBe(false);
     expect(SHORT.includes(ALT_FROM)).toBe(false);
+    expect(SHORT.includes("Asking does not begin that thirty-day wait when the machine fell asleep after its last use.")).toBe(false);
+    expect("Asking does not begin that thirty-day wait when the machine fell asleep after its last use.".includes(SHORT)).toBe(false);
+    expect(HAS_NO.includes("has no doze tally")).toBe(false);
+    expect("has no doze tally".includes(HAS_NO)).toBe(false);
     expect("access-lift-".startsWith("folio-return-")).toBe(false);
     expect("access-lift-".startsWith("folio-")).toBe(false);
     expect("access-lift-".startsWith("return-")).toBe(false);
