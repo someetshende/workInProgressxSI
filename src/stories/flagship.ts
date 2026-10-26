@@ -3976,6 +3976,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F210",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that for guidance that belongs to one cohort, add Group Rules under Group settings",
+      title: "Say that one routine has no clan charter and do not place those notes for one set of people under that set's settings",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no clan charter in the record, so that I can check the work without placing those notes for one set of people under that set's settings.",
+      acceptance: [
+        "Saying whether the Launch note routine says that for guidance that belongs to one cohort, add Group Rules under Group settings says that one routine has no clan charter in the record.",
+        "Asking does not place those notes for one set of people under that set's settings, does not add those notes for one set of people under that set's settings, and does not set those notes for one set of people under that set's settings.",
+        "A stored run is not a clan charter. A guide lane is not one. The guide-lane answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
 
   ];
 

@@ -1576,6 +1576,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_CLAN_CHARTER = /^(?:please,?\s+)?does the (.+) routine say that for guidance that belongs to one cohort, add group rules under group settings$/i;
+
+export function routineClanCharterName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CLAN_CHARTER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineClanCharter(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineClanCharterName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that for guidance that belongs to one cohort, add group rules under group settings\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_GUIDE_LANE = /^(?:please,?\s+)?does the (.+) routine say that rules guide a bot; for approval behavior, use auto-review rules$/i;
 
 export function routineGuideLaneName(text: string): string | null {

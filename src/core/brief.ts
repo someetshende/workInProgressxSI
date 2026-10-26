@@ -1261,6 +1261,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineClanCharterCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no clan charter in the record. Asking does not place those notes for one set of people under that set's settings.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineClanCharterMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineClanCharterAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineGuideLaneCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
