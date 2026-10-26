@@ -3500,6 +3500,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F185",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment",
+      title: "Say that one routine has no drift landing and do not slide that ending past the mark",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no drift landing in the record, so that I can check the work without sliding that ending past the mark.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment says that one routine has no drift landing in the record.",
+        "Asking does not slide that ending past the mark, does not shift that ending into later days, and does not place that ending after the mark.",
+        "A stored run is not a drift landing. A mercy window is not one. The mercy-window answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
