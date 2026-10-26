@@ -3424,6 +3424,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F181",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that turning it on opens a confirmation",
+      title: "Say that one routine has no turn confirm and do not open that confirmation",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no turn confirm in the record, so that I can check the work without opening that confirmation.",
+      acceptance: [
+        "Saying whether the Launch note routine says that turning it on opens a confirmation says that one routine has no turn confirm in the record.",
+        "Asking does not open that confirmation, does not raise that confirmation, and does not display that confirmation.",
+        "A stored run is not a turn confirm. A stock dim is not one. The stock-dim answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

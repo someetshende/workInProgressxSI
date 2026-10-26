@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_TURN_CONFIRM = /^(?:please,?\s+)?does the (.+) routine say that turning it on opens a confirmation$/i;
+
+export function routineTurnConfirmName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TURN_CONFIRM.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTurnConfirm(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTurnConfirmName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that turning it on opens a confirmation\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_STOCK_DIM = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
 
 export function routineStockDimName(text: string): string | null {
