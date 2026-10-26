@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no cap layer";
 
 const OTHER_HAS_NO = [
+  "has no ink latch",
   "has no waiver lock",
   "has no prior arm",
   "has no vacant quorum",
@@ -260,6 +261,9 @@ describe("ORIEL-F217", () => {
         expect(other.includes(HAS_NO)).toBe(false);
       }
       for (const other of [
+        "Asking does not write those notes on that page the moment they change.",
+        "Asking does not store those notes on that page the moment they change.",
+        "Asking does not keep those notes on that page the moment they change.",
         "Asking does not let one set of people drop that lock for themselves.",
         "Asking does not free one set of people to drop that lock for themselves.",
         "Asking does not hand one set of people a way to drop that lock for themselves.",

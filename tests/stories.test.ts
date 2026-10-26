@@ -10,8 +10,8 @@ describe("story atlas", () => {
     expect(personas).toHaveLength(18);
     expect(jobs).toHaveLength(17);
     expect(constraints).toHaveLength(102);
-    expect(flagshipStories()).toHaveLength(217);
-    expect(stories.length).toBe(217 + 18 * 17 * 102);
+    expect(flagshipStories()).toHaveLength(218);
+    expect(stories.length).toBe(218 + 18 * 17 * 102);
     expect(stories.length).toBeGreaterThanOrEqual(1000);
   });
 

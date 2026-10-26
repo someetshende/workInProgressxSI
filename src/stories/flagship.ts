@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F218",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that add them with Configure Rules on the Grok Bot page; changes save automatically",
+      title: "Say that one routine has no ink latch and do not write those notes on that page the moment they change",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no ink latch in the record, so that I can check the work without writing those notes on that page the moment they change.",
+      acceptance: [
+        "Saying whether the Launch note routine says that add them with Configure Rules on the Grok Bot page; changes save automatically says that one routine has no ink latch in the record.",
+        "Asking does not write those notes on that page the moment they change, does not store those notes on that page the moment they change, and does not keep those notes on that page the moment they change.",
+        "A stored run is not an ink latch. A cap layer is not one. The cap-layer answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F217",
       persona: "a chief of staff",
       role: "operator",

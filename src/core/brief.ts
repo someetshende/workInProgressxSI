@@ -1263,6 +1263,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineInkLatchCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no ink latch in the record. Asking does not write those notes on that page the moment they change.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineInkLatchMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineInkLatchAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineCapLayerCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

@@ -1576,6 +1576,27 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+
+const INK_LATCH_FACT = "add them with configure rules on the grok bot page; changes save automatically";
+const ROUTINE_INK_LATCH = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${INK_LATCH_FACT}$`, "i");
+const ROUTINE_INK_LATCH_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${INK_LATCH_FACT}\\b`, "i");
+
+export function routineInkLatchName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_INK_LATCH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineInkLatch(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineInkLatchName(text)) return false;
+  if (!ROUTINE_INK_LATCH_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const CAP_LAYER_FACT = "team-wide ask first and allow automatically rules that apply to every member's bots on top of their own rules";
 const ROUTINE_CAP_LAYER = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${CAP_LAYER_FACT}$`, "i");
 const ROUTINE_CAP_LAYER_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${CAP_LAYER_FACT}\\b`, "i");
