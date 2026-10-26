@@ -1573,6 +1573,25 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+
+const ROUTINE_SCRIPT_REPRISE = /^(?:please,?\s+)?does the (.+) routine say that apps and packages they installed themselves are removed, and team setup scripts run again$/i;
+
+export function routineScriptRepriseName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SCRIPT_REPRISE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineScriptReprise(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineScriptRepriseName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that apps and packages they installed themselves are removed, and team setup scripts run again\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_DISK_STAY = /^(?:please,?\s+)?does the (.+) routine say that the durable disk stays, and the member's next message starts a fresh computer with their bots, files, and logins in place$/i;
 
 export function routineDiskStayName(text: string): string | null {

@@ -3576,6 +3576,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F189",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that apps and packages they installed themselves are removed, and Team Setup Scripts run again",
+      title: "Say that one routine has no script reprise and do not clear the packages a person added",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no script reprise in the record, so that I can check the work without clearing the packages a person added.",
+      acceptance: [
+        "Saying whether the Launch note routine says that apps and packages they installed themselves are removed, and Team Setup Scripts run again says that one routine has no script reprise in the record.",
+        "Asking does not clear the packages a person added, does not drop the packages a person added, and does not wipe the packages a person added.",
+        "A stored run is not a script reprise. A disk stay is not one. The disk-stay answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

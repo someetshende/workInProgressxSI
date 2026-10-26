@@ -24378,3 +24378,167 @@ test("ORIEL-F188 whether one routine says that the durable disk stays, and the m
   expect(overflow).toBe(false);
   await page.screenshot({ path: "test-results/oriel-routine-disk-stay.png" });
 });
+
+
+test("ORIEL-F189 whether one routine says that apps and packages they installed themselves are removed, and Team Setup Scripts run again does not clear the packages a person added", async ({ page }) => {
+  const question = "that apps and packages they installed themselves are removed, and Team Setup Scripts run again";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that apps and packages they installed themselves are removed, and Team Setup Scripts run again says that routine has no script reprise in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that the durable disk stays, and the member's next message starts a fresh computer with their Bots, files, and logins in place says that routine has no disk stay in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that an automatic terminate works like a manual one says that routine has no hand twin in the record.",
+  );
+  const scriptBeforeDisk = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const script = text.indexOf(
+      "says that apps and packages they installed themselves are removed, and Team Setup Scripts run again says that routine has no script reprise",
+    );
+    const disk = text.indexOf(
+      "says that the durable disk stays, and the member's next message starts a fresh computer with their Bots, files, and logins in place says that routine has no disk stay",
+    );
+    const hand = text.indexOf(
+      "says that an automatic terminate works like a manual one says that routine has no hand twin",
+    );
+    return (
+      script >= 0 &&
+      disk > script &&
+      hand > disk &&
+      !text.slice(script, disk).includes(
+        "says that the durable disk stays, and the member's next message starts a fresh computer with their Bots, files, and logins in place says that routine has no disk stay",
+      )
+    );
+  });
+  expect(scriptBeforeDisk).toBe(true);
+  await expect(page.locator("[data-testid^='script-reprise-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='script-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reprise-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='disk-stay-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='disk-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stay-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='script-reprise-']").nth(0)).toHaveText("No script reprise");
+  await expect(page.locator("[data-testid^='disk-stay-']").nth(0)).toHaveText("No disk stay");
+  const followsDisk = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='disk-stay-']");
+    const row = document.querySelector("[data-testid^='script-reprise-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsDisk).toBe(true);
+  const noteIds = await page.locator("[data-testid^='script-reprise-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("script-reprise-"))).toBe(true);
+  for (const prefix of ["disk-stay-", "disk-", "stay-", "reprise-", "hand-twin-", "file-", "cadence-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no script reprise in the record.");
+  await expect(clear).toContainText("Asking does not clear the packages a person added.");
+  await expect(clear).not.toContainText("Asking does not drop the packages a person added.");
+  await expect(clear).not.toContainText("Asking does not wipe the packages a person added.");
+  await expect(clear).not.toContainText("has no disk stay");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no script reprise in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no script reprise in the record.");
+  await expect(pausedAsk).toContainText("Asking does not clear the packages a person added.");
+  await expect(pausedAsk).not.toContainText("Asking does not drop the packages a person added.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that apps and packages they installed themselves are removed, and team setup scripts run again");
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no script reprise in the record.");
+  await expect(lower).toContainText("Asking does not clear the packages a person added.");
+  await expect(lower).not.toContainText("has no disk stay");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that the durable disk stays, and the member's next message starts a fresh computer with their bots, files, and logins in place");
+  await page.getByTestId("send").click();
+  const diskKept = page.locator("#thread .turn").last();
+  await expect(diskKept).toContainText("has no disk stay in the record.");
+  await expect(diskKept).toContainText("Asking does not keep that disk when the next message opens a new computer.");
+  await expect(diskKept).not.toContainText("has no script reprise");
+  await expect(diskKept).not.toContainText("Asking does not clear the packages a person added.");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that an automatic terminate works like a manual one");
+  await page.getByTestId("send").click();
+  const handKept = page.locator("#thread .turn").last();
+  await expect(handKept).toContainText("has no hand twin in the record.");
+  await expect(handKept).not.toContainText("has no script reprise");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("script reprise");
+  await expect(why).not.toContainText("disk stay");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='script-reprise-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='script-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reprise-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='disk-stay-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='disk-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='stay-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-script-reprise.png" });
+});
