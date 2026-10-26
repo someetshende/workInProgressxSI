@@ -4093,6 +4093,26 @@ export function flagshipStories(): Story[] {
       insight: 0,
     },
 
+    {
+      id: "ORIEL-F216",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that a group can lift the lock for its own members with Don't enforce for this group; see Group settings",
+      title: "Say that one routine has no waiver lock and do not let one set of people drop that lock for themselves",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no waiver lock in the record, so that I can check the work without letting one set of people drop that lock for themselves.",
+      acceptance: [
+        "Saying whether the Launch note routine says that a group can lift the lock for its own members with Don't enforce for this group; see Group settings says that one routine has no waiver lock in the record.",
+        "Asking does not let one set of people drop that lock for themselves, does not free one set of people to drop that lock for themselves, and does not hand one set of people a way to drop that lock for themselves.",
+        "A stored run is not a waiver lock. A prior arm is not one. The prior-arm answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
 
   ];
 

@@ -1261,6 +1261,21 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+
+export function routineWaiverLockCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no waiver lock in the record. Asking does not let one set of people drop that lock for themselves.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineWaiverLockMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineWaiverLockAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routinePriorArmCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

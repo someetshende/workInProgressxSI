@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no prior arm";
 
 const OTHER_HAS_NO = [
+  "has no waiver lock",
   "has no vacant quorum",
   "has no risk gate",
   "has no start dim",
@@ -260,6 +261,9 @@ describe("ORIEL-F215", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not let one set of people drop that lock for themselves.",
+        "Asking does not free one set of people to drop that lock for themselves.",
+        "Asking does not hand one set of people a way to drop that lock for themselves.",
         "Asking does not cover a chat where nobody can answer before the work runs.",
         "Asking does not hold a chat where nobody can answer before the work runs.",
         "Asking does not keep a chat where nobody can answer before the work runs.",

@@ -1576,6 +1576,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_WAIVER_LOCK = /^(?:please,?\s+)?does the (.+) routine say that a group can lift the lock for its own members with don't enforce for this group; see group settings$/i;
+
+export function routineWaiverLockName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_WAIVER_LOCK.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineWaiverLock(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineWaiverLockName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that a group can lift the lock for its own members with don't enforce for this group; see group settings\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_PRIOR_ARM = /^(?:please,?\s+)?does the (.+) routine say that turn it on before you rely on team auto-review rules$/i;
 
 export function routinePriorArmName(text: string): string | null {
