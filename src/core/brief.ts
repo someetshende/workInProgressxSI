@@ -1260,6 +1260,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineFirmYokeCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no firm yoke in the record. Asking does not lock those rules on so people cannot switch them off.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineFirmYokeMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineFirmYokeAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineScopeSplitCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

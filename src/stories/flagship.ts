@@ -3919,6 +3919,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F207",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that rules applied to Grok Bot are always required, so members cannot turn them off",
+      title: "Say that one routine has no firm yoke and do not lock those rules on so people cannot switch them off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no firm yoke in the record, so that I can check the work without locking those rules on so people cannot switch them off.",
+      acceptance: [
+        "Saying whether the Launch note routine says that rules applied to Grok Bot are always required, so members cannot turn them off says that one routine has no firm yoke in the record.",
+        "Asking does not lock those rules on so people cannot switch them off, does not fasten those rules on so people cannot switch them off, and does not pin those rules on so people cannot switch them off.",
+        "A stored run is not a firm yoke. A scope split is not one. The scope-split answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

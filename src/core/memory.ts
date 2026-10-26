@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_FIRM_YOKE = /^(?:please,?\s+)?does the (.+) routine say that rules applied to grok bot are always required, so members cannot turn them off$/i;
+
+export function routineFirmYokeName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_FIRM_YOKE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineFirmYoke(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineFirmYokeName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that rules applied to grok bot are always required, so members cannot turn them off\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SCOPE_SPLIT = /^(?:please,?\s+)?does the (.+) routine say that add them from the grok bot page and scope each rule to cursor, grok bot, or both$/i;
 
 export function routineScopeSplitName(text: string): string | null {

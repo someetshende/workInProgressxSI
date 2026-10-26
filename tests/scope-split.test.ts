@@ -57,6 +57,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no scope split";
 
 const OTHER_HAS_NO = [
+  "has no firm yoke",
   "has no canon bind",
   "has no wake guard",
   "has no doze tally",
@@ -226,6 +227,9 @@ describe("ORIEL-F206", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not lock those rules on so people cannot switch them off.",
+        "Asking does not fasten those rules on so people cannot switch them off.",
+        "Asking does not pin those rules on so people cannot switch them off.",
         "Asking does not make every member's bots follow those rules.",
         "Asking does not set every member's bots to follow those rules.",
         "Asking does not put every member's bots under those rules.",
@@ -641,6 +645,10 @@ describe("ORIEL-F206 server", () => {
     expect(SHORT.includes(ACCESS_SHORT)).toBe(false);
     expect(ACCESS_SHORT.includes(SHORT)).toBe(false);
     expect(SHORT.includes(ALT_OPEN)).toBe(false);
+    expect(SHORT.includes("Asking does not lock those rules on so people cannot switch them off.")).toBe(false);
+    expect("Asking does not lock those rules on so people cannot switch them off.".includes(SHORT)).toBe(false);
+    expect(HAS_NO.includes("has no firm yoke")).toBe(false);
+    expect("has no firm yoke".includes(HAS_NO)).toBe(false);
     expect(SHORT.includes("Asking does not make every member's bots follow those rules.")).toBe(false);
     expect("Asking does not make every member's bots follow those rules.".includes(SHORT)).toBe(false);
     expect(HAS_NO.includes("has no canon bind")).toBe(false);
