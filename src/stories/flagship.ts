@@ -3957,6 +3957,26 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F209",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that rules guide a Bot; for approval behavior, use Auto-review rules",
+      title: "Say that one routine has no guide lane and do not steer those guides toward approval behavior",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no guide lane in the record, so that I can check the work without steering those guides toward approval behavior.",
+      acceptance: [
+        "Saying whether the Launch note routine says that rules guide a Bot; for approval behavior, use Auto-review rules says that one routine has no guide lane in the record.",
+        "Asking does not steer those guides toward approval behavior, does not aim those guides toward approval behavior, and does not bend those guides toward approval behavior.",
+        "A stored run is not a guide lane. A terse few is not one. The terse-few answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
   ];
 
   return stories.map((story) => {

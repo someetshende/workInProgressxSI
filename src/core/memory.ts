@@ -1575,6 +1575,25 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+
+const ROUTINE_GUIDE_LANE = /^(?:please,?\s+)?does the (.+) routine say that rules guide a bot; for approval behavior, use auto-review rules$/i;
+
+export function routineGuideLaneName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_GUIDE_LANE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineGuideLane(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineGuideLaneName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that rules guide a bot; for approval behavior, use auto-review rules\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_TERSE_FEW = /^(?:please,?\s+)?does the (.+) routine say that keep them short and few, like "never move company data to personal accounts\."$/i;
 
 export function routineTerseFewName(text: string): string | null {

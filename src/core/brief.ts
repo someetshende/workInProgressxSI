@@ -1260,6 +1260,21 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+
+export function routineGuideLaneCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no guide lane in the record. Asking does not steer those guides toward approval behavior.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineGuideLaneMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineGuideLaneAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineTerseFewCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
