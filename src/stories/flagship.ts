@@ -3538,6 +3538,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F187",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that an automatic terminate works like a manual one",
+      title: "Say that one routine has no hand twin and do not match an automatic ending to a hand one",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no hand twin in the record, so that I can check the work without matching an automatic ending to a hand one.",
+      acceptance: [
+        "Saying whether the Launch note routine says that an automatic terminate works like a manual one says that one routine has no hand twin in the record.",
+        "Asking does not match an automatic ending to a hand one, does not treat an automatic ending as a hand ending, and does not equate an automatic ending with a hand ending.",
+        "A stored run is not a hand twin. A void levy is not one. The void-levy answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

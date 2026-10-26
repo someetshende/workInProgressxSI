@@ -24025,3 +24025,170 @@ test("ORIEL-F186 whether one routine says that members lose nothing and do nothi
   expect(overflow).toBe(false);
   await page.screenshot({ path: "test-results/oriel-routine-void-levy.png" });
 });
+
+test("ORIEL-F187 whether one routine says that an automatic terminate works like a manual one does not match an automatic ending to a hand one", async ({ page }) => {
+  const question = "that an automatic terminate works like a manual one";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that an automatic terminate works like a manual one says that routine has no hand twin in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that members lose nothing and do nothing says that routine has no void levy in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that Cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment says that routine has no drift landing in the record.",
+  );
+  const handBeforeVoid = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const hand = text.indexOf(
+      "says that an automatic terminate works like a manual one says that routine has no hand twin",
+    );
+    const levy = text.indexOf(
+      "says that members lose nothing and do nothing says that routine has no void levy",
+    );
+    const drift = text.indexOf(
+      "says that Cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment says that routine has no drift landing",
+    );
+    return (
+      hand >= 0 &&
+      levy > hand &&
+      drift > levy &&
+      !text.slice(hand, levy).includes(
+        "says that members lose nothing and do nothing says that routine has no void levy",
+      )
+    );
+  });
+  expect(handBeforeVoid).toBe(true);
+  await expect(page.locator("[data-testid^='hand-twin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='hand-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='twin-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='void-levy-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='void-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='levy-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='drift-landing-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='drift-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='landing-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='hand-twin-']").nth(0)).toHaveText("No hand twin");
+  await expect(page.locator("[data-testid^='void-levy-']").nth(0)).toHaveText("No void levy");
+  const followsVoid = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='void-levy-']");
+    const row = document.querySelector("[data-testid^='hand-twin-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsVoid).toBe(true);
+  const noteIds = await page.locator("[data-testid^='hand-twin-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("hand-twin-"))).toBe(true);
+  for (const prefix of ["void-levy-", "void-", "levy-", "twin-", "drift-landing-", "drift-", "landing-", "file-", "cadence-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no hand twin in the record.");
+  await expect(clear).toContainText("Asking does not match an automatic ending to a hand one.");
+  await expect(clear).not.toContainText("Asking does not treat an automatic ending as a hand ending.");
+  await expect(clear).not.toContainText("Asking does not equate an automatic ending with a hand ending.");
+  await expect(clear).not.toContainText("has no void levy");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no hand twin in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no hand twin in the record.");
+  await expect(pausedAsk).toContainText("Asking does not match an automatic ending to a hand one.");
+  await expect(pausedAsk).not.toContainText("Asking does not treat an automatic ending as a hand ending.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that an automatic terminate works like a manual one");
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no hand twin in the record.");
+  await expect(lower).toContainText("Asking does not match an automatic ending to a hand one.");
+  await expect(lower).not.toContainText("has no void levy");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that members lose nothing and do nothing");
+  await page.getByTestId("send").click();
+  const voidKept = page.locator("#thread .turn").last();
+  await expect(voidKept).toContainText("has no void levy in the record.");
+  await expect(voidKept).toContainText("Asking does not cost a member anything or make them act.");
+  await expect(voidKept).not.toContainText("has no hand twin");
+  await expect(voidKept).not.toContainText("Asking does not match an automatic ending to a hand one.");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment");
+  await page.getByTestId("send").click();
+  const driftKept = page.locator("#thread .turn").last();
+  await expect(driftKept).toContainText("has no drift landing in the record.");
+  await expect(driftKept).toContainText("Asking does not slide that ending past the mark.");
+  await expect(driftKept).not.toContainText("has no hand twin");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("hand twin");
+  await expect(why).not.toContainText("void levy");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='hand-twin-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='hand-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='twin-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='void-levy-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='void-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='levy-']")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-hand-twin.png" });
+});
