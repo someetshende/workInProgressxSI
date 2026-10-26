@@ -3729,6 +3729,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F197",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that bots, files, and logins that had synced come back; a turn that was running is lost",
+      title: "Say that one routine has no sync forfeit and do not bring those synced bots and logins back or drop a turn already underway",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no sync forfeit in the record, so that I can check the work without bringing those synced bots and logins back or dropping a turn already underway.",
+      acceptance: [
+        "Saying whether the Launch note routine says that bots, files, and logins that had synced come back; a turn that was running is lost says that one routine has no sync forfeit in the record.",
+        "Asking does not bring those synced bots and logins back or drop a turn already underway, does not return those synced bots and logins or drop a turn already underway, and does not recover those synced bots and logins or drop a turn already underway.",
+        "A stored run is not a sync forfeit. A reconnect lag is not one. The reconnect-lag answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

@@ -53225,7 +53225,9 @@ describe("flagship traceability", () => {
     const sources = [
       await readFile("tests/orchestrator.test.ts", "utf8"),
       await readFile("tests/server.test.ts", "utf8"),
+      await readFile("tests/sync-forfeit.test.ts", "utf8"),
       await readFile("e2e/oriel.spec.ts", "utf8"),
+      await readFile("e2e/sync-forfeit.spec.ts", "utf8"),
     ];
     for (const story of flagshipStories()) {
       expect(sources.some((source) => source.includes(story.id)), story.id).toBe(true);
