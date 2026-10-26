@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_FOLIO_RETURN = /^(?:please,?\s+)?does the (.+) routine say that their next message starts a fresh computer on the same durable disk, with their bots, files, and logins$/i;
+
+export function routineFolioReturnName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_FOLIO_RETURN.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineFolioReturn(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineFolioReturnName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that their next message starts a fresh computer on the same durable disk, with their bots, files, and logins\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_LABOR_CLOSE = /^(?:please,?\s+)?does the (.+) routine say that terminating a computer, by hand or automatically, ends the member's current work$/i;
 
 export function routineLaborCloseName(text: string): string | null {

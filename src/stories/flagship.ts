@@ -3805,6 +3805,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F201",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that their next message starts a fresh computer on the same durable disk, with their Bots, files, and logins",
+      title: "Say that one routine has no folio return and do not seat the next note on that same lasting disk with the bots and sign-ins kept",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no folio return in the record, so that I can check the work without seating the next note on that same lasting disk with the bots and sign-ins kept.",
+      acceptance: [
+        "Saying whether the Launch note routine says that their next message starts a fresh computer on the same durable disk, with their Bots, files, and logins says that one routine has no folio return in the record.",
+        "Asking does not seat the next note on that same lasting disk with the bots and sign-ins kept, does not place the next note on that same lasting disk with the bots and sign-ins kept, and does not put the next note on that same lasting disk with the bots and sign-ins kept.",
+        "A stored run is not a folio return. A labor close is not one. The labor-close answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

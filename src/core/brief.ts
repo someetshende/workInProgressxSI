@@ -1260,6 +1260,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineFolioReturnCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no folio return in the record. Asking does not seat the next note on that same lasting disk with the bots and sign-ins kept.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineFolioReturnMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineFolioReturnAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineLaborCloseCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
