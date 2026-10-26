@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const YIELD_CORD_FACT = "your server allows or denies the request before the model runs";
+const ROUTINE_YIELD_CORD = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${YIELD_CORD_FACT}$`, "i");
+const ROUTINE_YIELD_CORD_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${YIELD_CORD_FACT}\\b`, "i");
+
+export function routineYieldCordName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_YIELD_CORD.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineYieldCord(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineYieldCordName(text)) return false;
+  if (!ROUTINE_YIELD_CORD_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const QUILL_BOND_FACT = "sends each grok bot model request, signed, to an ai security server your organization runs or uses through a security vendor";
 const ROUTINE_QUILL_BOND = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${QUILL_BOND_FACT}$`, "i");
 const ROUTINE_QUILL_BOND_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${QUILL_BOND_FACT}\\b`, "i");

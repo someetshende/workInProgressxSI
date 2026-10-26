@@ -143,6 +143,8 @@ export function stopRoutineAmbiguousCopy(name: string): string {
   return `More than one routine is named ${quotedRoutine(name)}. Nothing was changed. A completed action stays completed. Nothing was sent or spent.`;
 }
 
+const SHORT_YIELD = "Asking does not let that host permit or refuse the request before the model runs.";
+
 const SCHEDULE_TAIL =
   "Nothing was run and nothing was changed. A completed action stays completed. Nothing was sent or spent.";
 
@@ -1262,6 +1264,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+
+export function routineYieldCordCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no yield cord in the record. ${SHORT_YIELD}${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineYieldCordMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineYieldCordAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
 
 export function routineQuillBondCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);

@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F223",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Your server allows or denies the request before the model runs",
+      title: "Say that one routine has no yield cord and do not let that host permit or refuse the request before the model runs",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no yield cord in the record, so that I can check the work without letting that host permit or refuse the request before the model runs.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Your server allows or denies the request before the model runs says that one routine has no yield cord in the record.",
+        "Asking does not let that host permit or refuse the request before the model runs, does not have that host permit or refuse the request before the model runs, and does not make that host permit or refuse the request before the model runs.",
+        "A stored run is not a yield cord. A quill bond is not one. The quill-bond answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F222",
       persona: "a chief of staff",
       role: "operator",
