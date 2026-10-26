@@ -49,6 +49,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no wake guard";
 
 const OTHER_HAS_NO = [
+  "has no canon bind",
   "has no doze tally",
   "has no access lift",
   "has no folio return",
@@ -219,6 +220,9 @@ describe("ORIEL-F204", () => {
         ACCESS_SHORT,
         FOLIO_SHORT,
         LABOR_SHORT,
+        "Asking does not make every member's bots follow those rules.",
+        "Asking does not set every member's bots to follow those rules.",
+        "Asking does not put every member's bots under those rules.",
         "Asking does not begin that thirty-day wait when the machine fell asleep after its last use.",
         "Asking does not open that thirty-day wait when the machine fell asleep after its last use.",
         "Asking does not set that thirty-day wait when the machine fell asleep after its last use.",
@@ -585,6 +589,10 @@ describe("ORIEL-F204 server", () => {
     expect("Asking does not begin that thirty-day wait when the machine fell asleep after its last use.".includes(SHORT)).toBe(false);
     expect(HAS_NO.includes("has no doze tally")).toBe(false);
     expect("has no doze tally".includes(HAS_NO)).toBe(false);
+    expect(SHORT.includes("Asking does not make every member's bots follow those rules.")).toBe(false);
+    expect("Asking does not make every member's bots follow those rules.".includes(SHORT)).toBe(false);
+    expect(HAS_NO.includes("has no canon bind")).toBe(false);
+    expect("has no canon bind".includes(HAS_NO)).toBe(false);
     expect("wake-guard-".startsWith("access-lift-")).toBe(false);
     expect("wake-guard-".startsWith("access-")).toBe(false);
     expect("wake-guard-".startsWith("lift-")).toBe(false);

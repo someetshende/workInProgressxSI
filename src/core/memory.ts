@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_CANON_BIND = /^(?:please,?\s+)?does the (.+) routine say that rules that every member's bots follow$/i;
+
+export function routineCanonBindName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CANON_BIND.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCanonBind(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCanonBindName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that rules that every member's bots follow\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_WAKE_GUARD = /^(?:please,?\s+)?does the (.+) routine say that a computer that is awake, because a bot is working or the member is using grok bot, is never terminated by this setting$/i;
 
 export function routineWakeGuardName(text: string): string | null {

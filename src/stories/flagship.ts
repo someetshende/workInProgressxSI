@@ -3881,6 +3881,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F205",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that rules that every member's Bots follow",
+      title: "Say that one routine has no canon bind and do not make every member's bots follow those rules",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no canon bind in the record, so that I can check the work without making every member's bots follow those rules.",
+      acceptance: [
+        "Saying whether the Launch note routine says that rules that every member's Bots follow says that one routine has no canon bind in the record.",
+        "Asking does not make every member's bots follow those rules, does not set every member's bots to follow those rules, and does not put every member's bots under those rules.",
+        "A stored run is not a canon bind. A wake guard is not one. The wake-guard answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

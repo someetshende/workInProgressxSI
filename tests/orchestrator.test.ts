@@ -53233,6 +53233,7 @@ describe("flagship traceability", () => {
       await readFile("tests/access-lift.test.ts", "utf8"),
       await readFile("tests/doze-tally.test.ts", "utf8"),
       await readFile("tests/wake-guard.test.ts", "utf8"),
+      await readFile("tests/canon-bind.test.ts", "utf8"),
       await readFile("e2e/oriel.spec.ts", "utf8"),
       await readFile("e2e/sync-forfeit.spec.ts", "utf8"),
       await readFile("e2e/circle-door.spec.ts", "utf8"),
@@ -53242,6 +53243,7 @@ describe("flagship traceability", () => {
       await readFile("e2e/access-lift.spec.ts", "utf8"),
       await readFile("e2e/doze-tally.spec.ts", "utf8"),
       await readFile("e2e/wake-guard.spec.ts", "utf8"),
+      await readFile("e2e/canon-bind.spec.ts", "utf8"),
     ];
     for (const story of flagshipStories()) {
       expect(sources.some((source) => source.includes(story.id)), story.id).toBe(true);
