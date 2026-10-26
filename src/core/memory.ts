@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_RECONNECT_LAG = /^(?:please,?\s+)?does the (.+) routine say that the reconnect can take a few minutes$/i;
+
+export function routineReconnectLagName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_RECONNECT_LAG.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineReconnectLag(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineReconnectLagName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the reconnect can take a few minutes\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_FRESH_BOOT = /^(?:please,?\s+)?does the (.+) routine say that after a terminate, manual or automatic, the member's next message starts a fresh computer on their durable disk$/i;
 
 export function routineFreshBootName(text: string): string | null {

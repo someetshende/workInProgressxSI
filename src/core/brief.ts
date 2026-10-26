@@ -1260,6 +1260,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineReconnectLagCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no reconnect lag in the record. Asking does not make that return wait several minutes.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineReconnectLagMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineReconnectLagAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineFreshBootCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
