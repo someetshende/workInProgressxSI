@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_LATE_COHORT = /^(?:please,?\s+)?does the (.+) routine say that computers already past 30 days are included$/i;
+
+export function routineLateCohortName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_LATE_COHORT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineLateCohort(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineLateCohortName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that computers already past 30 days are included\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_DUAL_PRIMER = /^(?:please,?\s+)?does the (.+) routine say that two things to know before you select turn on$/i;
 
 export function routineDualPrimerName(text: string): string | null {

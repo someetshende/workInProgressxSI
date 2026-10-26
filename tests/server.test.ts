@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineRouteSpanCopy, routineRouteSpanMissCopy, routineRestoreLatchCopy, routineRestoreLatchMissCopy, routineSudoPermitCopy, routineSudoPermitMissCopy, routineNestPairCopy, routineNestPairMissCopy, routineColdStartCopy, routineColdStartMissCopy, routineBannerCrestCopy, routineBannerCrestMissCopy, routineFleetImageCopy, routineFleetImageMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineDualPrimerCopy, routineDualPrimerMissCopy, routineTurnConfirmCopy, routineTurnConfirmMissCopy, routineStockDimCopy, routineStockDimMissCopy, routineCountRestartCopy, routineCountRestartMissCopy, routineThirtyLapseCopy, routineThirtyLapseMissCopy, routineTidySweepCopy, routineTidySweepMissCopy, routineSlumberMarkCopy, routineSlumberMarkMissCopy, routineRecreateFenceCopy, routineRecreateFenceMissCopy, routineAdminChairCopy, routineAdminChairMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
+import { activeRoutinesCopy, deskHourCopy, disabledRoutinesCopy, enabledRoutinesCopy, pausedRoutinesCopy, routineActiveAskCopy, routineActiveAskMissCopy, routineEnabledAskCopy, routineEnabledAskMissCopy, routineDisabledAskCopy, routineDisabledAskMissCopy, routineZoneCopy, routineZoneMissCopy, routineOwnerCopy, routineOwnerMissCopy, routinePluginCopy, routinePluginMissCopy, routineSourceCopy, routineSourceMissCopy, routineUsageCopy, routineUsageMissCopy, routineFailureCopy, routineFailureMissCopy, routineChannelCopy, routineChannelMissCopy, routineRepositoryCopy, routineRepositoryMissCopy, routineMatchingCopy, routineMatchingMissCopy, routineAskFirstCopy, routineAskFirstMissCopy, routineAllowAutoCopy, routineAllowAutoMissCopy, routineTeamRuleCopy, routineTeamRuleMissCopy, routineLockedTeamRuleCopy, routineLockedTeamRuleMissCopy, routineLocalComputerCopy, routineLocalComputerMissCopy, routineCloudComputerCopy, routineCloudComputerMissCopy, routineReachableComputerCopy, routineReachableComputerMissCopy, routineStuckStateCopy, routineStuckStateMissCopy, routineLoginWaitCopy, routineLoginWaitMissCopy, routinePluginAuthCopy, routinePluginAuthMissCopy, routineReadableAttachmentCopy, routineReadableAttachmentMissCopy, routineBlockedApprovalCopy, routineBlockedApprovalMissCopy, routineComputerSetupCopy, routineComputerSetupMissCopy, routineAppUpdateCopy, routineAppUpdateMissCopy, routineOpenSignInCopy, routineOpenSignInMissCopy, routineBotQuietCopy, routineBotQuietMissCopy, routineSupportNoteCopy, routineSupportNoteMissCopy, routineRetryResultCopy, routineRetryResultMissCopy, routineDisconnectedAppCopy, routineDisconnectedAppMissCopy, routineLeastDestructiveCopy, routineLeastDestructiveMissCopy, routineScreenTaskCopy, routineScreenTaskMissCopy, routineFinishBeforeRebuildCopy, routineFinishBeforeRebuildMissCopy, routineKeptConversationCopy, routineKeptConversationMissCopy, routineKeptFileCopy, routineKeptFileMissCopy, routineSoftwareRefreshCopy, routineSoftwareRefreshMissCopy, routineScratchFolderCopy, routineScratchFolderMissCopy, routineWorkSurfaceCopy, routineWorkSurfaceMissCopy, routinePrivateHostCopy, routinePrivateHostMissCopy, routineGuestSliceCopy, routineGuestSliceMissCopy, routinePersonaLedgerCopy, routinePersonaLedgerMissCopy, routineCommonTrayCopy, routineCommonTrayMissCopy, routineSoloRosterCopy, routineSoloRosterMissCopy, routineTeamBenchCopy, routineTeamBenchMissCopy, routineGroupComputerCopy, routineGroupComputerMissCopy, routineDirectDeskCopy, routineDirectDeskMissCopy, routineAskedMeterCopy, routineAskedMeterMissCopy, routineSharedKitCopy, routineSharedKitMissCopy, routineSealedChatCopy, routineSealedChatMissCopy, routineDelegatedLaneCopy, routineDelegatedLaneMissCopy, routineDefaultSwitchCopy, routineDefaultSwitchMissCopy, routineRestLatchCopy, routineRestLatchMissCopy, routineSpawnHatchCopy, routineSpawnHatchMissCopy, routineQuietGateCopy, routineQuietGateMissCopy, routineServerRingCopy, routineServerRingMissCopy, routinePlanNotchCopy, routinePlanNotchMissCopy, routineChoiceLatchCopy, routineChoiceLatchMissCopy, routineLocalShutterCopy, routineLocalShutterMissCopy, routineStricterKeepCopy, routineStricterKeepMissCopy, routineReasonBarCopy, routineReasonBarMissCopy, routineHabitAskCopy, routineHabitAskMissCopy, routineEgressPathCopy, routineEgressPathMissCopy, routineOptionBlankCopy, routineOptionBlankMissCopy, routinePageHomeCopy, routinePageHomeMissCopy, routineRouteSpanCopy, routineRouteSpanMissCopy, routineRestoreLatchCopy, routineRestoreLatchMissCopy, routineSudoPermitCopy, routineSudoPermitMissCopy, routineNestPairCopy, routineNestPairMissCopy, routineColdStartCopy, routineColdStartMissCopy, routineBannerCrestCopy, routineBannerCrestMissCopy, routineFleetImageCopy, routineFleetImageMissCopy, routineProgressCardCopy, routineProgressCardMissCopy, routineLateCohortCopy, routineLateCohortMissCopy, routineDualPrimerCopy, routineDualPrimerMissCopy, routineTurnConfirmCopy, routineTurnConfirmMissCopy, routineStockDimCopy, routineStockDimMissCopy, routineCountRestartCopy, routineCountRestartMissCopy, routineThirtyLapseCopy, routineThirtyLapseMissCopy, routineTidySweepCopy, routineTidySweepMissCopy, routineSlumberMarkCopy, routineSlumberMarkMissCopy, routineRecreateFenceCopy, routineRecreateFenceMissCopy, routineAdminChairCopy, routineAdminChairMissCopy, routineMemberCeilingCopy, routineMemberCeilingMissCopy, routinePublicVeilCopy, routinePublicVeilMissCopy, routineCapCopy, routineHourCopy, routinePausedAskCopy, routinePausedAskMissCopy, routineQuietCopy, routineRunsCopy } from "../src/core/brief.js";
 import { startServer } from "../src/server/index.js";
 
 const SECRET = "bridge-token-should-stay-private";
@@ -23265,6 +23265,251 @@ describe("Oriel server", () => {
     expect(JSON.stringify(still)).not.toContain("Always allow");
   });
 
+
+  it("ORIEL-F183 says one routine has no late cohort and does not count those already past thirty days", async () => {
+    const server = await boot();
+    const question = "that computers already past 30 days are included";
+    const turn = async (text: string, extra: { goalId?: string; skillId?: string } = {}) => {
+      const response = await fetch(`${server.url}/api/turn`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, ...extra }),
+      });
+      return { status: response.status, body: await response.json() };
+    };
+    const missing = await turn(`Does the Launch note routine say ${question}?`);
+    expect(missing.status).toBe(200);
+    expect(missing.body.goals).toHaveLength(0);
+    expect(missing.body.routines).toHaveLength(0);
+    expect(missing.body.messages.at(-1).text).toBe(routineLateCohortMissCopy("Launch note"));
+    expect(missing.body.trust).toContain("has no late cohort in the record");
+    expect(missing.body.trust).toContain("has no turn confirm in the record");
+    expect(missing.body.trust).toContain("The row says No turn confirm");
+    expect(missing.body.trust).toContain("The row test id is turn-confirm-");
+    expect(missing.body.trust).toContain("The turn-confirm reply still says Asking does not open that confirmation");
+    expect(missing.body.trust).toContain("A turn confirm is not a late cohort");
+    expect(missing.body.trust).toContain("The row says No late cohort");
+    expect(missing.body.trust).toContain("The row test id is late-cohort-");
+    expect(missing.body.trust).toContain("The short reply says Asking does not count those already past thirty days");
+    expect(missing.body.trust).toContain("The slumber-mark reply still says Asking does not leave that sleeping computer in place until someone ends it");
+    expect(missing.body.trust).toContain("has no slumber mark in the record");
+    expect(missing.body.trust).toContain("The row says No slumber mark");
+    expect(missing.body.trust).toContain("The row test id is slumber-mark-");
+    expect(missing.body.trust).toContain("A slumber mark is not a late cohort");
+    expect(missing.body.trust).toContain("The recreate-fence reply still says Asking does not limit this restart to recreate only");
+    expect(missing.body.trust).toContain("has no recreate fence in the record");
+    expect(missing.body.trust).toContain("The row says No recreate fence");
+    expect(missing.body.trust).toContain("The row test id is recreate-fence-");
+    expect(missing.body.trust).toContain("A recreate fence is not a late cohort");
+    expect(missing.body.trust).toContain("does not say there is no late cohort");
+    expect(missing.body.trust).toContain("does not name a late cohort");
+    expect(missing.body.trust).toContain("A stored run is not a late cohort");
+    expect(missing.body.trust).toContain("A desk-wide pause does not invent a late cohort");
+    expect(missing.body.trust).toContain("There is no relay lamp");
+    expect(missing.body.trust).toContain("There is no keyhole");
+    expect(missing.body.trust).not.toContain("A recorded failure is not a late cohort");
+    expect(missing.body.trust).not.toContain("Always allow");
+    expect("has no late cohort".includes("has no dual primer")).toBe(false);
+    expect("has no dual primer".includes("has no late cohort")).toBe(false);
+    expect("has no late cohort".includes("has no turn confirm")).toBe(false);
+    expect("has no turn confirm".includes("has no late cohort")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not preview those two notes.")).toBe(false);
+    expect("Asking does not preview those two notes.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not open that confirmation.")).toBe(false);
+    expect("Asking does not open that confirmation.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("has no late cohort".includes("has no stock dim")).toBe(false);
+    expect("has no stock dim".includes("has no late cohort")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not leave that setting off.")).toBe(false);
+    expect("Asking does not leave that setting off.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("has no late cohort".includes("has no thirty lapse")).toBe(false);
+    expect("has no thirty lapse".includes("has no late cohort")).toBe(false);
+    expect("has no late cohort".includes("has no slumber mark")).toBe(false);
+    expect("has no slumber mark".includes("has no late cohort")).toBe(false);
+    expect("has no late cohort".includes("has no recreate fence")).toBe(false);
+    expect("has no recreate fence".includes("has no late cohort")).toBe(false);
+    expect("has no late cohort".includes("has no admin chair")).toBe(false);
+    expect("has no admin chair".includes("has no late cohort")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not end an unused computer after thirty days.")).toBe(false);
+    expect("Asking does not end an unused computer after thirty days.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not leave that sleeping computer in place until someone ends it.")).toBe(false);
+    expect("Asking does not leave that sleeping computer in place until someone ends it.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not limit this restart to recreate only.")).toBe(false);
+    expect("Asking does not limit this restart to recreate only.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("Asking does not count those already past thirty days.".includes("Asking does not fold those already past thirty days in.")).toBe(false);
+    expect("Asking does not fold those already past thirty days in.".includes("Asking does not count those already past thirty days.")).toBe(false);
+    expect("late-cohort-".startsWith("recreate-fence-")).toBe(false);
+    expect("late-cohort-".startsWith("recreate-")).toBe(false);
+    expect("late-cohort-".startsWith("fence-")).toBe(false);
+    expect("late-cohort-".startsWith("mark-")).toBe(false);
+    expect("late-cohort-".startsWith("late-")).toBe(true);
+    expect("late-cohort-".startsWith("cohort-")).toBe(false);
+    expect("late-cohort-".startsWith("turn-")).toBe(false);
+    expect("late-cohort-".startsWith("turn-confirm-")).toBe(false);
+    expect("late-cohort-".startsWith("confirm-")).toBe(false);
+    expect("turn-confirm-".startsWith("confirm-")).toBe(false);
+    expect("turn-confirm-".startsWith("late-cohort-")).toBe(false);
+    expect("late-cohort-".startsWith("stock-")).toBe(false);
+    expect("late-cohort-".startsWith("stock-dim-")).toBe(false);
+    expect("late-cohort-".startsWith("dim-")).toBe(false);
+    expect("late-cohort-".startsWith("lapse-")).toBe(false);
+    expect("late-cohort-".startsWith("restart-")).toBe(false);
+    expect("late-cohort-".startsWith("thirty-")).toBe(false);
+    expect("late-cohort-".startsWith("thirty-lapse-")).toBe(false);
+    expect("late-cohort-".startsWith("tidy-sweep-")).toBe(false);
+    expect("late-cohort-".startsWith("tidy-")).toBe(false);
+    expect("late-cohort-".startsWith("sweep-")).toBe(false);
+    expect("late-cohort-".startsWith("slumber-mark-")).toBe(false);
+    expect("late-cohort-".startsWith("slumber-")).toBe(false);
+    expect("slumber-mark-".startsWith("late-cohort-")).toBe(false);
+    expect("slumber-mark-".startsWith("tidy-")).toBe(false);
+    expect("recreate-fence-".startsWith("late-cohort-")).toBe(false);
+    expect("recreate-fence-".startsWith("slumber-")).toBe(false);
+    expect(JSON.stringify(missing.body)).not.toContain("Always allow");
+    expect(routineLateCohortCopy("Launch note", true)).toContain("Asking does not count those already past thirty days.");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("Asking does not fold those already past thirty days in.");
+    expect(routineLateCohortCopy("Launch note", true)).not.toMatch(/cursor/i);
+    expect(routineLateCohortCopy("Launch note", true)).not.toMatch(/credential/i);
+    expect(routineLateCohortCopy("Launch note", true)).not.toMatch(/password/i);
+    expect(routineLateCohortCopy("Launch note", true)).not.toMatch(/secret/i);
+    expect(routineLateCohortCopy("Launch note", true)).not.toMatch(/file/i);
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("has no recreate fence");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("has no admin chair");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("has no slumber mark");
+    expect(routineSlumberMarkCopy("Launch note", true)).not.toContain("has no late cohort");
+    expect(routineSlumberMarkCopy("Launch note", true)).not.toContain("Asking does not count those already past thirty days.");
+    expect(routineRecreateFenceCopy("Launch note", true)).not.toContain("has no late cohort");
+    expect(routineRecreateFenceCopy("Launch note", true)).not.toContain("Asking does not count those already past thirty days.");
+    expect(routineAdminChairCopy("Launch note", true)).not.toContain("has no late cohort");
+    expect(routineProgressCardCopy("Launch note", true)).not.toContain("has no late cohort");
+    expect(routineDualPrimerCopy("Launch note", true)).not.toContain("has no late cohort");
+    expect(routineDualPrimerCopy("Launch note", true)).not.toContain("Asking does not count those already past thirty days.");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("has no dual primer");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("Asking does not preview those two notes.");
+    expect(routineTurnConfirmCopy("Launch note", true)).not.toContain("has no late cohort");
+    expect(routineTurnConfirmCopy("Launch note", true)).not.toContain("Asking does not count those already past thirty days.");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("has no turn confirm");
+    expect(routineLateCohortCopy("Launch note", true)).not.toContain("Asking does not open that confirmation.");
+
+    const opened = await turn("Summarize the launch risks");
+    const goalId = opened.body.goals[0].id as string;
+    const saved = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId, name: "Launch note", cadence: "hourly" }),
+    });
+    const savedBody = await saved.json();
+    const nextRun = savedBody.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt;
+    const other = await turn("Compare the market landscape");
+    const otherId = other.body.goals.at(-1).id as string;
+    const savedOther = await fetch(`${server.url}/api/routines`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ goalId: otherId, name: "Market check", cadence: "daily" }),
+    });
+    const savedOtherBody = await savedOther.json();
+    const marketNext = savedOtherBody.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt;
+
+    const clear = await turn(`Please, does the Launch note routine say ${question}?`, { goalId, skillId: "missing-skill" });
+    expect(clear.status).toBe(200);
+    expect(clear.body.messages.at(-1).text).toBe(routineLateCohortCopy("Launch note", true));
+    expect(clear.body.messages.at(-1).text).toContain("“Launch note” has no late cohort in the record.");
+    expect(clear.body.messages.at(-1).text).toContain("Asking does not count those already past thirty days.");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not fold those already past thirty days in.");
+    expect(clear.body.messages.at(-1).text).not.toContain("has no recreate fence");
+    expect(clear.body.messages.at(-1).text).not.toContain("Asking does not limit this restart to recreate only.");
+    expect(clear.body.messages.at(-1).text).not.toMatch(/cursor/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/credential/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/password/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/secret/i);
+    expect(clear.body.messages.at(-1).text).not.toMatch(/file/i);
+    expect(clear.body.messages.at(-1).text).not.toContain(nextRun);
+    expect(clear.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(clear.body.goals).toHaveLength(2);
+
+    const desk = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: true }),
+    });
+    expect((await desk.json()).paused).toBe(true);
+    const duringDesk = await turn(`Does the Launch note routine say ${question}?`);
+    expect(duringDesk.body.paused).toBe(true);
+    expect(duringDesk.body.messages.at(-1).text).toContain("“Launch note” has no late cohort in the record.");
+    expect(duringDesk.body.messages.at(-1).text).not.toContain("Wakes are paused");
+    expect(duringDesk.body.routines.find((routine: { name: string }) => routine.name === "Market check").nextRunAt).toBe(marketNext);
+
+    const resumed = await fetch(`${server.url}/api/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paused: false }),
+    });
+    expect((await resumed.json()).paused).toBe(false);
+    const pausedOne = await turn("Pause the Launch note routine");
+    expect(pausedOne.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    const asked = await turn(`Does the Launch note routine say ${question}?`);
+    expect(asked.body.messages.at(-1).text).toBe(routineLateCohortCopy("Launch note", true));
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").cadence).toBe("hourly");
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(asked.body.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+
+    const primerLeft = await turn("Does the Launch note routine say that two things to know before you select Turn On?");
+    expect(primerLeft.body.messages.at(-1).text).toContain("has no dual primer");
+    expect(primerLeft.body.messages.at(-1).text).toContain("Asking does not preview those two notes.");
+    expect(primerLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(primerLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const turnLeft = await turn("Does the Launch note routine say that turning it on opens a confirmation?");
+    expect(turnLeft.body.messages.at(-1).text).toContain("has no turn confirm");
+    expect(turnLeft.body.messages.at(-1).text).toContain("Asking does not open that confirmation.");
+    expect(turnLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(turnLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const stockLeft = await turn("Does the Launch note routine say that the setting is off by default?");
+    expect(stockLeft.body.messages.at(-1).text).toContain("has no stock dim");
+    expect(stockLeft.body.messages.at(-1).text).toContain("Asking does not leave that setting off.");
+    expect(stockLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(stockLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const lapseLeft = await turn("Does the Launch note routine say that when a member's computer goes 30 days without use, Cursor terminates it?");
+    expect(lapseLeft.body.messages.at(-1).text).toContain("has no thirty lapse");
+    expect(lapseLeft.body.messages.at(-1).text).toContain("Asking does not end an unused computer after thirty days.");
+    expect(lapseLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(lapseLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const tidyLeft = await turn("Does the Launch note routine say that Terminate Inactive Computers, in the Bot Computers section, does that cleanup for you?");
+    expect(tidyLeft.body.messages.at(-1).text).toContain("has no tidy sweep");
+    expect(tidyLeft.body.messages.at(-1).text).toContain("Asking does not run that idle sweep on your behalf.");
+    expect(tidyLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(tidyLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const slumberLeft = await turn("Does the Launch note routine say that a hibernated computer stays around until someone terminates it, even when the member has moved on or stopped using Grok Bot?");
+    expect(slumberLeft.body.messages.at(-1).text).toContain("has no slumber mark");
+    expect(slumberLeft.body.messages.at(-1).text).toContain("Asking does not leave that sleeping computer in place until someone ends it.");
+    expect(slumberLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(slumberLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const fenceLeft = await turn("Does the Launch note routine say that it only recreates; Terminate VMs and Delete VMs and Data are under Manage Member Computers and Data?");
+    expect(fenceLeft.body.messages.at(-1).text).toContain("has no recreate fence");
+    expect(fenceLeft.body.messages.at(-1).text).toContain("Asking does not limit this restart to recreate only.");
+    expect(fenceLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    expect(fenceLeft.body.messages.at(-1).text).not.toContain("Asking does not count those already past thirty days.");
+    const adminLeft = await turn("Does the Launch note routine say that team admins on an Enterprise team can run this restart, not only organization admins?");
+    expect(adminLeft.body.messages.at(-1).text).toContain("has no admin chair");
+    expect(adminLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    const progressLeft = await turn("Does the Launch note routine say that the restart runs like any other recreate operation, with the same progress card and results, and the notice clears once it starts?");
+    expect(progressLeft.body.messages.at(-1).text).toContain("has no progress card");
+    expect(progressLeft.body.messages.at(-1).text).not.toContain("has no late cohort");
+    const why = await turn("Why hasn't the Launch note routine run?");
+    expect(why.body.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(why.body.messages.at(-1).text).not.toContain("late cohort");
+    expect(why.body.messages.at(-1).text).not.toContain("turn confirm");
+    expect(why.body.messages.at(-1).text).not.toContain("slumber mark");
+    expect(why.body.messages.at(-1).text).not.toContain("recreate fence");
+
+    const gone = await turn(`Does the Launch note routine say ${question}?`, { goalId: "goal_missing" });
+    expect(gone.status).toBe(404);
+    const refused = await turn(`Does the Launch note routine say ${question} without asking`);
+    expect(refused.status).toBe(400);
+    const still = await fetch(`${server.url}/api/state`).then((response) => response.json());
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").paused).toBe(true);
+    expect(still.routines.find((routine: { name: string }) => routine.name === "Launch note").nextRunAt).toBe(nextRun);
+    expect(still.messages.at(-1).text).toContain("A wake does not run it.");
+    expect(JSON.stringify(still)).not.toContain("Always allow");
+  });
 
   it("rejects an empty turn", async () => {
     const server = await boot();

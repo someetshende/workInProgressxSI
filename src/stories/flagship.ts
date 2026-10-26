@@ -3462,6 +3462,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F183",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that computers already past 30 days are included",
+      title: "Say that one routine has no late cohort and do not count those already past thirty days",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no late cohort in the record, so that I can check the work without counting those already past thirty days.",
+      acceptance: [
+        "Saying whether the Launch note routine says that computers already past 30 days are included says that one routine has no late cohort in the record.",
+        "Asking does not count those already past thirty days, does not fold those already past thirty days in, and does not sweep those already past thirty days in.",
+        "A stored run is not a late cohort. A dual primer is not one. The dual-primer answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
