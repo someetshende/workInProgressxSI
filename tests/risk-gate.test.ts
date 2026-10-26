@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no risk gate";
 
 const OTHER_HAS_NO = [
+  "has no vacant quorum",
   "has no start dim",
   "has no veto keel",
   "has no clan charter",
@@ -258,6 +259,9 @@ describe("ORIEL-F213", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not cover a chat where nobody can answer before the work runs.",
+        "Asking does not hold a chat where nobody can answer before the work runs.",
+        "Asking does not keep a chat where nobody can answer before the work runs.",
         "Asking does not leave that control on that page and off at the start.",
         "Asking does not park that control on that page and off at the start.",
         "Asking does not seat that control on that page and off at the start.",

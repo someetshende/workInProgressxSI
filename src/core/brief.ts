@@ -1261,6 +1261,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineVacantQuorumCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no vacant quorum in the record. Asking does not cover a chat where nobody can answer before the work runs.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineVacantQuorumMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineVacantQuorumAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineRiskGateCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
