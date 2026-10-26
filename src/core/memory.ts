@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_STOCK_DIM = /^(?:please,?\s+)?does the (.+) routine say that the setting is off by default$/i;
+
+export function routineStockDimName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_STOCK_DIM.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineStockDim(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineStockDimName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the setting is off by default\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_COUNT_RESTART = /^(?:please,?\s+)?does the (.+) routine say that using grok bot again restarts the count$/i;
 
 export function routineCountRestartName(text: string): string | null {

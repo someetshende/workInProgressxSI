@@ -3405,6 +3405,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F180",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the setting is off by default",
+      title: "Say that one routine has no stock dim and do not leave that setting off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no stock dim in the record, so that I can check the work without leaving that setting off.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the setting is off by default says that one routine has no stock dim in the record.",
+        "Asking does not leave that setting off, does not keep that setting off, and does not hold that setting off.",
+        "A stored run is not a stock dim. A count restart is not one. The count-restart answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
