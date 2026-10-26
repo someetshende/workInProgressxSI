@@ -25041,3 +25041,171 @@ test("ORIEL-F192 whether one routine says that during a recreate the desktop sho
   expect(overflow).toBe(false);
   await page.screenshot({ path: "test-results/oriel-routine-glyph-linger.png" });
 });
+
+test("ORIEL-F193 whether one routine says that working bots pause at a safe point does not carry that work onto the new computer", async ({ page }) => {
+  const question = "that bots that were working pause at a safe point and continue on the new computer";
+  await page.goto("/");
+  await page.getByTestId("composer").fill(`Does the Launch note routine say ${question}?`);
+  await page.getByTestId("send").click();
+  await expect(page.locator("#thread .turn").last()).toContainText("There is no such routine as “Launch note”.");
+  await expect(page.locator("[data-testid^='goal-']:not([data-testid='goal-all'])")).toHaveCount(0);
+
+  await page.getByTestId("composer").fill("Draft the weekly close but do not send it");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const firstCadence = page.locator("[data-testid^='cadence-']").nth(0);
+  await firstCadence.click();
+  await expect(firstCadence).toHaveText("Daily");
+  const firstTitle = await firstCadence.getAttribute("title");
+  const firstNext = firstTitle?.replace(/^Next wake /, "") ?? "";
+  await page.getByTestId("goal-all").click();
+  await page.getByTestId("composer").fill("Summarize the launch risks");
+  await page.getByTestId("send").click();
+  await page.getByTestId("save-routine").click();
+  const secondCadence = page.locator("[data-testid^='cadence-']").nth(1);
+  await secondCadence.click();
+  await secondCadence.click();
+  await expect(secondCadence).toHaveText("Hourly");
+  const secondTitle = await secondCadence.getAttribute("title");
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that Bots that were working pause at a safe point and continue on the new computer says that routine has no safe berth in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that during a recreate, the desktop app shows Updating Grok Bot's Computer until the switch completes says that routine has no glyph linger in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their Enterprise teams has it on says that routine has no cross reach in the record.",
+  );
+  await expect(page.getByTestId("schedule-hint")).toContainText(
+    "Asking whether one routine says that turning the setting off stops further terminations says that routine has no valve shut in the record.",
+  );
+  const safeBeforeGlyph = await page.getByTestId("schedule-hint").evaluate((node) => {
+    const text = node.textContent ?? "";
+    const safe = text.indexOf(
+      "says that Bots that were working pause at a safe point and continue on the new computer says that routine has no safe berth",
+    );
+    const glyph = text.indexOf(
+      "says that during a recreate, the desktop app shows Updating Grok Bot's Computer until the switch completes says that routine has no glyph linger",
+    );
+    const cross = text.indexOf(
+      "says that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their Enterprise teams has it on says that routine has no cross reach",
+    );
+    return safe >= 0 && glyph > safe && cross > glyph && !text.slice(safe, glyph).includes("says that routine has no glyph linger");
+  });
+  expect(safeBeforeGlyph).toBe(true);
+  await expect(page.locator("[data-testid^='safe-berth-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='safe-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='berth-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='glyph-linger-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='glyph-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='linger-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='cross-reach-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='cross-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='reach-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='valve-shut-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='safe-berth-']").nth(0)).toHaveText("No safe berth");
+  await expect(page.locator("[data-testid^='cross-reach-']").nth(0)).toHaveText("No cross reach");
+  const followsCross = await page.evaluate(() => {
+    const prior = document.querySelector("[data-testid^='glyph-linger-']");
+    const row = document.querySelector("[data-testid^='safe-berth-']");
+    if (!prior || !row || prior.parentElement !== row.parentElement) return false;
+    return prior.compareDocumentPosition(row) === Node.DOCUMENT_POSITION_FOLLOWING;
+  });
+  expect(followsCross).toBe(true);
+  const noteIds = await page.locator("[data-testid^='safe-berth-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid") ?? ""),
+  );
+  expect(noteIds.every((id) => id.startsWith("safe-berth-"))).toBe(true);
+  for (const prefix of ["glyph-linger-", "glyph-", "linger-", "berth-", "cross-reach-", "cross-", "reach-", "valve-shut-", "valve-", "shut-", "file-", "cadence-"]) {
+    expect(noteIds.some((id) => id.startsWith(prefix))).toBe(false);
+  }
+
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const clear = page.locator("#thread .turn").last();
+  await expect(clear).toContainText("“Draft the weekly close but do not send it” has no safe berth in the record.");
+  await expect(clear).toContainText("Asking does not pause that work at a safe point and carry it onto the new computer.");
+  await expect(clear).not.toContainText("Asking does not hold that work at a safe point and carry it onto the new computer.");
+  await expect(clear).not.toContainText("Asking does not stall that work at a safe point and carry it onto the new computer.");
+  await expect(clear).not.toContainText("has no cross reach");
+  await expect(clear).not.toContainText("has no valve shut");
+  await expect(clear).not.toContainText("cursor");
+  await expect(clear).not.toContainText("credential");
+  await expect(clear).not.toContainText("password");
+  await expect(clear).not.toContainText("secret");
+  await expect(clear).not.toContainText("file");
+  await expect(clear).not.toContainText("Grok Bot");
+  await expect(clear).not.toContainText(firstNext);
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  expect(await secondCadence.getAttribute("title")).toBe(secondTitle);
+
+  await page.getByTestId("pause-wakes").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Wakes paused");
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const duringDesk = page.locator("#thread .turn").last();
+  await expect(duringDesk).toContainText("“Draft the weekly close but do not send it” has no safe berth in the record.");
+  await expect(duringDesk).not.toContainText("Wakes are paused");
+  await page.getByTestId("composer").fill("Resume wakes");
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("pause-wakes")).toHaveText("Pause wakes");
+
+  await page.getByTestId("composer").fill("Pause the Draft the weekly close but do not send it routine");
+  await page.getByTestId("send").click();
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveCount(1);
+  await page.getByTestId("composer").fill(`Does the Draft the weekly close but do not send it routine say ${question}?`);
+  await page.getByTestId("send").click();
+  const pausedAsk = page.locator("#thread .turn").last();
+  await expect(pausedAsk).toContainText("“Draft the weekly close but do not send it” has no safe berth in the record.");
+  await expect(pausedAsk).toContainText("Asking does not pause that work at a safe point and carry it onto the new computer.");
+  await expect(pausedAsk).not.toContainText("Asking does not hold that work at a safe point and carry it onto the new computer.");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='routine-paused-']")).toHaveText("Paused");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that bots that were working pause at a safe point and continue on the new computer");
+  await page.getByTestId("send").click();
+  const lower = page.locator("#thread .turn").last();
+  await expect(lower).toContainText("has no safe berth in the record.");
+  await expect(lower).toContainText("Asking does not pause that work at a safe point and carry it onto the new computer.");
+  await expect(lower).not.toContainText("has no cross reach");
+  await expect(lower).not.toContainText("has no valve shut");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their enterprise teams has it on");
+  await page.getByTestId("send").click();
+  const crossKept = page.locator("#thread .turn").last();
+  await expect(crossKept).toContainText("has no cross reach in the record.");
+  await expect(crossKept).toContainText("Asking does not let one computer cover every team.");
+  await expect(crossKept).not.toContainText("has no safe berth");
+  await expect(crossKept).not.toContainText("Asking does not pause that work at a safe point and carry it onto the new computer.");
+
+  await page.getByTestId("composer").fill("does the draft the weekly close but do not send it routine say that turning the setting off stops further terminations");
+  await page.getByTestId("send").click();
+  const valveKept = page.locator("#thread .turn").last();
+  await expect(valveKept).toContainText("has no valve shut in the record.");
+  await expect(valveKept).toContainText("Asking does not stop later endings by switching that control off.");
+  await expect(valveKept).not.toContainText("has no safe berth");
+
+  await page.getByTestId("composer").fill("Why hasn't the Draft the weekly close but do not send it routine run?");
+  await page.getByTestId("send").click();
+  const why = page.locator("#thread .turn").last();
+  await expect(why).toContainText("A wake does not run it.");
+  await expect(why).not.toContainText("safe berth");
+  await expect(why).not.toContainText("cross reach");
+  await expect(why).not.toContainText("valve shut");
+  expect(await firstCadence.getAttribute("title")).toBe(firstTitle);
+  await expect(page.locator("[data-testid^='safe-berth-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='safe-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='berth-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='glyph-linger-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='glyph-']")).toHaveCount(2);
+  await expect(page.locator("[data-testid^='linger-']")).toHaveCount(0);
+  await expect(page.locator("[data-testid^='cross-reach-']")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /always allow/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await bringIntoView(page, "composer");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  expect(overflow).toBe(false);
+  await page.screenshot({ path: "test-results/oriel-routine-safe-berth.png" });
+});

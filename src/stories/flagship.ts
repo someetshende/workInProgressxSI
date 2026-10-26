@@ -3652,6 +3652,26 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+
+    {
+      id: "ORIEL-F193",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that bots that were working pause at a safe point and continue on the new computer",
+      title: "Say that one routine has no safe berth and do not pause that work at a safe point and carry it onto the new computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no safe berth in the record, so that I can check the work without pausing that work at a safe point and carrying it onto the new computer.",
+      acceptance: [
+        "Saying whether the Launch note routine says that bots that were working pause at a safe point and continue on the new computer says that one routine has no safe berth in the record.",
+        "Asking does not pause that work at a safe point and carry it onto the new computer, does not hold that work at a safe point and carry it onto the new computer, and does not stall that work at a safe point and carry it onto the new computer.",
+        "A stored run is not a safe berth. A glyph linger is not one. The glyph-linger answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

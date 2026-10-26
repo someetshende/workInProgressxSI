@@ -1574,6 +1574,25 @@ export function loosensRoutineProgressCard(text: string): boolean {
 }
 
 
+
+const ROUTINE_SAFE_BERTH = /^(?:please,?\s+)?does the (.+) routine say that bots that were working pause at a safe point and continue on the new computer$/i;
+
+export function routineSafeBerthName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SAFE_BERTH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSafeBerth(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSafeBerthName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that bots that were working pause at a safe point and continue on the new computer\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_GLYPH_LINGER = /^(?:please,?\s+)?does the (.+) routine say that during a recreate, the desktop app shows updating grok bot's computer until the switch completes$/i;
 
 export function routineGlyphLingerName(text: string): string | null {
