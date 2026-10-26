@@ -54,6 +54,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no canon bind";
 
 const OTHER_HAS_NO = [
+  "has no scope split",
   "has no wake guard",
   "has no doze tally",
   "has no access lift",
@@ -222,6 +223,9 @@ describe("ORIEL-F205", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not add those rules from that page or limit each one to one seat, the other, or both.",
+        "Asking does not place those rules from that page or limit each one to one seat, the other, or both.",
+        "Asking does not enter those rules from that page or limit each one to one seat, the other, or both.",
         ACCESS_SHORT,
         FOLIO_SHORT,
         LABOR_SHORT,
@@ -613,6 +617,10 @@ describe("ORIEL-F205 server", () => {
     expect(SHORT.includes(ACCESS_SHORT)).toBe(false);
     expect(ACCESS_SHORT.includes(SHORT)).toBe(false);
     expect(SHORT.includes(ALT_OPEN)).toBe(false);
+    expect(SHORT.includes("Asking does not add those rules from that page or limit each one to one seat, the other, or both.")).toBe(false);
+    expect("Asking does not add those rules from that page or limit each one to one seat, the other, or both.".includes(SHORT)).toBe(false);
+    expect(HAS_NO.includes("has no scope split")).toBe(false);
+    expect("has no scope split".includes(HAS_NO)).toBe(false);
     expect(SHORT.includes("Asking does not spare a machine that stays awake while work is still going.")).toBe(false);
     expect("Asking does not spare a machine that stays awake while work is still going.".includes(SHORT)).toBe(false);
     expect(HAS_NO.includes("has no wake guard")).toBe(false);

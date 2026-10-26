@@ -3900,6 +3900,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F206",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that add them from the Grok Bot page and scope each rule to Cursor, Grok Bot, or both",
+      title: "Say that one routine has no scope split and do not add those rules from that page or limit each one to one seat, the other, or both",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no scope split in the record, so that I can check the work without adding those rules from that page or limiting each one to one seat, the other, or both.",
+      acceptance: [
+        "Saying whether the Launch note routine says that add them from the Grok Bot page and scope each rule to Cursor, Grok Bot, or both says that one routine has no scope split in the record.",
+        "Asking does not add those rules from that page or limit each one to one seat, the other, or both, does not place those rules from that page or limit each one to one seat, the other, or both, and does not enter those rules from that page or limit each one to one seat, the other, or both.",
+        "A stored run is not a scope split. A canon bind is not one. The canon-bind answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
