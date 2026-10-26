@@ -3386,6 +3386,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F179",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that using Grok Bot again restarts the count",
+      title: "Say that one routine has no count restart and do not restart that idle count",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no count restart in the record, so that I can check the work without restarting that idle count.",
+      acceptance: [
+        "Saying whether the Launch note routine says that using Grok Bot again restarts the count says that one routine has no count restart in the record.",
+        "Asking does not restart that idle count, does not begin that idle count again, and does not refresh that idle count.",
+        "A stored run is not a count restart. A thirty lapse is not one. The thirty-lapse answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

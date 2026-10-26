@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_COUNT_RESTART = /^(?:please,?\s+)?does the (.+) routine say that using grok bot again restarts the count$/i;
+
+export function routineCountRestartName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_COUNT_RESTART.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCountRestart(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCountRestartName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that using grok bot again restarts the count\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_THIRTY_LAPSE = /^(?:please,?\s+)?does the (.+) routine say that when a member's computer goes 30 days without use, cursor terminates it$/i;
 
 export function routineThirtyLapseName(text: string): string | null {
