@@ -1260,6 +1260,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineLaborCloseCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no labor close in the record. Asking does not close the work that is underway by ending the machine.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineLaborCloseMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineLaborCloseAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineServeWideCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

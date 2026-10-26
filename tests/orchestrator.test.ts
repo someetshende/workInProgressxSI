@@ -53228,10 +53228,12 @@ describe("flagship traceability", () => {
       await readFile("tests/sync-forfeit.test.ts", "utf8"),
       await readFile("tests/circle-door.test.ts", "utf8"),
       await readFile("tests/serve-wide.test.ts", "utf8"),
+      await readFile("tests/labor-close.test.ts", "utf8"),
       await readFile("e2e/oriel.spec.ts", "utf8"),
       await readFile("e2e/sync-forfeit.spec.ts", "utf8"),
       await readFile("e2e/circle-door.spec.ts", "utf8"),
       await readFile("e2e/serve-wide.spec.ts", "utf8"),
+      await readFile("e2e/labor-close.spec.ts", "utf8"),
     ];
     for (const story of flagshipStories()) {
       expect(sources.some((source) => source.includes(story.id)), story.id).toBe(true);

@@ -3786,6 +3786,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F200",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that terminating a computer, by hand or automatically, ends the member's current work",
+      title: "Say that one routine has no labor close and do not close the work that is underway by ending the machine",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no labor close in the record, so that I can check the work without closing the work that is underway by ending the machine.",
+      acceptance: [
+        "Saying whether the Launch note routine says that terminating a computer, by hand or automatically, ends the member's current work says that one routine has no labor close in the record.",
+        "Asking does not close the work that is underway by ending the machine, does not finish the work that is underway by ending the machine, and does not cut the work that is underway by ending the machine.",
+        "A stored run is not a labor close. A serve wide is not one. The serve-wide answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

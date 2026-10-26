@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_LABOR_CLOSE = /^(?:please,?\s+)?does the (.+) routine say that terminating a computer, by hand or automatically, ends the member's current work$/i;
+
+export function routineLaborCloseName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_LABOR_CLOSE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineLaborClose(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineLaborCloseName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that terminating a computer, by hand or automatically, ends the member's current work\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SERVE_WIDE = /^(?:please,?\s+)?does the (.+) routine say that one computer serves every team the member is in, so recreating or terminating it from one team affects the same computer everywhere$/i;
 
 export function routineServeWideName(text: string): string | null {
