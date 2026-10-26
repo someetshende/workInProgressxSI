@@ -74,6 +74,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no clan charter";
 
 const OTHER_HAS_NO = [
+  "has no veto keel",
   "has no guide lane",
   "has no terse few",
   "has no firm yoke",
@@ -247,6 +248,9 @@ describe("ORIEL-F210", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not stop people from switching that check off.",
+        "Asking does not block people from switching that check off.",
+        "Asking does not bar people from switching that check off.",
         "Asking does not steer those guides toward approval behavior.",
         "Asking does not aim those guides toward approval behavior.",
         "Asking does not bend those guides toward approval behavior.",

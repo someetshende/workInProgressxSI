@@ -3995,6 +3995,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F211",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that prevents members from turning Auto-review off",
+      title: "Say that one routine has no veto keel and do not stop people from switching that check off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no veto keel in the record, so that I can check the work without stopping people from switching that check off.",
+      acceptance: [
+        "Saying whether the Launch note routine says that prevents members from turning Auto-review off says that one routine has no veto keel in the record.",
+        "Asking does not stop people from switching that check off, does not block people from switching that check off, and does not bar people from switching that check off.",
+        "A stored run is not a veto keel. A clan charter is not one. The clan-charter answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
 
   ];
 

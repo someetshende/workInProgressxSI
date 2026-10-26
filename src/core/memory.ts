@@ -1576,6 +1576,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_VETO_KEEL = /^(?:please,?\s+)?does the (.+) routine say that prevents members from turning auto-review off$/i;
+
+export function routineVetoKeelName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_VETO_KEEL.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineVetoKeel(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineVetoKeelName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that prevents members from turning auto-review off\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_CLAN_CHARTER = /^(?:please,?\s+)?does the (.+) routine say that for guidance that belongs to one cohort, add group rules under group settings$/i;
 
 export function routineClanCharterName(text: string): string | null {
