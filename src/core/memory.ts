@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_WAKE_GUARD = /^(?:please,?\s+)?does the (.+) routine say that a computer that is awake, because a bot is working or the member is using grok bot, is never terminated by this setting$/i;
+
+export function routineWakeGuardName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_WAKE_GUARD.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineWakeGuard(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineWakeGuardName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that a computer that is awake, because a bot is working or the member is using grok bot, is never terminated by this setting\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_DOZE_TALLY = /^(?:please,?\s+)?does the (.+) routine say that the 30 days count from when the computer went to sleep after its last use$/i;
 
 export function routineDozeTallyName(text: string): string | null {

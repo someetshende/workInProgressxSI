@@ -3862,6 +3862,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F204",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that a computer that is awake, because a Bot is working or the member is using Grok Bot, is never terminated by this setting",
+      title: "Say that one routine has no wake guard and do not spare a machine that stays awake while work is still going",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no wake guard in the record, so that I can check the work without sparing a machine that stays awake while work is still going.",
+      acceptance: [
+        "Saying whether the Launch note routine says that a computer that is awake, because a Bot is working or the member is using Grok Bot, is never terminated by this setting says that one routine has no wake guard in the record.",
+        "Asking does not spare a machine that stays awake while work is still going, does not keep a machine that stays awake while work is still going, and does not shield a machine that stays awake while work is still going.",
+        "A stored run is not a wake guard. A doze tally is not one. The doze-tally answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

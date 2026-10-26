@@ -46,6 +46,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no doze tally";
 
 const OTHER_HAS_NO = [
+  "has no wake guard",
   "has no access lift",
   "has no folio return",
   "has no labor close",
@@ -209,7 +210,16 @@ describe("ORIEL-F203", () => {
         expect(HAS_NO.includes(other)).toBe(false);
         expect(other.includes(HAS_NO)).toBe(false);
       }
-      for (const other of [ALT_OPEN, ALT_SET, ACCESS_SHORT, FOLIO_SHORT, LABOR_SHORT]) {
+      for (const other of [
+        ALT_OPEN,
+        ALT_SET,
+        ACCESS_SHORT,
+        FOLIO_SHORT,
+        LABOR_SHORT,
+        "Asking does not spare a machine that stays awake while work is still going.",
+        "Asking does not keep a machine that stays awake while work is still going.",
+        "Asking does not shield a machine that stays awake while work is still going.",
+      ]) {
         expect(SHORT.includes(other)).toBe(false);
         expect(other.includes(SHORT)).toBe(false);
       }
@@ -539,6 +549,10 @@ describe("ORIEL-F203 server", () => {
     expect(SHORT.includes(ACCESS_SHORT)).toBe(false);
     expect(ACCESS_SHORT.includes(SHORT)).toBe(false);
     expect(SHORT.includes(ALT_OPEN)).toBe(false);
+    expect(SHORT.includes("Asking does not spare a machine that stays awake while work is still going.")).toBe(false);
+    expect("Asking does not spare a machine that stays awake while work is still going.".includes(SHORT)).toBe(false);
+    expect(HAS_NO.includes("has no wake guard")).toBe(false);
+    expect("has no wake guard".includes(HAS_NO)).toBe(false);
     expect("doze-tally-".startsWith("access-lift-")).toBe(false);
     expect("doze-tally-".startsWith("access-")).toBe(false);
     expect("doze-tally-".startsWith("lift-")).toBe(false);
