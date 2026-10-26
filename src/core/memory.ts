@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_DUAL_PRIMER = /^(?:please,?\s+)?does the (.+) routine say that two things to know before you select turn on$/i;
+
+export function routineDualPrimerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_DUAL_PRIMER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineDualPrimer(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineDualPrimerName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that two things to know before you select turn on\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_TURN_CONFIRM = /^(?:please,?\s+)?does the (.+) routine say that turning it on opens a confirmation$/i;
 
 export function routineTurnConfirmName(text: string): string | null {

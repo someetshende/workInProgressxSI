@@ -1258,6 +1258,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
   return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
 }
 
+export function routineDualPrimerCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no dual primer in the record. Asking does not preview those two notes.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineDualPrimerMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineDualPrimerAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineTurnConfirmCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
