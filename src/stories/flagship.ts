@@ -3595,6 +3595,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F190",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that turning the setting off stops further terminations",
+      title: "Say that one routine has no valve shut and do not stop later endings by switching that control off",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no valve shut in the record, so that I can check the work without stopping later endings by switching that control off.",
+      acceptance: [
+        "Saying whether the Launch note routine says that turning the setting off stops further terminations says that one routine has no valve shut in the record.",
+        "Asking does not stop later endings by switching that control off, does not halt later endings by switching that control off, and does not cease later endings by switching that control off.",
+        "A stored run is not a valve shut. A script reprise is not one. The script-reprise answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

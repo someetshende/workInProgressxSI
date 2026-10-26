@@ -1574,6 +1574,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 }
 
 
+const ROUTINE_VALVE_SHUT = /^(?:please,?\s+)?does the (.+) routine say that turning the setting off stops further terminations$/i;
+
+export function routineValveShutName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_VALVE_SHUT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineValveShut(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineValveShutName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that turning the setting off stops further terminations\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SCRIPT_REPRISE = /^(?:please,?\s+)?does the (.+) routine say that apps and packages they installed themselves are removed, and team setup scripts run again$/i;
 
 export function routineScriptRepriseName(text: string): string | null {
