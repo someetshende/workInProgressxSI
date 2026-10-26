@@ -3519,6 +3519,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F186",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that members lose nothing and do nothing",
+      title: "Say that one routine has no void levy and do not cost a member anything or make them act",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no void levy in the record, so that I can check the work without costing a member anything or making them act.",
+      acceptance: [
+        "Saying whether the Launch note routine says that members lose nothing and do nothing says that one routine has no void levy in the record.",
+        "Asking does not cost a member anything or make them act, does not take away what a member already keeps, and does not require a member to step in.",
+        "A stored run is not a void levy. A drift landing is not one. The drift-landing answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

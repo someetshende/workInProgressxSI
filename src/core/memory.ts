@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_VOID_LEVY = /^(?:please,?\s+)?does the (.+) routine say that members lose nothing and do nothing$/i;
+
+export function routineVoidLevyName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_VOID_LEVY.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineVoidLevy(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineVoidLevyName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that members lose nothing and do nothing\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_DRIFT_LANDING = /^(?:please,?\s+)?does the (.+) routine say that cursor checks hibernated computers on a rolling schedule, so termination lands in the days after the 30-day mark rather than at the exact moment$/i;
 
 export function routineDriftLandingName(text: string): string | null {
