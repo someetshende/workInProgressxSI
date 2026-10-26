@@ -3367,6 +3367,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F178",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that when a member's computer goes 30 days without use, Cursor terminates it",
+      title: "Say that one routine has no thirty lapse and do not end an unused computer after thirty days",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no thirty lapse in the record, so that I can check the work without ending an unused computer after thirty days.",
+      acceptance: [
+        "Saying whether the Launch note routine says that when a member's computer goes 30 days without use, Cursor terminates it says that one routine has no thirty lapse in the record.",
+        "Asking does not end an unused computer after thirty days, does not close an unused computer after thirty days, and does not retire an unused computer after thirty days.",
+        "A stored run is not a thirty lapse. A tidy sweep is not one. The tidy-sweep answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

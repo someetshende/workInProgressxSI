@@ -1573,6 +1573,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
   return ROUTINE_LOOSEN.test(value);
 }
 
+const ROUTINE_THIRTY_LAPSE = /^(?:please,?\s+)?does the (.+) routine say that when a member's computer goes 30 days without use, cursor terminates it$/i;
+
+export function routineThirtyLapseName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_THIRTY_LAPSE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineThirtyLapse(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineThirtyLapseName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that when a member's computer goes 30 days without use, cursor terminates it\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_TIDY_SWEEP = /^(?:please,?\s+)?does the (.+) routine say that terminate inactive computers, in the bot computers section, does that cleanup for you$/i;
 
 export function routineTidySweepName(text: string): string | null {
