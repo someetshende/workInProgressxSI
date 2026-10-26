@@ -1263,6 +1263,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineCiteSlipCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no cite slip in the record. Asking does not open that review page from the note.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineCiteSlipMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineCiteSlipAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineDouseMarkCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";

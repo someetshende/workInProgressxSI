@@ -82,6 +82,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no douse mark";
 
 const OTHER_HAS_NO = [
+  "has no cite slip",
   "has no sight glass",
   "has no ink latch",
   "has no cap layer",
@@ -263,6 +264,9 @@ describe("ORIEL-F220", () => {
         expect(other.includes(HAS_NO)).toBe(false);
       }
       for (const other of [
+        "Asking does not open that review page from the note.",
+        "Asking does not show that review page from the note.",
+        "Asking does not lead to that review page from the note.",
         "Asking does not show those shared notes as a look-only pane where ask-first wins a clash.",
         "Asking does not leave those shared notes as a look-only pane where ask-first wins a clash.",
         "Asking does not park those shared notes as a look-only pane where ask-first wins a clash.",

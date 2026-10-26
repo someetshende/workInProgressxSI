@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const CITE_SLIP_FACT = "see approvals and auto review";
+const ROUTINE_CITE_SLIP = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${CITE_SLIP_FACT}$`, "i");
+const ROUTINE_CITE_SLIP_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${CITE_SLIP_FACT}\\b`, "i");
+
+export function routineCiteSlipName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CITE_SLIP.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCiteSlip(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCiteSlipName(text)) return false;
+  if (!ROUTINE_CITE_SLIP_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const DOUSE_MARK_FACT = "turning enforcement off stops applying the team rules";
 const ROUTINE_DOUSE_MARK = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${DOUSE_MARK_FACT}$`, "i");
 const ROUTINE_DOUSE_MARK_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${DOUSE_MARK_FACT}\\b`, "i");

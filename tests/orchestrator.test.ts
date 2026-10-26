@@ -53224,6 +53224,7 @@ describe("flagship traceability", () => {
   it("every flagship id is named by a test", async () => {
     const sources = [
       await readFile("tests/orchestrator.test.ts", "utf8"),
+      await readFile("tests/cite-slip.test.ts", "utf8"),
       await readFile("tests/douse-mark.test.ts", "utf8"),
       await readFile("tests/server.test.ts", "utf8"),
       await readFile("tests/sync-forfeit.test.ts", "utf8"),
@@ -53250,6 +53251,7 @@ describe("flagship traceability", () => {
       await readFile("tests/scope-split.test.ts", "utf8"),
       await readFile("tests/canon-bind.test.ts", "utf8"),
       await readFile("e2e/oriel.spec.ts", "utf8"),
+      await readFile("e2e/cite-slip.spec.ts", "utf8"),
       await readFile("e2e/douse-mark.spec.ts", "utf8"),
       await readFile("e2e/sync-forfeit.spec.ts", "utf8"),
       await readFile("e2e/circle-door.spec.ts", "utf8"),

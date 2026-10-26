@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F221",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that see approvals and Auto Review",
+      title: "Say that one routine has no cite slip and do not open that review page from the note",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no cite slip in the record, so that I can check the work without opening that review page from the note.",
+      acceptance: [
+        "Saying whether the Launch note routine says that see approvals and Auto Review says that one routine has no cite slip in the record.",
+        "Asking does not open that review page from the note, does not show that review page from the note, and does not lead to that review page from the note.",
+        "A stored run is not a cite slip. A douse mark is not one. The douse-mark answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F220",
       persona: "a chief of staff",
       role: "operator",
