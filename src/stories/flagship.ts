@@ -3748,6 +3748,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F198",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that select the member from any team they belong to",
+      title: "Say that one routine has no circle door and do not choose that person from every group they sit in",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no circle door in the record, so that I can check the work without choosing that person from every group they sit in.",
+      acceptance: [
+        "Saying whether the Launch note routine says that select the member from any team they belong to says that one routine has no circle door in the record.",
+        "Asking does not choose that person from every group they sit in, does not select that person from every circle they join, and does not name that person from every circle they join.",
+        "A stored run is not a circle door. A sync forfeit is not one. The sync-forfeit answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

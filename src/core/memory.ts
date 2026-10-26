@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_CIRCLE_DOOR = /^(?:please,?\s+)?does the (.+) routine say that select the member from any team they belong to$/i;
+
+export function routineCircleDoorName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CIRCLE_DOOR.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCircleDoor(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCircleDoorName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that select the member from any team they belong to\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SYNC_FORFEIT = /^(?:please,?\s+)?does the (.+) routine say that bots, files, and logins that had synced come back; a turn that was running is lost$/i;
 
 export function routineSyncForfeitName(text: string): string | null {
