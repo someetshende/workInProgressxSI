@@ -3614,6 +3614,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F191",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their Enterprise teams has it on",
+      title: "Say that one routine has no cross reach and do not let one computer cover every team",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no cross reach in the record, so that I can check the work without letting one computer cover every team.",
+      acceptance: [
+        "Saying whether the Launch note routine says that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their Enterprise teams has it on says that one routine has no cross reach in the record.",
+        "Asking does not let one computer cover every team, does not bind that control from any one team, and does not spread that control across every team.",
+        "A stored run is not a cross reach. A valve shut is not one. The valve-shut answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

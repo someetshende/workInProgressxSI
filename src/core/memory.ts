@@ -1574,6 +1574,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 }
 
 
+const ROUTINE_CROSS_REACH = /^(?:please,?\s+)?does the (.+) routine say that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their enterprise teams has it on$/i;
+
+export function routineCrossReachName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_CROSS_REACH.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineCrossReach(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineCrossReachName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that one computer spans every team a member belongs to, so the setting applies to a member's computer if any of their enterprise teams has it on\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_VALVE_SHUT = /^(?:please,?\s+)?does the (.+) routine say that turning the setting off stops further terminations$/i;
 
 export function routineValveShutName(text: string): string | null {

@@ -1259,6 +1259,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 }
 
 
+export function routineCrossReachCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no cross reach in the record. Asking does not let one computer cover every team.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineCrossReachMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineCrossReachAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineValveShutCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
