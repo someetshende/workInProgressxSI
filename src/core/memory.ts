@@ -1576,6 +1576,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_START_DIM = /^(?:please,?\s+)?does the (.+) routine say that the switch is on the grok bot page and is off by default$/i;
+
+export function routineStartDimName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_START_DIM.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineStartDim(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineStartDimName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that the switch is on the grok bot page and is off by default\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_VETO_KEEL = /^(?:please,?\s+)?does the (.+) routine say that prevents members from turning auto-review off$/i;
 
 export function routineVetoKeelName(text: string): string | null {

@@ -80,6 +80,7 @@ const LABOR_SHORT = "Asking does not close the work that is underway by ending t
 const HAS_NO = "has no veto keel";
 
 const OTHER_HAS_NO = [
+  "has no start dim",
   "has no clan charter",
   "has no guide lane",
   "has no terse few",
@@ -254,6 +255,9 @@ describe("ORIEL-F211", () => {
       for (const other of [
         ALT_OPEN,
         ALT_SET,
+        "Asking does not leave that control on that page and off at the start.",
+        "Asking does not park that control on that page and off at the start.",
+        "Asking does not seat that control on that page and off at the start.",
         CLAN_SHORT,
         "Asking does not add those notes for one set of people under that set's settings.",
         "Asking does not set those notes for one set of people under that set's settings.",

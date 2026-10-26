@@ -4014,6 +4014,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F212",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the switch is on the Grok Bot page and is off by default",
+      title: "Say that one routine has no start dim and do not leave that control on that page and off at the start",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no start dim in the record, so that I can check the work without leaving that control on that page and off at the start.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the switch is on the Grok Bot page and is off by default says that one routine has no start dim in the record.",
+        "Asking does not leave that control on that page and off at the start, does not park that control on that page and off at the start, and does not seat that control on that page and off at the start.",
+        "A stored run is not a start dim. A veto keel is not one. The veto-keel answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
 
   ];
 

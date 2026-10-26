@@ -1261,6 +1261,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineStartDimCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no start dim in the record. Asking does not leave that control on that page and off at the start.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineStartDimMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineStartDimAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineVetoKeelCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
