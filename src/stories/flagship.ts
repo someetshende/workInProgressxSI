@@ -3691,6 +3691,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F195",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that after a terminate, manual or automatic, the member's next message starts a fresh computer on their durable disk",
+      title: "Say that one routine has no fresh boot and do not open a new machine on that disk after an ending",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no fresh boot in the record, so that I can check the work without opening a new machine on that disk after an ending.",
+      acceptance: [
+        "Saying whether the Launch note routine says that after a terminate, manual or automatic, the member's next message starts a fresh computer on their durable disk says that one routine has no fresh boot in the record.",
+        "Asking does not open a new machine on that disk after an ending, does not spin up a new machine on that disk after an ending, and does not bring up a new machine on that disk after an ending.",
+        "A stored run is not a fresh boot. A session drop is not one. The session-drop answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_FRESH_BOOT = /^(?:please,?\s+)?does the (.+) routine say that after a terminate, manual or automatic, the member's next message starts a fresh computer on their durable disk$/i;
+
+export function routineFreshBootName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_FRESH_BOOT.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineFreshBoot(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineFreshBootName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that after a terminate, manual or automatic, the member's next message starts a fresh computer on their durable disk\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_SESSION_DROP = /^(?:please,?\s+)?does the (.+) routine say that sign-in sessions inside the computer can drop when it is recreated, so members sign in to company tools again under your identity provider's policies$/i;
 
 export function routineSessionDropName(text: string): string | null {
