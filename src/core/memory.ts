@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const SIGHT_GLASS_FACT = "members see the team rules under settings → general → auto-review but cannot edit or delete them, and ask first wins when rules conflict";
+const ROUTINE_SIGHT_GLASS = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${SIGHT_GLASS_FACT}$`, "i");
+const ROUTINE_SIGHT_GLASS_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${SIGHT_GLASS_FACT}\\b`, "i");
+
+export function routineSightGlassName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SIGHT_GLASS.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineSightGlass(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineSightGlassName(text)) return false;
+  if (!ROUTINE_SIGHT_GLASS_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const INK_LATCH_FACT = "add them with configure rules on the grok bot page; changes save automatically";
 const ROUTINE_INK_LATCH = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${INK_LATCH_FACT}$`, "i");
 const ROUTINE_INK_LATCH_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${INK_LATCH_FACT}\\b`, "i");

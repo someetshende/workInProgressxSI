@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F219",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that members see the team rules under Settings → General → Auto-review but cannot edit or delete them, and Ask first wins when rules conflict",
+      title: "Say that one routine has no sight glass and do not show those shared notes as a look-only pane where ask-first wins a clash",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no sight glass in the record, so that I can check the work without showing those shared notes as a look-only pane where ask-first wins a clash.",
+      acceptance: [
+        "Saying whether the Launch note routine says that members see the team rules under Settings → General → Auto-review but cannot edit or delete them, and Ask first wins when rules conflict says that one routine has no sight glass in the record.",
+        "Asking does not show those shared notes as a look-only pane where ask-first wins a clash, does not leave those shared notes as a look-only pane where ask-first wins a clash, and does not park those shared notes as a look-only pane where ask-first wins a clash.",
+        "A stored run is not a sight glass. An ink latch is not one. The ink-latch answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F218",
       persona: "a chief of staff",
       role: "operator",
