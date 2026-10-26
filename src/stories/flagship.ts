@@ -3767,6 +3767,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F199",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that one computer serves every team the member is in, so recreating or terminating it from one team affects the same computer everywhere",
+      title: "Say that one routine has no serve wide and do not ripple that same machine out from one group",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no serve wide in the record, so that I can check the work without rippling that same machine out from one group.",
+      acceptance: [
+        "Saying whether the Launch note routine says that one computer serves every team the member is in, so recreating or terminating it from one team affects the same computer everywhere says that one routine has no serve wide in the record.",
+        "Asking does not ripple that same machine out from one group, does not carry that same machine across every group, and does not echo that same machine from a single group.",
+        "A stored run is not a serve wide. A circle door is not one. The circle-door answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {

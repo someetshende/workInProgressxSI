@@ -1575,6 +1575,24 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const ROUTINE_SERVE_WIDE = /^(?:please,?\s+)?does the (.+) routine say that one computer serves every team the member is in, so recreating or terminating it from one team affects the same computer everywhere$/i;
+
+export function routineServeWideName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SERVE_WIDE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineServeWide(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineServeWideName(text)) return false;
+  if (!/^(?:please,?\s+)?does the .+ routine say that one computer serves every team the member is in, so recreating or terminating it from one team affects the same computer everywhere\b/i.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const ROUTINE_CIRCLE_DOOR = /^(?:please,?\s+)?does the (.+) routine say that select the member from any team they belong to$/i;
 
 export function routineCircleDoorName(text: string): string | null {

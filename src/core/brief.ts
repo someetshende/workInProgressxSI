@@ -1260,6 +1260,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+export function routineServeWideCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no serve wide in the record. Asking does not ripple that same machine out from one group.${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineServeWideMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineServeWideAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
 export function routineCircleDoorCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
   const other = another ? " Another routine is unchanged." : "";
