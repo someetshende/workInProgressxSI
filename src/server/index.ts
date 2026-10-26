@@ -435,11 +435,16 @@ export async function startServer(options: {
     port: address.port,
     url: `http://${host}:${address.port}`,
     dir: options.dataDir,
-    close: () =>
-      new Promise((resolve, reject) => {
-        if (timer) clearInterval(timer);
+    close: async () => {
+      if (timer) clearInterval(timer);
+      const started = Date.now();
+      while (waking && Date.now() - started < 2000) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      await new Promise<void>((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));
-      }),
+      });
+    },
   };
 }
 

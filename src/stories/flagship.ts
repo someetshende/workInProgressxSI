@@ -3557,6 +3557,25 @@ export function flagshipStories(): Story[] {
       testRef: "tests/orchestrator.test.ts",
       insight: 0,
     },
+    {
+      id: "ORIEL-F188",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that the durable disk stays, and the member's next message starts a fresh computer with their Bots, files, and logins in place",
+      title: "Say that one routine has no disk stay and do not keep that disk when the next message opens a new computer",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no disk stay in the record, so that I can check the work without keeping that disk when the next message opens a new computer.",
+      acceptance: [
+        "Saying whether the Launch note routine says that the durable disk stays, and the member's next message starts a fresh computer with their Bots, files, and logins in place says that one routine has no disk stay in the record.",
+        "Asking does not keep that disk when the next message opens a new computer, does not leave that disk ready for a new computer, and does not retain that disk across a new computer.",
+        "A stored run is not a disk stay. A hand twin is not one. The hand-twin answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
   ];
 
   return stories.map((story) => {
