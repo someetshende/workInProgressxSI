@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F224",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Open Inference Hooks from Security & Compliance on the Grok Bot page",
+      title: "Say that one routine has no hook shelf and do not open that hooks pane from the compliance shelf",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no hook shelf in the record, so that I can check the work without opening that hooks pane from the compliance shelf.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Open Inference Hooks from Security & Compliance on the Grok Bot page says that one routine has no hook shelf in the record.",
+        "Asking does not open that hooks pane from the compliance shelf, does not show that hooks pane from the compliance shelf, and does not reach that hooks pane from the compliance shelf.",
+        "A stored run is not a hook shelf. A yield cord is not one. The yield-cord answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F223",
       persona: "a chief of staff",
       role: "operator",

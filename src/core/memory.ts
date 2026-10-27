@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const HOOK_SHELF_FACT = "open inference hooks from security & compliance on the grok bot page";
+const ROUTINE_HOOK_SHELF = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${HOOK_SHELF_FACT}$`, "i");
+const ROUTINE_HOOK_SHELF_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${HOOK_SHELF_FACT}\\b`, "i");
+
+export function routineHookShelfName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_HOOK_SHELF.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineHookShelf(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineHookShelfName(text)) return false;
+  if (!ROUTINE_HOOK_SHELF_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const YIELD_CORD_FACT = "your server allows or denies the request before the model runs";
 const ROUTINE_YIELD_CORD = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${YIELD_CORD_FACT}$`, "i");
 const ROUTINE_YIELD_CORD_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${YIELD_CORD_FACT}\\b`, "i");

@@ -143,6 +143,7 @@ export function stopRoutineAmbiguousCopy(name: string): string {
   return `More than one routine is named ${quotedRoutine(name)}. Nothing was changed. A completed action stays completed. Nothing was sent or spent.`;
 }
 
+const SHORT_HOOK = "Asking does not open that hooks pane from the compliance shelf.";
 const SHORT_YIELD = "Asking does not let that host permit or refuse the request before the model runs.";
 
 const SCHEDULE_TAIL =
@@ -1264,6 +1265,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+
+export function routineHookShelfCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no hook shelf in the record. ${SHORT_HOOK}${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineHookShelfMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineHookShelfAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
 
 export function routineYieldCordCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);
