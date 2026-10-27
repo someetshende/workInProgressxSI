@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F226",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that Inference hooks are in beta and available to all Enterprise teams",
+      title: "Say that one routine has no trial span and do not mark those review checks as a trial open to every large team",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no trial span in the record, so that I can check the work without marking those review checks as a trial open to every large team.",
+      acceptance: [
+        "Saying whether the Launch note routine says that Inference hooks are in beta and available to all Enterprise teams says that one routine has no trial span in the record.",
+        "Asking does not mark those review checks as a trial open to every large team, does not call those review checks a trial open to every large team, and does not treat those review checks as a trial open to every large team.",
+        "A stored run is not a trial span. A shade tally is not one. The shade-tally answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F225",
       persona: "a chief of staff",
       role: "operator",

@@ -143,6 +143,7 @@ export function stopRoutineAmbiguousCopy(name: string): string {
   return `More than one routine is named ${quotedRoutine(name)}. Nothing was changed. A completed action stays completed. Nothing was sent or spent.`;
 }
 
+const SHORT_TRIAL = "Asking does not mark those review checks as a trial open to every large team.";
 const SHORT_SHADE = "Asking does not leave a new setup in a quiet watch that notes refusals without stopping people.";
 const SHORT_HOOK = "Asking does not open that hooks pane from the compliance shelf.";
 const SHORT_YIELD = "Asking does not let that host permit or refuse the request before the model runs.";
@@ -1266,6 +1267,20 @@ export function routineProgressCardAmbiguousCopy(name: string): string {
 
 
 
+
+export function routineTrialSpanCopy(name: string, another: boolean): string {
+  const quoted = quotedRoutine(name);
+  const other = another ? " Another routine is unchanged." : "";
+  return `${quoted} has no trial span in the record. ${SHORT_TRIAL}${other} ${SCHEDULE_TAIL}`;
+}
+
+export function routineTrialSpanMissCopy(name: string): string {
+  return `There is no such routine as ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
+
+export function routineTrialSpanAmbiguousCopy(name: string): string {
+  return `More than one routine has that name, ${quotedRoutine(name)}. ${SCHEDULE_TAIL}`;
+}
 
 export function routineShadeTallyCopy(name: string, another: boolean): string {
   const quoted = quotedRoutine(name);

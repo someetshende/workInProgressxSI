@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const TRIAL_SPAN_FACT = "inference hooks are in beta and available to all enterprise teams";
+const ROUTINE_TRIAL_SPAN = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${TRIAL_SPAN_FACT}$`, "i");
+const ROUTINE_TRIAL_SPAN_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${TRIAL_SPAN_FACT}\\b`, "i");
+
+export function routineTrialSpanName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_TRIAL_SPAN.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineTrialSpan(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineTrialSpanName(text)) return false;
+  if (!ROUTINE_TRIAL_SPAN_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const SHADE_TALLY_FACT = "new configurations start in shadow mode, which records denials in the audit log without blocking members";
 const ROUTINE_SHADE_TALLY = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${SHADE_TALLY_FACT}$`, "i");
 const ROUTINE_SHADE_TALLY_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${SHADE_TALLY_FACT}\\b`, "i");
