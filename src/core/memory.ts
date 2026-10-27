@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const GLOSS_LINE_FACT = "see grok bot inference hooks";
+const ROUTINE_GLOSS_LINE = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${GLOSS_LINE_FACT}$`, "i");
+const ROUTINE_GLOSS_LINE_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${GLOSS_LINE_FACT}\\b`, "i");
+
+export function routineGlossLineName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_GLOSS_LINE.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineGlossLine(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineGlossLineName(text)) return false;
+  if (!ROUTINE_GLOSS_LINE_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const TRIAL_SPAN_FACT = "inference hooks are in beta and available to all enterprise teams";
 const ROUTINE_TRIAL_SPAN = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${TRIAL_SPAN_FACT}$`, "i");
 const ROUTINE_TRIAL_SPAN_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${TRIAL_SPAN_FACT}\\b`, "i");

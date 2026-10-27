@@ -4094,6 +4094,26 @@ export function flagshipStories(): Story[] {
     },
 
     {
+      id: "ORIEL-F227",
+      persona: "a chief of staff",
+      role: "operator",
+      surface: "routines",
+      capability: "Whether one routine says that See Grok Bot inference hooks",
+      title: "Say that one routine has no gloss line and do not follow that see-also line to the hooks note",
+      story:
+        "As a chief of staff, I want Oriel to say that one saved routine has no gloss line in the record, so that I can check the work without following that see-also line to the hooks note.",
+      acceptance: [
+        "Saying whether the Launch note routine says that See Grok Bot inference hooks says that one routine has no gloss line in the record.",
+        "Asking does not follow that see-also line to the hooks note, does not open that see-also line to the hooks note, and does not walk that see-also line to the hooks note.",
+        "A stored run is not a gloss line. A trial span is not one. The trial-span answer stays. Nothing is sent or spent.",
+      ],
+      priority: "p0",
+      kind: "flagship",
+      testRef: "tests/orchestrator.test.ts",
+      insight: 0,
+    },
+
+    {
       id: "ORIEL-F226",
       persona: "a chief of staff",
       role: "operator",
