@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const REACH_LEDGER_FACT = "how team computers are set up, what they can reach, and how you recreate or terminate them";
+const ROUTINE_REACH_LEDGER = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${REACH_LEDGER_FACT}$`, "i");
+const ROUTINE_REACH_LEDGER_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${REACH_LEDGER_FACT}\\b`, "i");
+
+export function routineReachLedgerName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_REACH_LEDGER.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineReachLedger(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineReachLedgerName(text)) return false;
+  if (!ROUTINE_REACH_LEDGER_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const GLOSS_LINE_FACT = "see grok bot inference hooks";
 const ROUTINE_GLOSS_LINE = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${GLOSS_LINE_FACT}$`, "i");
 const ROUTINE_GLOSS_LINE_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${GLOSS_LINE_FACT}\\b`, "i");
