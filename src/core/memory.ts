@@ -1577,6 +1577,26 @@ export function loosensRoutineProgressCard(text: string): boolean {
 
 
 
+const SHADE_TALLY_FACT = "new configurations start in shadow mode, which records denials in the audit log without blocking members";
+const ROUTINE_SHADE_TALLY = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${SHADE_TALLY_FACT}$`, "i");
+const ROUTINE_SHADE_TALLY_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${SHADE_TALLY_FACT}\\b`, "i");
+
+export function routineShadeTallyName(text: string): string | null {
+  const value = tidySentence(text);
+  const match = ROUTINE_SHADE_TALLY.exec(value);
+  if (!match) return null;
+  const name = stripRoutineToken(match[1] ?? "");
+  if (!name || ROUTINE_LOOSEN.test(name)) return null;
+  return name;
+}
+
+export function loosensRoutineShadeTally(text: string): boolean {
+  const value = tidySentence(text);
+  if (routineShadeTallyName(text)) return false;
+  if (!ROUTINE_SHADE_TALLY_PREFIX.test(value)) return false;
+  return ROUTINE_LOOSEN.test(value);
+}
+
 const HOOK_SHELF_FACT = "open inference hooks from security & compliance on the grok bot page";
 const ROUTINE_HOOK_SHELF = new RegExp(`^(?:please,?\\s+)?does the (.+) routine say that ${HOOK_SHELF_FACT}$`, "i");
 const ROUTINE_HOOK_SHELF_PREFIX = new RegExp(`^(?:please,?\\s+)?does the .+ routine say that ${HOOK_SHELF_FACT}\\b`, "i");
